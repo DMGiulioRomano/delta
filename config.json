@@ -1,0 +1,10 @@
+{
+    "brano": {
+        "titolo": "delta",
+        "durata": "8",
+        "sezioni": {
+            "quantita": 3,
+            "rapporti": [1, 2, 3]
+        }
+    }
+}
