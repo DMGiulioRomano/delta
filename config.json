@@ -3,8 +3,17 @@
         "titolo": "delta",
         "durata": "8",
         "sezioni": {
-            "quantita": 3,
-            "rapporti": [1, 2, 3]
+            "rapporti": [1, 2, 3],
+            "sezione1" : {
+                "densita": [20,60,10,90]
+            },
+            "sezione2" : {
+                "densita": [10,50,5,60]                
+            },
+            "sezione3" : {
+                "densita": [10,50,5,60]                
+            }
         }
     }
 }
+
