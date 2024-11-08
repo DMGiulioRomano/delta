@@ -1,17 +1,44 @@
 {
     "brano": {
         "titolo": "delta",
-        "durata": "8",
+        "attacco": 4,
+        "durata": 8,
+        "forma": [
+            {   
+                "grandezza" : 0.5,
+                "punti": [
+                    [0, 0.0001, "Expon"], 
+                    [0.4, 0.5, "Line"],
+                    [0.7, 0.7, "Log"],
+                    [0.99,0.001, "Expon"]
+                ]
+            },
+            {
+                "grandezza" : 0.2,
+                "punti": [
+                    [0.01, 0.001, "Log"], 
+                    [0.3, 0.24, "Expon"], 
+                    [0.6, 0.3, "Line"],
+                    [0.99,0.001, "Expon"]
+                    ]
+            },
+            {
+                "grandezza" : 0.3,
+                "punti": [
+                    [0.01, 0.01, "Line"], 
+                    [0.5, 0.6, "Line"], 
+                    [0.8, 1, "Line"],
+                    [1,0.1, "Line"]
+                ]
+            }
+        ],
         "sezioni": {
-            "rapporti": [1, 2, 3],
+            "rapporti": [4,3,2],
             "sezione1" : {
-                "densita": [20,60,10,90]
             },
             "sezione2" : {
-                "densita": [10,50,5,60]                
             },
             "sezione3" : {
-                "densita": [10,50,5,60]                
             }
         }
     }

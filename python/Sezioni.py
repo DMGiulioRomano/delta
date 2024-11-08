@@ -13,4 +13,4 @@ class Sezioni:
     
     def __str__(self):
         attributi = [f"{attributo}={valore!r}" for attributo, valore in vars(self).items()]
-        return f"\nSezione{self.idSezione}({', \n '.join(attributi)})"
+        return f"\nSezione{self.idSezione}({', '.join(attributi)})"
