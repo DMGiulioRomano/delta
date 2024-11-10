@@ -1,10 +1,10 @@
 from Nota import Nota
+from Evento import Evento
 
-class Sezioni:
-    def __init__(self, idSezione, attacco, durata, dizionario):
+class Sezione(Evento):
+    def __init__(self, attacco, durata, idSezione, dizionario):
+        super().__init__(attacco, durata)  # Inizializza i punti usando il costruttore della superclasse
         self.idSezione = idSezione
-        self.attacco = attacco
-        self.durata = durata
         self.dizionario = dizionario
         self.note = []
 

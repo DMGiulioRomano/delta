@@ -2,7 +2,10 @@
     "brano": {
         "titolo": "delta",
         "attacco": 4,
-        "durata": 8,
+        "durata": {
+            "minuti": 8,
+            "secondi":0
+            },
         "forma": [
             {   
                 "grandezza" : 0.5,
@@ -33,7 +36,6 @@
             }
         ],
         "sezioni": {
-            "rapporti": [4,3,2],
             "sezione1" : {
             },
             "sezione2" : {

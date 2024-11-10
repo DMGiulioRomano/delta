@@ -9,6 +9,7 @@ class Forma:
         """Inizializza la classe con una lista di sezioni della forma."""
         self.forma = forma  # La forma è una lista di sezioni con i punti e la grandezza
         self.funzione = None
+        self.sezioni = []
         self.crea_funzione_a_tratti()
 
     def crea_funzione_a_tratti(self):
@@ -17,20 +18,24 @@ class Forma:
         offset = 0  # Inizia con offset 0, la prima sezione parte da x=0
         curvaTraPunti = []
         # Unisci tutti i punti di tutte le sezioni in una lista unica
-        for sezione in self.forma:
+        for s, sezione in enumerate(self.forma):
             grandezza = sezione["grandezza"]
             punti = sezione["punti"]
-            
+            punti_intermedi=[]
             # Applica la grandezza a tutti i punti della sezione
             for punto in punti:
                 x, y, curva = punto
                 new_x = x * grandezza + offset  # Scala ogni x del punto per la grandezza
-                punti_completi.append([new_x, y])
+                punti_intermedi.append([new_x, y])
                 curvaTraPunti.append(curva)
             # Aggiorna l'offset con l'ultima x della sezione corrente
-            offset = punti_completi[-1][0]  # L'offset è aggiornato all'ultima x della sezione corrente
-        
-        intervalli = []
+            offset = punti_intermedi[-1][0]  # L'offset è aggiornato all'ultima x della sezione corrente
+                # Calcola attacco e durata per la sezione corrente
+            attacco = punti_intermedi[0][0]
+            durata = punti_intermedi[-1][0] - punti_intermedi[0][0]
+            self.sezioni.append({"attacco": attacco, "durata": durata, "idSezione": s+1 })
+    
+            punti_completi.extend(punti_intermedi)
         condizioni = []
         espressioni = []
         
