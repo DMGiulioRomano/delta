@@ -37,10 +37,37 @@
         ],
         "sezioni": {
             "sezione1" : {
+                "comportamenti": 
+                [
+                    {
+                        "attacco":  0,
+                        "durata":   10,
+                        "ritmo":    [1,2,4],
+                        "durate":   [1.2,3.4,1]
+                    }
+                ]
             },
             "sezione2" : {
+                "comportamenti": 
+                [
+                    {
+                        "attacco":  0,
+                        "durata":   10,
+                        "ritmo":    [1,2,4],
+                        "durate":   [1.2,3.4,1]
+                    }
+                ]
             },
             "sezione3" : {
+                "comportamenti": 
+                [
+                    {
+                        "attacco":  0,
+                        "durata":   10,
+                        "ritmo":    [1,2,4],
+                        "durate":   [1.2,3.4,1]
+                    }
+                ]
             }
         }
     }
