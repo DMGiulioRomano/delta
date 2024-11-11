@@ -7,7 +7,7 @@ class EventoSonoro(Evento):
 
     def toCsound(self):
         pass
-    
+
     def __str__(self) -> str:
         attributi = [f"{attributo}={valore!r}" for attributo, valore in vars(self).items()]
         return f"\n         EventoSonoro{self.idEventoSonoro}({', '.join(attributi)})"

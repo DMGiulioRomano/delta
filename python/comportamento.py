@@ -17,7 +17,7 @@ class Comportamento(Evento):
     def toCsound(self):
         return "\n".join([e.toCsound() for e in self.eventiSonori])
 
-
+#
     def creaCsd(self):
         # Leggi il file originale
         with open('csound/comportamento.csd', 'r') as file:
