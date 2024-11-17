@@ -11,9 +11,24 @@ class Sezione(Evento):
 
     def genera_comportamenti(self):
         for index, c in enumerate(self.dizionario['comportamenti']):
-            self.comportamenti.append(Comportamento(c['attacco'],c['durata'],c['ritmo'],c['durate'],index+1))
+            self.comportamenti.append(Comportamento(c['attacco'],c['durata'],c['metro'],c['ritmo'],c['durate'],index+1))
+
+    def scriviCsd(self):
+        for i in self.comportamenti:
+            pass
+
 
     def __str__(self):
-        attributi = [f"{attributo}={valore!r}" for attributo, valore in vars(self).items()]
-        [print(c) for c in self.comportamenti]
-        return f"\n{self.idSezione}({', '.join(attributi)})"
+        # Elenco degli attributi da escludere
+        esclusi = {"comportamenti"}  
+        
+        # Crea la lista di attributi filtrando quelli esclusi
+        attributi = [
+            f"{attributo}={valore!r}" 
+            for attributo, valore in vars(self).items() 
+            if attributo not in esclusi
+        ]    
+        # Stampa i comportamenti (se necessario)
+        [print(c) for c in self.comportamenti]    
+        # Ritorna la rappresentazione formattata
+        return f"{self.idSezione}({', '.join(attributi)})\n"

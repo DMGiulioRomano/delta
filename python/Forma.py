@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from funzioni.Line import Line
-from funzioni.Expon import Expon
-from funzioni.Log import Log
+from funzioni import *
 
 class Forma:
     def __init__(self, forma):

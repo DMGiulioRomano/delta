@@ -1,5 +1,5 @@
 
 class Evento:
     def __init__(self,attacco,durata):
-        self.at = attacco
-        self.dur = durata
+        self.attaco = attacco
+        self.durata = durata

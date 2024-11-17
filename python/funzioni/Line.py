@@ -1,4 +1,4 @@
-from funzioni.Funzione import Funzione
+from funzioni import Funzione
 
 class Line(Funzione):
     def __init__(self, x1, y1, x2, y2):

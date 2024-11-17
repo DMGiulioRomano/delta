@@ -42,6 +42,7 @@
                     {
                         "attacco":  0,
                         "durata":   10,
+                        "metro" : 1,
                         "ritmo":    [1,2,4],
                         "durate":   [1.2,3.4,1]
                     }
@@ -53,6 +54,7 @@
                     {
                         "attacco":  0,
                         "durata":   10,
+                        "metro" : 1,
                         "ritmo":    [1,2,4],
                         "durate":   [1.2,3.4,1]
                     }
@@ -64,6 +66,7 @@
                     {
                         "attacco":  0,
                         "durata":   10,
+                        "metro" : 1,
                         "ritmo":    [1,2,4],
                         "durate":   [1.2,3.4,1]
                     }

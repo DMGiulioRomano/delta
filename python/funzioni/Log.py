@@ -1,5 +1,5 @@
 import numpy as np
-from funzioni.Funzione import Funzione
+from funzioni import Funzione
 
 class Log(Funzione):
     def __init__(self, x1, y1, x2, y2, offset=1e-5):

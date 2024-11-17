@@ -1,4 +1,4 @@
-from funzioni.Funzione import Funzione
+from funzioni import Funzione
 import numpy as np  # Assicurati che numpy sia importato
 
 class Expon(Funzione):

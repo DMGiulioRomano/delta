@@ -20,6 +20,10 @@ class Brano:
         self.dictSezioni = dati['brano']['sezioni']
         self.crea_sezioni()
         self.sezioni_oggetti = []  # Lista che conterrà gli oggetti delle sezioni
+    
+    def scriviCsd(self):
+        for i in self.sezioni:
+            pass
 
     def crea_sezioni(self):
         for sezione in self.forma.sezioni:
