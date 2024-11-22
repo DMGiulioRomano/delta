@@ -60,10 +60,10 @@ class Forma:
         """Funzione per plottare la funzione a tratti nell'intervallo specificato."""
         x_vals = np.linspace(dominio[0], dominio[1], 500)  # 500 punti per la trama
         y_vals = self.funzione(x_vals)  # Calcola i valori di y corrispondenti
-        plt.plot(x_vals, y_vals, label="Forma")
-        plt.xlabel("tempo")
-        plt.ylabel("dinamica")
-        plt.title("Forma di Delta")
+        plt.plot(x_vals, y_vals, label="Shape of Dynamic")
+        plt.xlabel("time")
+        plt.ylabel("dynamics")
+        plt.title("Delta amplitude envelope")
         plt.grid(True)
         plt.legend()
         plt.show()

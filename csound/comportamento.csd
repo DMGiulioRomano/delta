@@ -1,6 +1,7 @@
 <CsoundSynthesizer>
 <CsOptions>
--o "test.wav" -W
+; namefile
+
 </CsOptions>
 <CsInstruments>
 
@@ -11,21 +12,19 @@ nchnls=2
 
     instr 1
 
-iamp  = p4                  ; AMPIEZZA 
+iamp  = ampdbfs(p4)                 ; AMPIEZZA 
 ifreq = p5                  ; FREQUENZA
 
 as oscili iamp, ifreq       ; OSCILLATORE
-
-        outs as,as
+kanticlick cosseg 0, p3/20, 1, p3-p3/10, 1, p3/20,0
+        outs as*kanticlick,as*kanticlick
     endin
 
 </CsInstruments>
 <CsScore>
 f1 0 4096 10 1
 
-"comportamento"
+; "comportamento"
 
 </CsScore>
 </CsoundSynthesizer>
-
-

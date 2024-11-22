@@ -41,10 +41,30 @@
                 [
                     {
                         "attacco":  0,
-                        "durata":   10,
-                        "metro" : 1,
-                        "ritmo":    [1,2,4],
-                        "durate":   [1.2,3.4,1]
+                        "durata":   20,
+                        "durataArmonica" : 3,
+                        "ritmo":    [8,2,5,4,7,1],
+                        "durate":   [3,4,1,7,5],
+                        "ampiezze" : [-25,-20,-22,-16],
+                        "frequenze" : [600,600.5,601.3]
+                    },
+                    {
+                        "attacco":  6,
+                        "durata":   15,
+                        "durataArmonica" : 2,
+                        "ritmo":    [1,2,4,7],
+                        "durate":   [3,4,1,7],
+                        "ampiezze" : [-25,-20,-22,-16],
+                        "frequenze" : [400,400.5,400.2]
+                    },
+                    {
+                        "attacco":  12,
+                        "durata":   7,
+                        "durataArmonica" : 4,
+                        "ritmo":    [1,7,2,4,5],
+                        "durate":   [3,4,1,7,2],
+                        "ampiezze" : [-15,-20,-22,-16],
+                        "frequenze" : [600,601,600]
                     }
                 ]
             },
@@ -54,9 +74,11 @@
                     {
                         "attacco":  0,
                         "durata":   10,
-                        "metro" : 1,
-                        "ritmo":    [1,2,4],
-                        "durate":   [1.2,3.4,1]
+                        "durataArmonica" : 1,
+                        "ritmo":    [7,2,5,9],
+                        "durate":   [3,4,1,7],
+                        "ampiezze" : [-25,-20,-22,-16],
+                        "frequenze" : [600,601,608]
                     }
                 ]
             },
@@ -65,10 +87,12 @@
                 [
                     {
                         "attacco":  0,
-                        "durata":   10,
-                        "metro" : 1,
-                        "ritmo":    [1,2,4],
-                        "durate":   [1.2,3.4,1]
+                        "durata":   15,
+                        "durataArmonica" : 5,
+                        "ritmo":    [7,2,5,3,4],
+                        "durate":   [3,4,1,7],
+                        "ampiezze" : [-15,-20,-22,-16],
+                        "frequenze" : [500,501,500]
                     }
                 ]
             }

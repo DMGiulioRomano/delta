@@ -11,11 +11,12 @@ class Sezione(Evento):
 
     def genera_comportamenti(self):
         for index, c in enumerate(self.dizionario['comportamenti']):
-            self.comportamenti.append(Comportamento(c['attacco'],c['durata'],c['metro'],c['ritmo'],c['durate'],index+1))
+            self.comportamenti.append(Comportamento(c['attacco'],c['durata'],c['durataArmonica'],c['ritmo'],c['durate'],c['ampiezze'],c['frequenze'],self.attacco,index+1))
+            self.attacco = self.comportamenti[-1].durata
 
     def scriviCsd(self):
-        for i in self.comportamenti:
-            pass
+        for comportamento in self.comportamenti:
+            comportamento.scriviCsd(self.idSezione)
 
 
     def __str__(self):
@@ -27,7 +28,9 @@ class Sezione(Evento):
             f"{attributo}={valore!r}" 
             for attributo, valore in vars(self).items() 
             if attributo not in esclusi
-        ]    
+        ]
+        print(f"\n    SEZIONE")
+    
         # Stampa i comportamenti (se necessario)
         [print(c) for c in self.comportamenti]    
         # Ritorna la rappresentazione formattata

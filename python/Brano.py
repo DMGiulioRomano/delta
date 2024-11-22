@@ -21,10 +21,6 @@ class Brano:
         self.crea_sezioni()
         self.sezioni_oggetti = []  # Lista che conterrà gli oggetti delle sezioni
     
-    def scriviCsd(self):
-        for i in self.sezioni:
-            pass
-
     def crea_sezioni(self):
         for sezione in self.forma.sezioni:
             at = sezione['attacco'] * self.durata + self.attacco
@@ -32,6 +28,10 @@ class Brano:
             idSezione = f"sezione{sezione['idSezione']}"
             dizionarioSezione = self.dictSezioni[idSezione]
             self.sezioni.append(Sezione(at,dur,idSezione,dizionarioSezione))
+
+    def scriviCsd(self):
+        for sezione in self.sezioni:
+            sezione.scriviCsd()
 
     def __str__(self):
         """
