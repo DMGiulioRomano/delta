@@ -3,13 +3,14 @@ from EventoSonoro import EventoSonoro
 from itertools import cycle
 
 class Comportamento(Evento):
-    def __init__(self, attacco, durata, durataArmonica, ritmo, durate, ampiezze, frequenze, offsetAttacco, idComportamento):
-        super().__init__(attacco, durata)  # Inizializza i punti usando il costruttore della superclasse
-        self.durataArmonica = durataArmonica
-        self.ritmo = ritmo
-        self.durate = durate
-        self.ampiezze = ampiezze
-        self.frequenze = frequenze
+    def __init__(self, dizionario, offsetAttacco, idComportamento):
+    #def __init__(self, attacco, durata, durataArmonica, ritmo, durate, ampiezze, frequenze, offsetAttacco, idComportamento):
+        super().__init__(dizionario)  # Inizializza i punti usando il costruttore della superclasse
+        self.durataArmonica = dizionario['durataArmonica']
+        self.ritmo = dizionario['ritmo']
+        self.durate = dizionario['durate']
+        self.ampiezze = dizionario['ampiezze']
+        self.frequenze = dizionario['frequenze']
         self.offsetAttacco = offsetAttacco
         self.idComportamento = idComportamento
         self.eventiSonori = []
@@ -25,7 +26,8 @@ class Comportamento(Evento):
         self.calcolaPfield4()
         self.calcolaPfield5()
         for i, (p2, p3, p4, p5) in enumerate(zip(self.pField_2, self.pField_3, self.pField_4, self.pField_5)):
-            self.eventiSonori.append(EventoSonoro(p2, p3, p4, p5, i))
+            dictEvento = {'attacco' : p2 , 'durata' : p3, 'ampiezza' : p4 , 'frequenza' : p5 , 'idEventoSonoro': i}
+            self.eventiSonori.append(EventoSonoro(dictEvento))
 
     def calcolaPfield3(self):
         cycled = cycle(self.durate)
@@ -33,8 +35,6 @@ class Comportamento(Evento):
             ritmoN = 1/next(cycled)
             durN = self.durataArmonica*ritmoN
             self.pField_3.append(durN) 
-
-#            self.pField_3.append(next(cycled)) 
 
     def calcolaPfield5(self):
         cycled = cycle(self.frequenze)
@@ -66,7 +66,7 @@ class Comportamento(Evento):
         comportamento = self.toCsoundStr()
         directory = "csound/generazione/"
         subdirExport = "wav/"
-        namefile = f"-o \"{directory}{subdirExport}{idSezione}-Comportamento{self.idComportamento}.wav\" -W"
+        namefile = f"-o \"{directory}{subdirExport}sezione{idSezione}-Comportamento{self.idComportamento}.wav\" -W"
         # Leggi il file originale
         with open('csound/comportamento.csd', 'r') as file:
             lines = file.readlines()

@@ -25,9 +25,12 @@ class Brano:
         for sezione in self.forma.sezioni:
             at = sezione['attacco'] * self.durata + self.attacco
             dur = sezione['durata'] * self.durata
-            idSezione = f"sezione{sezione['idSezione']}"
-            dizionarioSezione = self.dictSezioni[idSezione]
-            self.sezioni.append(Sezione(at,dur,idSezione,dizionarioSezione))
+            idSezione = f"{sezione['idSezione']}"
+            whichSezione = f"sezione{idSezione}"
+            dizionarioSezioneFromJSON = self.dictSezioni[whichSezione]
+            newDictSezioneFromForma = {'attacco' : at , 'durata' : dur, 'idSezione' : idSezione}
+            newDictSezioneFromForma.update(dizionarioSezioneFromJSON)
+            self.sezioni.append(Sezione(newDictSezioneFromForma))
 
     def scriviCsd(self):
         for sezione in self.sezioni:
