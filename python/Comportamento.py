@@ -4,59 +4,69 @@ from itertools import cycle
 
 class Comportamento(Evento):
     def __init__(self, dizionario, offsetAttacco, idComportamento):
-    #def __init__(self, attacco, durata, durataArmonica, ritmo, durate, ampiezze, frequenze, offsetAttacco, idComportamento):
         super().__init__(dizionario)  # Inizializza i punti usando il costruttore della superclasse
-        self.durataArmonica = dizionario['durataArmonica']
-        self.ritmo = dizionario['ritmo']
-        self.durate = dizionario['durate']
-        self.ampiezze = dizionario['ampiezze']
-        self.frequenze = dizionario['frequenze']
         self.offsetAttacco = offsetAttacco
         self.idComportamento = idComportamento
+        self.lista_tuples = list(dizionario.items())
+        self.durataArmonica = dizionario['durataArmonica']
+        self.ritmo = dizionario['ritmo']
+        self.generaAttributi()
         self.eventiSonori = []
-        self.pField_2 = []
-        self.pField_3 = []
-        self.pField_4 = []
-        self.pField_5 = []
-        self.creaEventoSonoro()
+        #self.creaEventoSonoro()
+
+    def generaAttributi(self):
+        for i, (chiave, valore) in enumerate(self.lista_tuples[4:], start=3):
+            setattr(self, chiave, valore)  # Assegna dinamicamente l'attributo
+            # Crea dinamicamente un attributo "pfield{i}" che è una lista vuota
+            setattr(self, f"pfield{i}", [])
 
     def creaEventoSonoro(self):
         self.calcolaPfield2()
-        self.calcolaPfield3()
-        self.calcolaPfield4()
-        self.calcolaPfield5()
-        for i, (p2, p3, p4, p5) in enumerate(zip(self.pField_2, self.pField_3, self.pField_4, self.pField_5)):
-            dictEvento = {'attacco' : p2 , 'durata' : p3, 'ampiezza' : p4 , 'frequenza' : p5 , 'idEventoSonoro': i}
+        self.calcolaPfield()
+        # Cicliamo per ogni evento che dobbiamo creare
+        for i in range(len(self.pfield2)):
+            # Creiamo il dizionario per l'evento
+            dictEvento = {'idEventoSonoro': i}
+
+            # Cicliamo attraverso gli attributi dinamici pfield3, pfield4, ..., pfieldX
+            for j in range(3, len(self.lista_tuples[4:]) + 3):  # Iniziamo da 3 per "pfield3"
+                pfield_attr = f"pfield{j}"
+                if hasattr(self, pfield_attr):  # Verifica che l'attributo esista
+                    # Otteniamo il valore corrispondente all'indice `i` dal pfield
+                    valore = getattr(self, pfield_attr)[i]
+                    # Aggiungiamo il valore al dizionario, usando una chiave descrittiva
+                    dictEvento[self.lista_tuples[j - 3][0]] = valore  # La chiave è presa dalla lista_tuples
+
+            # Aggiungiamo l'evento sonoro alla lista
             self.eventiSonori.append(EventoSonoro(dictEvento))
 
-    def calcolaPfield3(self):
-        cycled = cycle(self.durate)
-        for _ in range(len(self.pField_2)):
-            ritmoN = 1/next(cycled)
-            durN = self.durataArmonica*ritmoN
-            self.pField_3.append(durN) 
+    def calcolaPfield(self):
+        # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
+        for i in range(3, len(self.lista_tuples[4:]) + 3):  # Iniziamo da 3 per "pfield3"
+            pfield_attr = f"pfield{i}"
+            if hasattr(self, pfield_attr):  # Verifica se l'attributo esiste
+                # Eseguiamo un ciclo sui valori da assegnare a ciascun pfield
+                cycled = cycle(getattr(self, self.lista_tuples[i - 3][0]))  # Recuperiamo la lista da associare
+                for _ in range(len(self.pfield2)):  # Usa la lunghezza di pfield2 per il ciclo
+                    getattr(self, pfield_attr).append(next(cycled))  # Assegna i valori dinamicamente
 
-    def calcolaPfield5(self):
-        cycled = cycle(self.frequenze)
-        for _ in range(len(self.pField_2)):
-            self.pField_5.append(next(cycled)) 
-
-    def calcolaPfield4(self):
+    """    def calcolaPfieldOld(self):
         cycled = cycle(self.ampiezze)
-        for _ in range(len(self.pField_2)):
+        for _ in range(len(self.pfield2)):
             self.pField_4.append(next(cycled)) 
-
+    """
     def calcolaPfield2(self):
+        self.pfield2=[]
         cycled_ritmo = cycle(self.ritmo)
         durata = self.durata
         while durata > 0:
-            if not self.pField_2:
+            if not self.pfield2:
                 atN = self.offsetAttacco
                 ritmoN=1/self.ritmo[0]
             else:
                 ritmoN = (1/next(cycled_ritmo))
-                atN = self.durataArmonica*ritmoN + self.pField_2[-1]
-            self.pField_2.append(atN)
+                atN = self.durataArmonica*ritmoN + self.pfield2[-1]
+            self.pfield2.append(atN)
             durata = durata - self.durataArmonica*ritmoN
 
     def toCsoundStr(self):
@@ -85,7 +95,7 @@ class Comportamento(Evento):
 
     def __str__(self):
         # Elenco degli attributi da escludere
-        esclusi = {"eventiSonori"}
+        esclusi = {"eventiSonori","lista_tuples"}
         # Crea la lista di attributi filtrando quelli esclusi
         attributi = [
             f"{attributo}={valore!r}" 
