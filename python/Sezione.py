@@ -1,10 +1,10 @@
 from Evento import Evento
 from Comportamento import Comportamento
 
-class Sezione(Evento):
+class Sezione:
     def __init__(self, dizionario):
-    #def __init__(self, attacco, durata, idSezione, dizionario):
-        super().__init__(dizionario)  # Inizializza i punti usando il costruttore della superclasse
+        self.sAttacco = dizionario.get('sAttacco', 0)  # Valore di default 0 se non presente
+        self.sDurata = dizionario.get('sDurata', 0)    # Valore di default 0 se non presente
         self.idSezione = dizionario['idSezione']
         self.dizionario = dizionario
         self.comportamenti = []
@@ -12,27 +12,28 @@ class Sezione(Evento):
 
     def genera_comportamenti(self):
         for index, c in enumerate(self.dizionario['comportamenti']):
-            self.comportamenti.append(Comportamento(c,self.attacco,index+1))
-            self.attacco = self.comportamenti[-1].durata
+            c['cAttacco'] += self.sAttacco
+            self.comportamenti.append(Comportamento(c,index+1))
+            #offsetAttacco = self.comportamenti[-1].cDurata
 
     def scriviCsd(self):
         for comportamento in self.comportamenti:
             comportamento.scriviCsd(self.idSezione)
 
-
     def __str__(self):
         # Elenco degli attributi da escludere
-        esclusi = {"comportamenti"}  
-        
+        output=""
+        esclusi = {"comportamenti","dizionario"}  
         # Crea la lista di attributi filtrando quelli esclusi
         attributi = [
             f"{attributo}={valore!r}" 
             for attributo, valore in vars(self).items() 
             if attributo not in esclusi
         ]
-        print(f"\n    SEZIONE")
-    
-        # Stampa i comportamenti (se necessario)
-        [print(c) for c in self.comportamenti]    
-        # Ritorna la rappresentazione formattata
-        return f"SEZIONE {self.idSezione}({', '.join(attributi)})\n"
+        output+="\n\n\n\n========================| "+"SEZIONE " + str(self.idSezione) +" |============================\n"
+        # Converti i comportamenti in stringhe e uniscili con una nuova linea
+        comportamenti_str = "\n\t".join([str(c) for c in self.comportamenti])
+#        [print(c) for c in self.comportamenti]    
+        attributi_formattati = ',\n\t'.join(attributi)
+        output = output + "{\n\t" + attributi_formattati + comportamenti_str + "}\n\n"
+        return output

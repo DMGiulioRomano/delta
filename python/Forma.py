@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from funzioni import *
 
 class Forma:
-    def __init__(self, forma):
+    def __init__(self, dizionario):
         """Inizializza la classe con una lista di sezioni della forma."""
-        self.forma = forma  # La forma è una lista di sezioni con i punti e la grandezza
+        self.dizionario = dizionario  # La forma è una lista di sezioni con i punti e la grandezza
         self.funzione = None
         self.sezioni = []
         self.crea_funzione_a_tratti()
@@ -16,7 +16,7 @@ class Forma:
         offset = 0  # Inizia con offset 0, la prima sezione parte da x=0
         curvaTraPunti = []
         # Unisci tutti i punti di tutte le sezioni in una lista unica
-        for s, sezione in enumerate(self.forma):
+        for s, sezione in enumerate(self.dizionario):
             grandezza = sezione["grandezza"]
             punti = sezione["punti"]
             punti_intermedi=[]

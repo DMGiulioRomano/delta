@@ -28,7 +28,7 @@ class Brano:
             idSezione = f"{sezione['idSezione']}"
             whichSezione = f"sezione{idSezione}"
             dizionarioSezioneFromJSON = self.dictSezioni[whichSezione]
-            newDictSezioneFromForma = {'attacco' : at , 'durata' : dur, 'idSezione' : idSezione}
+            newDictSezioneFromForma = {'sAttacco' : at , 'sDurata' : dur, 'idSezione' : idSezione}
             newDictSezioneFromForma.update(dizionarioSezioneFromJSON)
             self.sezioni.append(Sezione(newDictSezioneFromForma))
 

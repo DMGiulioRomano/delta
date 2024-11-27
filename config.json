@@ -40,8 +40,8 @@
                 "comportamenti": 
                 [
                     {
-                        "attacco":  0,
-                        "durata":   20,
+                        "cAttacco":  0,
+                        "cDurata":   20,
                         "durataArmonica" : 3,
                         "ritmo":    [8,2,5,4,7,1],
                         "durate":   "Line",
@@ -49,8 +49,8 @@
                         "frequenze" : "Line"
                     },
                     {
-                        "attacco":  6,
-                        "durata":   15,
+                        "cAttacco":  6,
+                        "cDurata":   15,
                         "durataArmonica" : 2,
                         "ritmo":    [1,2,4,7],
                         "durate":   "Line",
@@ -58,8 +58,8 @@
                         "frequenze" : "Line"
                     },
                     {
-                        "attacco":  12,
-                        "durata":   7,
+                        "cAttacco":  12,
+                        "cDurata":   7,
                         "durataArmonica" : 4,
                         "ritmo":    [1,7,2,4,5],
                         "durate":   "Line",
@@ -72,8 +72,8 @@
                 "comportamenti": 
                 [
                     {
-                        "attacco":  0,
-                        "durata":   10,
+                        "cAttacco":  0,
+                        "cDurata":   10,
                         "durataArmonica" : 1,
                         "ritmo":    [7,2,5,9],
                         "durate":   "Line",
@@ -86,8 +86,8 @@
                 "comportamenti": 
                 [
                     {
-                        "attacco":  0,
-                        "durata":   15,
+                        "cAttacco":  0,
+                        "cDurata":   15,
                         "durataArmonica" : 5,
                         "ritmo":    [7,2,5,3,4],
                         "durate":   "Line",
