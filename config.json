@@ -35,6 +35,11 @@
                 ]
             }
         ],
+        "dimensioni":{
+            "frequenze": [0],
+            "durate": [1],
+            "ampiezze": [2]
+        },
         "sezioni": {
             "sezione1" : {
                 "comportamenti": 
@@ -44,27 +49,27 @@
                         "cDurata":   20,
                         "durataArmonica" : 3,
                         "ritmo":    [8,2,5,4,7,1],
-                        "durate":   "Line",
-                        "ampiezze" : "Line",
-                        "frequenze" : "Line"
+                        "durata":   "Line",
+                        "ampiezza" :"Line",
+                        "frequenza" : "Line"
                     },
                     {
                         "cAttacco":  6,
                         "cDurata":   15,
                         "durataArmonica" : 2,
                         "ritmo":    [1,2,4,7],
-                        "durate":   "Line",
-                        "ampiezze" : "Line",
-                        "frequenze" : "Line"
+                        "durata":   "Line",
+                        "ampiezza" : "Line",
+                        "frequenza" : "Line"
                     },
                     {
                         "cAttacco":  12,
                         "cDurata":   7,
                         "durataArmonica" : 4,
                         "ritmo":    [1,7,2,4,5],
-                        "durate":   "Line",
-                        "ampiezze" : "Line",
-                        "frequenze" : "Line"
+                        "durata":   "Line",
+                        "ampiezza" : "Line",
+                        "frequenza" : "Line"
                     }
                 ]
             },
@@ -76,9 +81,9 @@
                         "cDurata":   10,
                         "durataArmonica" : 1,
                         "ritmo":    [7,2,5,9],
-                        "durate":   "Line",
-                        "ampiezze" : "Line",
-                        "frequenze" : "Line"
+                        "durata":   "Line",
+                        "ampiezza" : "Line",
+                        "frequenza" : "Line"
                     }
                 ]
             },
@@ -90,9 +95,9 @@
                         "cDurata":   15,
                         "durataArmonica" : 5,
                         "ritmo":    [7,2,5,3,4],
-                        "durate":   "Line",
-                        "ampiezze" : "Line",
-                        "frequenze" : "Line"
+                        "durata":   "Line",
+                        "ampiezza" : "Line",
+                        "frequenza" : "Line"
                     }
                 ]
             }

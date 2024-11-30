@@ -1,16 +1,29 @@
-from Evento import Evento
-
-class EventoSonoro(Evento):
+import pdb 
+class EventoSonoro:
     def __init__(self, dizionario):
-    #def __init__(self, attacco, durata, ampiezza, frequenze, idEventoSonoro):
-        super().__init__(dizionario)  # Inizializza i punti usando il costruttore della superclasse
-        self.idEventoSonoro= dizionario['idEventoSonoro']
-        self.ampiezza = dizionario['ampiezza']
-        self.frequenza = dizionario['frequenza']
+        self.dizionario = dizionario
+        #pdb.set_trace()
+        self.lista_tuples = list(dizionario.items())
+        self.generaAttributi()
+
+    def generaAttributi(self):
+        # Itera su tutta la lista di tuple, partendo dall'indice 0
+        for _, (chiave, valore) in enumerate(self.lista_tuples):
+            # Assegna sempre dinamicamente l'attributo
+            setattr(self, chiave, valore)
+            # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
 
     def toCsoundStr(self):
-        return f"i1\t{self.attacco}\t{self.durata}\t{self.ampiezza}\t{self.frequenza}"
+        pass#return f"i1\t{self.attacco}\t{self.durata}\t{self.ampiezza}\t{self.frequenza}"
 
     def __str__(self) -> str:
-        attributi = [f"{attributo}={valore!r}" for attributo, valore in vars(self).items()]
-        return f"         EventoSonoro{self.idEventoSonoro}({', '.join(attributi)})"
+        output ="\n\t\t"
+        esclusi ={"lista_tuples", "dizionario", "idEventoSonoro"}
+        output+=f"-----------------------| E {self.idEventoSonoro} |--------------------------------"
+
+        attributi = [f"{attributo} = {valore!r}" 
+                     for attributo, valore in vars(self).items()
+                     if attributo not in esclusi
+                     ]
+        attributi_formattati = ',\t'.join(attributi)
+        return output +"\n\t\t\t" + attributi_formattati

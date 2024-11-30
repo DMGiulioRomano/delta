@@ -1,20 +1,31 @@
 from Evento import Evento
 from Comportamento import Comportamento
-
+from Spazio import Spazio
 class Sezione:
     def __init__(self, dizionario):
-        self.sAttacco = dizionario.get('sAttacco', 0)  # Valore di default 0 se non presente
-        self.sDurata = dizionario.get('sDurata', 0)    # Valore di default 0 se non presente
-        self.idSezione = dizionario['idSezione']
         self.dizionario = dizionario
+        self.lista_tuples = list(dizionario.items())
+        self.generaAttributi()
         self.comportamenti = []
         self.genera_comportamenti()
+        self.creaEventi()
+
+    def creaEventi(self):
+        for c in self.comportamenti:
+            c.creaEventoSonoro(self.spazio)
+
+    def generaAttributi(self):
+        # Itera su tutta la lista di tuple, partendo dall'indice 0
+        for _, (chiave, valore) in enumerate(self.lista_tuples):
+            # Assegna sempre dinamicamente l'attributo
+            setattr(self, chiave, valore)
+            # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
 
     def genera_comportamenti(self):
         for index, c in enumerate(self.dizionario['comportamenti']):
             c['cAttacco'] += self.sAttacco
             self.comportamenti.append(Comportamento(c,index+1))
-            #offsetAttacco = self.comportamenti[-1].cDurata
+
 
     def scriviCsd(self):
         for comportamento in self.comportamenti:
@@ -23,7 +34,7 @@ class Sezione:
     def __str__(self):
         # Elenco degli attributi da escludere
         output=""
-        esclusi = {"comportamenti","dizionario"}  
+        esclusi = {"comportamenti","dizionario", "lista_tuples", "spazio"}  
         # Crea la lista di attributi filtrando quelli esclusi
         attributi = [
             f"{attributo}={valore!r}" 

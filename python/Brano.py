@@ -1,25 +1,16 @@
-import json
 from Sezione import Sezione  # Importa la classe Sezioni, presumibilmente definita altrove
 from Forma import Forma  # Importa la classe Forma, presumibilmente definita altrove
-
+from Spazio import Spazio
 class Brano:
-    def __init__(self, json_file):
-        # Apre e carica i dati dal file JSON passato come parametro
-        with open(json_file, 'r') as file:
-            dati = json.load(file)
-
-        # Estrae le informazioni dal dizionario dei dati
-        self.titolo = dati['brano']['titolo']  # Titolo del brano
-        self.attacco = dati['brano']['attacco']  # Valore di attacco
-        # Converte la durata in minuti (dati in formato stringa) in secondi
-        self.durata = dati['brano']['durata']['minuti'] * 60 + dati['brano']['durata']['secondi']
-        # Crea un oggetto Forma utilizzando i dati della forma del brano
-        self.forma = Forma(dati['brano']['forma'])
-        # Estrae le sezioni dal dizionario e le memorizza come attributi
+    def __init__(self, dizionario):
+        self.titolo = dizionario['titolo']  # Titolo del brano
+        self.attacco = dizionario['attacco']  # Valore di attacco
+        self.durata = dizionario['durata']['minuti'] * 60 + dizionario['durata']['secondi']
+        self.dictSezioni = dizionario['sezioni']
         self.sezioni=[]
-        self.dictSezioni = dati['brano']['sezioni']
+        self.forma = Forma(dizionario['forma'])
+        self.spazio = Spazio(dizionario['dimensioni'])
         self.crea_sezioni()
-        self.sezioni_oggetti = []  # Lista che conterrà gli oggetti delle sezioni
     
     def crea_sezioni(self):
         for sezione in self.forma.sezioni:
@@ -28,7 +19,7 @@ class Brano:
             idSezione = f"{sezione['idSezione']}"
             whichSezione = f"sezione{idSezione}"
             dizionarioSezioneFromJSON = self.dictSezioni[whichSezione]
-            newDictSezioneFromForma = {'sAttacco' : at , 'sDurata' : dur, 'idSezione' : idSezione}
+            newDictSezioneFromForma = {'sAttacco' : at , 'sDurata' : dur, 'idSezione' : idSezione , 'spazio': self.spazio}
             newDictSezioneFromForma.update(dizionarioSezioneFromJSON)
             self.sezioni.append(Sezione(newDictSezioneFromForma))
 
@@ -37,16 +28,11 @@ class Brano:
             sezione.scriviCsd()
 
     def __str__(self):
-        """
-        Rappresentazione stringa del brano, che include informazioni generali sul brano
-        e stampa i dettagli di ogni sezione.
-        """
         # Stampa le informazioni di ciascuna sezione
         [print(sezione) for sezione in self.sezioni]
-        
         # Chiama il metodo per plottare la funzione associata alla forma del brano
         self.forma.plotta_funzione()
-        
+        print(self.spazio)
         # Restituisce una stringa formattata con informazioni generali sul brano
         return (f"\n\nBrano(\n  titolo={self.titolo},\n"
                 f"  attacco={self.attacco},\n"
