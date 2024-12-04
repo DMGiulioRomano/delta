@@ -36,7 +36,7 @@
             }
         ],
         "dimensioni":{
-            "frequenze": [0],
+            "frequenze": "PythagoreanSystem",
             "durate": [1],
             "ampiezze": [2]
         },
@@ -46,30 +46,30 @@
                 [
                     {
                         "cAttacco":  0,
-                        "cDurata":   20,
-                        "durataArmonica" : 3,
-                        "ritmo":    [8,2,5,4,7,1],
-                        "durata":   "Line",
-                        "ampiezza" :"Line",
-                        "frequenza" : "Line"
+                        "cDurata":   40,
+                        "durataArmonica" : 35,
+                        "ritmo":    [18,16,25,32,17,20],
+                        "durata":   ["Line",1,1,100,40],
+                        "ampiezza": ["Line",-15,0,-30,20],
+                        "frequenza" : 13
                     },
                     {
                         "cAttacco":  6,
-                        "cDurata":   15,
-                        "durataArmonica" : 2,
-                        "ritmo":    [1,2,4,7],
-                        "durata":   "Line",
-                        "ampiezza" : "Line",
-                        "frequenza" : "Line"
+                        "cDurata":   30,
+                        "durataArmonica" : 4,
+                        "ritmo":    [18,16,25,32,17,20],
+                        "durata":   ["Line",1,1,100,30],
+                        "ampiezza": ["Line",-15,0,-30,20],
+                        "frequenza" : 23
                     },
                     {
                         "cAttacco":  12,
-                        "cDurata":   7,
-                        "durataArmonica" : 4,
-                        "ritmo":    [1,7,2,4,5],
-                        "durata":   "Line",
-                        "ampiezza" : "Line",
-                        "frequenza" : "Line"
+                        "cDurata":   50,
+                        "durataArmonica" : 45,
+                        "ritmo":    [18,16,25,32,17,20],
+                        "durata":   ["Line",1,1,100,50],
+                        "ampiezza": ["Line",-15,0,-30,20],
+                        "frequenza" : 14
                     }
                 ]
             },
@@ -81,9 +81,9 @@
                         "cDurata":   10,
                         "durataArmonica" : 1,
                         "ritmo":    [7,2,5,9],
-                        "durata":   "Line",
-                        "ampiezza" : "Line",
-                        "frequenza" : "Line"
+                        "durata":   ["Line",1,1,100,10],
+                        "ampiezza": ["Line",-15,0,-30,20],
+                        "frequenza" : 20
                     }
                 ]
             },
@@ -95,9 +95,9 @@
                         "cDurata":   15,
                         "durataArmonica" : 5,
                         "ritmo":    [7,2,5,3,4],
-                        "durata":   "Line",
-                        "ampiezza" : "Line",
-                        "frequenza" : "Line"
+                        "durata":   ["Line",1,1,100,100],
+                        "ampiezza": ["Line",-15,0,-30,20],
+                        "frequenza" : 25
                     }
                 ]
             }

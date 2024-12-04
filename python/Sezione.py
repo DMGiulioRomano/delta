@@ -1,6 +1,5 @@
 from Evento import Evento
 from Comportamento import Comportamento
-from Spazio import Spazio
 class Sezione:
     def __init__(self, dizionario):
         self.dizionario = dizionario

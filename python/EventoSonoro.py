@@ -14,7 +14,14 @@ class EventoSonoro:
             # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
 
     def toCsoundStr(self):
-        pass#return f"i1\t{self.attacco}\t{self.durata}\t{self.ampiezza}\t{self.frequenza}"
+        # Genera una stringa in formato Csound, partendo dall'ordine degli attributi in lista_tuples
+        csound_str = "i1"  # Tipo di evento sonoro (i1 rappresenta un evento sonoro)
+        for chiave, _ in self.lista_tuples:
+            # Escludi l'attributo 'idEventoSonoro'
+            if chiave != "idEventoSonoro":
+                valore = getattr(self, chiave)
+                csound_str += f"\t{valore}"
+        return csound_str
 
     def __str__(self) -> str:
         output ="\n\t\t"

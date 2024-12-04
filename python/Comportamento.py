@@ -1,7 +1,6 @@
 from EventoSonoro import EventoSonoro
 from itertools import cycle
 import pdb
-from Spazio import Spazio
 from funzioni import *
 class Comportamento:
     # attributi relativi al comportamento hanno lachiave che inizia per c. 
@@ -13,7 +12,6 @@ class Comportamento:
         self.eventiSonori = []
 
     def generaAttributi(self):
-
         # Itera su tutta la lista di tuple, partendo dall'indice 0
         for i, (chiave, valore) in enumerate(self.lista_tuples):
             # Assegna sempre dinamicamente l'attributo
@@ -58,12 +56,15 @@ class Comportamento:
                 raw_value = getattr(self, self.lista_tuples[i][0])
                 try:
                     # Valuta il valore se è una stringa, altrimenti usa direttamente l'oggetto
-                    evaluated_value = eval(raw_value) if isinstance(raw_value, str) else raw_value
+                    evaluated_value = eval(raw_value[0]) if isinstance(raw_value, list) else raw_value
                     # Se è una classe, crea un'istanza passando i valori richiesti
                     if callable(evaluated_value):
                         # Supponendo che i parametri richiesti siano, ad esempio, `self.pfield2`
-                        instanceFunc = evaluated_value(1,1,100,100)  # Passa i valori come richiesto dalla classe
+                        instanceFunc = evaluated_value(raw_value[1],raw_value[2],raw_value[3],raw_value[4])  # Passa i valori come richiesto dalla classe
                         funzione = instanceFunc.crea_funzione()
+                    else:
+                        offsetFreq = evaluated_value
+                        instanceFunc = None
                 except Exception as e:
                     raise ValueError(f"Errore nel creare un'istanza da {raw_value}: {e}")
 
@@ -73,9 +74,13 @@ class Comportamento:
                     # Assegna i valori dinamicamente
                     if isinstance(instanceFunc, Funzione):
                         valore = funzione(next(cycled_ritmo))
-                        print(valore)
                     else:
-                        valore = instanceFunc
+                        larghezzaLista = int(self.durataArmonica)
+                        #pdb.set_trace()
+                        offsetIntervallo = int(offsetFreq*53/3) #andrebbe a terzi d'ottava
+                        sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:(offsetIntervallo+larghezzaLista)]
+                        valore = sottoinsieme_frequenze[next(cycled_ritmo)  % len(sottoinsieme_frequenze)]
+                        #valore = self.spazio.frequenze[next(cycled_ritmo)]
                     getattr(self, pfield_attr).append(valore)  
 
     def calcolaPfield2(self):
