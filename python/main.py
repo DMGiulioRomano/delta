@@ -1,11 +1,15 @@
-import json
+import yaml
 from Brano import Brano
 
-
 if __name__ == "__main__":
-    # Apre e carica i dati dal file JSON passato come parametro
-    with open('config.json', 'r') as file:
-        dizionario = json.load(file)
-    brano = Brano(dizionario['brano'])  # Passa il nome del file JSON      # Calcola i rapporti
+    # Apre e carica i dati dal file YAML passato come parametro
+    with open('delta.yaml', 'r') as file:
+        dizionario = yaml.safe_load(file)  # Usa safe_load per sicurezza
+
+    # Crea un'istanza di Brano utilizzando i dati dal file YAML
+    brano = Brano(dizionario['brano'])
+
+    # Scrive il file CSD
     brano.scriviCsd()
-    #print(brano)
+    # Stampa l'oggetto (opzionale, utile per debug)
+    # print(brano)

@@ -1,0 +1,82 @@
+# File YAML: regole principali
+# - Indentazione: Usa spazi (non tab), mantenendo consistenza (di solito 2 spazi).
+# - Chiavi e valori: Formato `chiave: valore`. Stringhe con spazi vanno tra virgolette.
+# - Liste: Usa `-` seguito da uno spazio (es. `- elemento`).
+# - Dizionari annidati: Indenta per rappresentare gerarchie (es. chiave: sottochiave: valore).
+# - Commenti: Inizia con `#`.
+# - Booleani: Usa `true` o `false` (in minuscolo).
+# - Nullo: Usa `null`, `~` o lascia vuoto il valore.
+
+brano:
+  titolo: "delta"
+  attacco: 4
+  durata:
+    minuti: 8
+    secondi: 0
+  forma:
+    - grandezza: 0.5
+      punti:
+        - [0, 0.0001, "Expon"]
+        - [0.4, 0.5, "Line"]
+        - [0.7, 0.7, "Log"]
+        - [0.99, 0.001, "Expon"]
+    - grandezza: 0.2
+      punti:
+        - [0.01, 0.001, "Log"]
+        - [0.3, 0.24, "Expon"]
+        - [0.6, 0.3, "Line"]
+        - [0.99, 0.001, "Expon"]
+    - grandezza: 0.3
+      punti:
+        - [0.01, 0.01, "Line"]
+        - [0.5, 0.6, "Line"]
+        - [0.8, 1, "Line"]
+        - [1, 0.1, "Line"]
+  dimensioni:
+    frequenze: "PythagoreanSystem"
+    durate:
+      - 1
+    ampiezze:
+      - 2
+  sezioni:
+    sezione1:
+      comportamenti:
+        - cAttacco: 0
+          cDurata: 40
+          durataArmonica: 35
+          ritmo: [18, 16, 25, 32, 17, 20]
+          durata: ["Line", 1, 1, 100, 40]
+          ampiezza: ["Line", -15, 0, -30, 20]
+          frequenza: 13
+        - cAttacco: 6
+          cDurata: 30
+          durataArmonica: 4
+          ritmo: [18, 16, 25, 32, 17, 20]
+          durata: ["Line", 1, 1, 100, 30]
+          ampiezza: ["Line", -15, 0, -30, 20]
+          frequenza: 23
+        - cAttacco: 12
+          cDurata: 50
+          durataArmonica: 45
+          ritmo: [18, 16, 25, 32, 17, 20]
+          durata: ["Line", 1, 1, 100, 50]
+          ampiezza: ["Line", -15, 0, -30, 20]
+          frequenza: 14
+    sezione2:
+      comportamenti:
+        - cAttacco: 0
+          cDurata: 10
+          durataArmonica: 1
+          ritmo: [7, 2, 5, 9]
+          durata: ["Line", 1, 1, 100, 10]
+          ampiezza: ["Line", -15, 0, -30, 20]
+          frequenza: 20
+    sezione3:
+      comportamenti:
+        - cAttacco: 0
+          cDurata: 15
+          durataArmonica: 5
+          ritmo: [7, 2, 5, 3, 4]
+          durata: ["Line", 1, 1, 100, 100]
+          ampiezza: ["Line", -15, 0, -30, 20]
+          frequenza: 25
