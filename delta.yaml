@@ -1,7 +1,7 @@
 # File YAML: regole principali
 # - Indentazione: Usa spazi (non tab), mantenendo consistenza (di solito 2 spazi).
 # - Chiavi e valori: Formato `chiave: valore`. Stringhe con spazi vanno tra virgolette.
-# - Liste: Usa `-` seguito da uno spazio (es. `- elemento`).
+# - Liste: Usa `-` seguito da uno posizione (es. `- elemento`).
 # - Dizionari annidati: Indenta per rappresentare gerarchie (es. chiave: sottochiave: valore).
 # - Commenti: Inizia con `#`.
 # - Booleani: Usa `true` o `false` (in minuscolo).
@@ -38,6 +38,8 @@ brano:
       - 1
     ampiezze:
       - 2
+    posizioni:
+      - 3
   sezioni:
     sezione1:
       comportamenti:
@@ -45,38 +47,27 @@ brano:
           cDurata: 40
           durataArmonica: 35
           ritmo: [18, 16, 25, 32, 17, 20]
-          durata: ["Line", 1, 1, 100, 40]
-          ampiezza: ["Line", -15, 0, -30, 20]
+          durata: 12
+          ampiezza: -30
           frequenza: 13
-        - cAttacco: 6
-          cDurata: 30
-          durataArmonica: 4
-          ritmo: [18, 16, 25, 32, 17, 20]
-          durata: ["Line", 1, 1, 100, 30]
-          ampiezza: ["Line", -15, 0, -30, 20]
-          frequenza: 23
-        - cAttacco: 12
-          cDurata: 50
-          durataArmonica: 45
-          ritmo: [18, 16, 25, 32, 17, 20]
-          durata: ["Line", 1, 1, 100, 50]
-          ampiezza: ["Line", -15, 0, -30, 20]
-          frequenza: 14
+          posizione: 1
     sezione2:
       comportamenti:
         - cAttacco: 0
-          cDurata: 10
-          durataArmonica: 1
-          ritmo: [7, 2, 5, 9]
-          durata: ["Line", 1, 1, 100, 10]
-          ampiezza: ["Line", -15, 0, -30, 20]
-          frequenza: 20
+          cDurata: 100
+          durataArmonica: 100
+          ritmo: [7, 13, 19, 4, 27, 11, 5, 9]
+          durata: 12
+          ampiezza: -12
+          frequenza: 7
+          posizione: 1
     sezione3:
       comportamenti:
         - cAttacco: 0
-          cDurata: 15
-          durataArmonica: 5
+          cDurata: 100
+          durataArmonica: 50
           ritmo: [7, 2, 5, 3, 4]
-          durata: ["Line", 1, 1, 100, 100]
-          ampiezza: ["Line", -15, 0, -30, 20]
-          frequenza: 25
+          durata: 12
+          ampiezza: -12
+          frequenza: 24
+          posizione: 1

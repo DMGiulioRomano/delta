@@ -11,18 +11,32 @@ kr=96000
 nchnls=2
 
     instr 1
-
-iamp  = ampdbfs(p4)                 ; AMPIEZZA 
-ifreq = p5                  ; FREQUENZA
-
-as oscili iamp, ifreq       ; OSCILLATORE
-kanticlick cosseg 0, p3/20, 1, p3-p3/10, 1, p3/20,0
-        outs as*kanticlick,as*kanticlick
+    ; inizializzazioni
+        iamp  = ampdbfs(p4)                 
+        ifreq = p5
+        iwhichZero = p6
+        iHR = p7
+        iT = ($M_PI*2)/iHR
+        iradi = 0 + (iwhichZero-1) * iT
+        iradf = iradi + iT        
+        krad line iradi,p3,iradf
+        kEnv = sin(krad*iHR/2)
+        kMid1 = cos(krad)
+        kSide1=sin(krad)
+    ; sintesi                  
+        as oscili iamp, ifreq
+        aMid = kMid1 * as
+        aSide = kSide1 * as
+        aL = (aMid+aSide)/sqrt(2)
+        aR = (aMid-aSide)/sqrt(2)
+        aEnvL = aL * kEnv
+        aEnvR = aR * kEnv
+            outs aEnvL,aEnvR;,a1,a2,aL,aR,aMid,aSide
     endin
 
 </CsInstruments>
 <CsScore>
-f1 0 4096 10 1
+f1 0 16777216 10 1
 
 ; "comportamento"
 

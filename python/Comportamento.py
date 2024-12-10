@@ -1,5 +1,6 @@
 from EventoSonoro import EventoSonoro
 from itertools import cycle
+import random
 import pdb
 from funzioni import *
 class Comportamento:
@@ -8,16 +9,17 @@ class Comportamento:
     def __init__(self, dizionario, idComportamento):
         self.idComportamento = idComportamento
         self.lista_tuples = list(dizionario.items())
+        self.lista_tuples.append(("HR", 0))          # Aggiungi la tupla ("HR", 0)
         self.generaAttributi()
         self.eventiSonori = []
-
+    
     def generaAttributi(self):
         # Itera su tutta la lista di tuple, partendo dall'indice 0
         for i, (chiave, valore) in enumerate(self.lista_tuples):
             # Assegna sempre dinamicamente l'attributo
             setattr(self, chiave, valore)
             # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
-            if i >= 4:
+            if i > 3:
                 setattr(self, f"pfield{i-1}", [])
 
     def creaEventoSonoro(self,spazio):
@@ -33,55 +35,45 @@ class Comportamento:
                 if hasattr(self, f"pfield{j-1}")
             }
             dictEvento["idEventoSonoro"] = i
-            """
-            dictEvento = {}
-            for j in range(indice_ritmo, len(self.lista_tuples)):
-                pfield_attr = f"pfield{j-1}"
-                if hasattr(self, pfield_attr):
-                    chiave = self.lista_tuples[j][0]
-                    if chiave == "ritmo":
-                        chiave = "attacco"
-                    valore = getattr(self, pfield_attr)[i]
-                    dictEvento[chiave] = valore
-            """
             self.eventiSonori.append(EventoSonoro(dictEvento))
 
     def calcolaPfield(self):
         # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
         for i in range(4, len(self.lista_tuples[2:]) + 2):  # Iniziamo da 3 per "pfield3"
+            # Inizializzazione per prevenire UnboundLocalError
+            var_name = ""
             pfield_attr = f"pfield{i-1}"
             # Verifica se l'attributo esiste
             if hasattr(self, pfield_attr):
-                # Recupera l'espressione come stringa o valore dall'attributo
-                raw_value = getattr(self, self.lista_tuples[i][0])
-                try:
-                    # Valuta il valore se è una stringa, altrimenti usa direttamente l'oggetto
-                    evaluated_value = eval(raw_value[0]) if isinstance(raw_value, list) else raw_value
-                    # Se è una classe, crea un'istanza passando i valori richiesti
-                    if callable(evaluated_value):
-                        # Supponendo che i parametri richiesti siano, ad esempio, `self.pfield2`
-                        instanceFunc = evaluated_value(raw_value[1],raw_value[2],raw_value[3],raw_value[4])  # Passa i valori come richiesto dalla classe
-                        funzione = instanceFunc.crea_funzione()
-                    else:
-                        offsetFreq = evaluated_value
-                        instanceFunc = None
-                except Exception as e:
-                    raise ValueError(f"Errore nel creare un'istanza da {raw_value}: {e}")
+                self.cycled = cycle(self.ritmo)
+                    # Recupera l'attributo
+                if i < len(self.lista_tuples):
+                    raw_value = getattr(self, self.lista_tuples[i][0])
+                    # Usa il valore raw_value come necessario
+                    var_name = "creami" + str(self.lista_tuples[i][0])
+                for _ in range(len(self.pfield2)):
+                    #pdb.set_trace()
+                    metodo = getattr(self, var_name, None)
+                    getattr(self, pfield_attr).append(metodo(raw_value))  
 
-                cycled_ritmo = cycle(self.ritmo)
-                # Usa la lunghezza di pfield2 per il ciclo
-                for _ in range(len(self.pfield2)):  
-                    # Assegna i valori dinamicamente
-                    if isinstance(instanceFunc, Funzione):
-                        valore = funzione(next(cycled_ritmo))
-                    else:
-                        larghezzaLista = int(self.durataArmonica)
-                        #pdb.set_trace()
-                        offsetIntervallo = int(offsetFreq*53/3) #andrebbe a terzi d'ottava
-                        sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:(offsetIntervallo+larghezzaLista)]
-                        valore = sottoinsieme_frequenze[next(cycled_ritmo)  % len(sottoinsieme_frequenze)]
-                        #valore = self.spazio.frequenze[next(cycled_ritmo)]
-                    getattr(self, pfield_attr).append(valore)  
+    def creamidurata(self,raw_value):
+        return raw_value
+    
+    def creamiampiezza(self,raw_value):
+        return raw_value
+    
+    def creamiposizione(self,raw_value):
+        return random.randint(1, next(self.cycled)*2) 
+
+    def creamiHR(self,raw_value):
+        return next(self.cycled)
+
+    def creamifrequenza(self,raw_value):
+        larghezzaLista = int(self.durataArmonica)
+        offsetIntervallo = int(raw_value*53/3) #andrebbe a terzi d'ottava
+        sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:(offsetIntervallo+larghezzaLista)]
+        return sottoinsieme_frequenze[next(self.cycled)  % len(sottoinsieme_frequenze)]
+
 
     def calcolaPfield2(self):
         self.pfield2 = []
