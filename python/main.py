@@ -15,6 +15,7 @@ if __name__ == "__main__":
     # Stampa le armoniche ritmiche 
     #brano.spazio.genera_e_plotta_con_slider_esponente_globale()
     #brano.spazio.genera_e_plotta_funzioni()
+    #brano.spazio.plot_sinusoide_smorzata()
 
     # Stampa l'oggetto (opzionale, utile per debug)
     # print(brano)

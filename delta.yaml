@@ -46,28 +46,70 @@ brano:
         - cAttacco: 0
           cDurata: 40
           durataArmonica: 35
-          ritmo: [18, 16, 25, 32, 17, 20]
-          durata: 12
-          ampiezza: -30
+          ritmo: [18, 16, 25, 32, 17, 20, 35, 29, 24, 27,41,35]
+          durata: 0
+          ampiezza: 0
           frequenza: 13
+          posizione: 1
+        - cAttacco: 30
+          cDurata: 10
+          durataArmonica: 35
+          ritmo: [18, 16, 25, 32, 17, 20, 35, 29, 24, 27,41,35]
+          durata: 0
+          ampiezza: 0
+          frequenza: 15
+          posizione: 1
+        - cAttacco: 45
+          cDurata: 40
+          durataArmonica: 30
+          ritmo: [20, 35, 29, 24, 27,41,35]
+          durata: 12
+          ampiezza: 0
+          frequenza: 12
+          posizione: 1
+        - cAttacco: 60
+          cDurata: 80
+          durataArmonica: 10
+          ritmo: [20, 35, 29, 24, 27,41,35]
+          durata: 0
+          ampiezza: 0
+          frequenza: 9
           posizione: 1
     sezione2:
       comportamenti:
         - cAttacco: 0
           cDurata: 100
           durataArmonica: 100
-          ritmo: [7, 13, 19, 4, 27, 11, 5, 9]
-          durata: 12
-          ampiezza: -12
+          ritmo: [20, 35, 7, 24, 14, 9, 11, 5, 9]
+          durata: 0
+          ampiezza: 0
           frequenza: 7
-          posizione: 1
+          posizione: 0
+        - cAttacco: 30
+          cDurata: 49
+          durataArmonica: 10
+          ritmo: [ 7, 24, 14, 9, 11, 5, 9]
+          durata: 0
+          ampiezza: 0
+          frequenza: 10
+          posizione: 0
     sezione3:
       comportamenti:
         - cAttacco: 0
           cDurata: 100
           durataArmonica: 50
-          ritmo: [7, 2, 5, 3, 4]
-          durata: 12
-          ampiezza: -12
+          ritmo: [27, 32, 5, 15, 23, 4]
+          durata: 0
+          ampiezza: 0
           frequenza: 24
-          posizione: 1
+          posizione: 0
+
+        - cAttacco: 40
+          cDurata: 120
+          durataArmonica: 20
+          ritmo: [27, 7, 5, 15, 13, 4]
+          durata: 0
+          ampiezza: 0
+          frequenza: 25
+          posizione: 0
+

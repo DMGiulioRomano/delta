@@ -119,12 +119,14 @@ class Spazio:
     def sinusoide_smorzata(self,t, A, omega, phi, gamma):
         return A * np.sin(omega * t + phi) * np.exp(-gamma * t)
 
+    def ampiezzaSpazio(self,t):
+        return np.sin(.5 * t + 0) * np.exp(-.65 * t)
 
 
     # Funzione per generare il grafico interattivo
     def plot_sinusoide_smorzata(self):
         # Impostazioni di base
-        A = 1  # Ampiezza
+        A = .5  # Ampiezza
         omega = 3  # Frequenza angolare
         phi = 0  # Fase iniziale
         t = np.linspace(0, 2 * np.pi, 5000)  # Intervallo tra 0 e 2pi per l'asse x
@@ -134,7 +136,7 @@ class Spazio:
         # Crea la traccia per la sinusoide smorzata
         fig.add_trace(go.Scatter(
             x=t,
-            y=self.sinusoide_smorzata(t, A, omega, phi, .35),  # Imposta un valore iniziale di smorzamento
+            y=self.sinusoide_smorzata(t, A, omega, phi, .65),  # Imposta un valore iniziale di smorzamento
             mode='lines',
             name="Sinusoide smorzata"
         ))

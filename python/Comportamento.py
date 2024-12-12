@@ -2,7 +2,10 @@ from EventoSonoro import EventoSonoro
 from itertools import cycle
 import random
 import pdb
+import numpy as np
 from funzioni import *
+import math
+import sys
 class Comportamento:
     # attributi relativi al comportamento hanno lachiave che inizia per c. 
     # es. cAttacco, cDurata. 
@@ -38,6 +41,7 @@ class Comportamento:
             self.eventiSonori.append(EventoSonoro(dictEvento))
 
     def calcolaPfield(self):
+        self.cycled = cycle(self.ritmo)
         # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
         for i in range(4, len(self.lista_tuples[2:]) + 2):  # Iniziamo da 3 per "pfield3"
             # Inizializzazione per prevenire UnboundLocalError
@@ -45,7 +49,6 @@ class Comportamento:
             pfield_attr = f"pfield{i-1}"
             # Verifica se l'attributo esiste
             if hasattr(self, pfield_attr):
-                self.cycled = cycle(self.ritmo)
                     # Recupera l'attributo
                 if i < len(self.lista_tuples):
                     raw_value = getattr(self, self.lista_tuples[i][0])
@@ -57,10 +60,15 @@ class Comportamento:
                     getattr(self, pfield_attr).append(metodo(raw_value))  
 
     def creamidurata(self,raw_value):
-        return raw_value
+        ritmo=next(self.cycled)
+        rand = random.randint(1,ritmo)
+        return round(rand / ritmo,4)*self.durataArmonica
     
     def creamiampiezza(self,raw_value):
-        return raw_value
+        return self.linear2db(self.spazio.ampiezzaSpazio(np.pi/next(self.cycled)))
+    
+    def linear2db(self,g):
+        return  20.0 * math.log10(max(sys.float_info.min, g))
     
     def creamiposizione(self,raw_value):
         return random.randint(1, next(self.cycled)*2) 
