@@ -2,17 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PythagoreanSystem import PythagoreanSystem
 import plotly.graph_objects as go
+import pdb
 
 class Spazio:
     def __init__(self, dizionario):
-        self.sistema = eval(dizionario['frequenze'])
+        sistema_str = dizionario['frequenze'][0]
+        sistema = eval(sistema_str)
+        self.sistema = sistema(dizionario['frequenze'][1])
         self.durate = dizionario.get("durate", [])
         self.ampiezze = dizionario.get("ampiezze", [])
         self.frequenze = self.creaDimensioneFrequenze()
-        #self.plot_sinusoide_smorzata()
 
     def creaDimensioneFrequenze(self):
-        return [freq for i in range(5, 14) for freq in self.sistema(i).frequencies]
+        return self.sistema.frequencies
 
     def genera_e_plotta_funzioni(self):
         """
@@ -119,8 +121,8 @@ class Spazio:
     def sinusoide_smorzata(self,t, A, omega, phi, gamma):
         return A * np.sin(omega * t + phi) * np.exp(-gamma * t)
 
-    def ampiezzaSpazio(self,t):
-        return np.sin(.5 * t + 0) * np.exp(-.65 * t)
+    def ampiezzaSpazio(self,t,amp):
+        return amp * np.sin(.5 * t + 0) * np.exp(-.65 * t)
 
 
     # Funzione per generare il grafico interattivo
@@ -175,6 +177,7 @@ class Spazio:
         """
         return (f"Spazio(\n"
                 f"  frequenze={self.frequenze},\n"
+                f" ratios = {self.sistema.ratios}"
                 f"  durate={self.durate},\n"
                 f"  ampiezze={self.ampiezze}\n"
                 f")")

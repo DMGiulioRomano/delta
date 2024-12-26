@@ -1,32 +1,39 @@
 from fractions import Fraction
 import pdb
 class PythagoreanSystem:
-    def __init__(self, octave=1, fundamental=32):
-        self.fundamental = 2 ** octave
-        self.ratios = self.generate_ratios()
-        self.sort_ratios()  # Sort ratios based on their real value
-        self.frequencies = self.calculate_frequencies()
+    def __init__(self,intervalli):
+        self.intervalli = intervalli
+        self.ratios = []  # Lista vuota da riempire con i rapporti
+        self.frequencies = []  # Lista vuota da riempire con le frequenze
+        self.calculate_frequencies()
 
-    def generate_ratios(self):
-        ratios = [Fraction(1, 1)]  # The fundamental is 1/1
-        fifth_ratio = Fraction(3, 2)  # The ratio of a perfect fifth
-
-        for _ in range(1, 53):  # Generate 53 intervals
+    def generate_ratios(self,i):
+        ratios =[Fraction(1, 1)]  # Lista vuota da riempire con i rapporti
+        fifth_ratio = Fraction(3, 2)  # Il rapporto della quinta giusta
+        for _ in range((self.intervalli-1)*i):  # Genera 53 intervalli
             next_ratio = ratios[-1] * fifth_ratio
-            # Reduce the ratio within the octave
+            # Riduci il rapporto all'interno dell'ottava
             while next_ratio >= 2:
                 next_ratio /= 2
             ratios.append(next_ratio)
-        
         return ratios
 
     def calculate_frequencies(self):
-        return [float(ratio * self.fundamental) for ratio in self.ratios]
+        for i in range(5, 15):
+            #pdb.set_trace()
+            self.fundamental = 2 ** i  # Aggiorna il fondamentale
+            ratios = self.generate_ratios(i-4)  # Genera i rapporti
+            self.sort_ratios(ratios)
+            frequencies = [float(ratio * self.fundamental) for ratio in  ratios]
+            self.ratios.extend(ratios)
+            self.frequencies.extend(frequencies)  # Estendi self.frequencies
 
-    def sort_ratios(self):
-        # Sort the ratios based on their real value
-        self.ratios.sort(key=lambda ratio: ratio.numerator / ratio.denominator)
+
+    def sort_ratios(self,listRatios):
+        # Ordina i rapporti basandoti sul loro valore reale
+        return listRatios.sort(key=lambda ratio: ratio.numerator / ratio.denominator)
 
     def __repr__(self):
-        return (f"PythagoreanSystem(fundamental={self.fundamental}, "
-                f"ratios={self.ratios}, frequencies={self.frequencies})")
+        return (f"PythagoreanSystem(frequencies={self.frequencies}, "
+                f"ratios={self.ratios})"
+                f"len={len(self.frequencies)}")

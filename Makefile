@@ -5,6 +5,8 @@ LATEX_DIR = latex_diagrams
 FILE =forma
 CSD_DIR = generazione
 WAV_DIR = wav
+YAML ?= brano
+SEZIONE ?= 
 
 all : py csound run
 
@@ -13,7 +15,11 @@ create_dir:
 	mkdir -p $(CSOUND_DIR)/$(CSD_DIR)/$(WAV_DIR)
 	
 py: clean create_dir
-	python3.11 $(PYTHON_DIR)/main.py
+	@echo "Running Python script..."
+	python3.11 $(PYTHON_DIR)/main.py yaml_dir/$(YAML).yaml $(if $(SEZIONE),--sezione $(SEZIONE))
+
+pyDebug: clean create_dir
+	python3.11 $(PYTHON_DIR)/main.py $(YAML).yaml >logPython.log
 
 csound: create_dir
 	@for file in $(CSOUND_DIR)/$(CSD_DIR)/*.csd; do \

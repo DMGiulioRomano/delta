@@ -24,7 +24,7 @@ nchnls=2
         kMid1 = cos(krad)
         kSide1=sin(krad)
     ; sintesi                  
-        as oscili iamp, ifreq
+        as poscil3 iamp, ifreq
         aMid = kMid1 * as
         aSide = kSide1 * as
         aL = (aMid+aSide)/sqrt(2)

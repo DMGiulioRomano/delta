@@ -1,0 +1,31 @@
+# File YAML: regole principali
+# - Indentazione: Usa spazi (non tab), mantenendo consistenza (di solito 2 spazi).
+# - Chiavi e valori: Formato `chiave: valore`. Stringhe con spazi vanno tra virgolette.
+# - Liste: Usa `-` seguito da uno posizione (es. `- elemento`).
+# - Dizionari annidati: Indenta per rappresentare gerarchie (es. chiave: sottochiave: valore).
+# - Commenti: Inizia con `#`.
+# - Booleani: Usa `true` o `false` (in minuscolo).
+# - Nullo: Usa `null`, `~` o lascia vuoto il valore.
+
+comportamenti:
+  - cAttacco: 0
+    durataArmonica: 100
+    ritmo: [1,2]
+    durata: 30
+    ampiezza: -6
+    frequenza: [2,5]
+    posizione: 1
+  - cAttacco: 20
+    durataArmonica: 100
+    ritmo: [1,2,3]
+    durata: 30
+    ampiezza: -6
+    frequenza: [2,5]
+    posizione: 1
+  - cAttacco: 20
+    durataArmonica: 100
+    ritmo: [4,5,6]
+    durata: 30
+    ampiezza: -8
+    frequenza: [2,5]
+    posizione: 2

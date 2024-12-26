@@ -18,10 +18,15 @@ class Brano:
             dur = sezione['durata'] * self.durata
             idSezione = f"{sezione['idSezione']}"
             whichSezione = f"sezione{idSezione}"
-            dizionarioSezioneFromJSON = self.dictSezioni[whichSezione]
-            newDictSezioneFromForma = {'sAttacco' : at , 'sDurata' : dur, 'idSezione' : idSezione , 'spazio': self.spazio}
-            newDictSezioneFromForma.update(dizionarioSezioneFromJSON)
-            self.sezioni.append(Sezione(newDictSezioneFromForma))
+            
+            # Controlla se la chiave 'whichSezione' esiste nel dizionario
+            if whichSezione in self.dictSezioni:
+                dizionarioSezioneFromJSON = self.dictSezioni[whichSezione]
+                newDictSezioneFromForma = {'sAttacco' : at , 'sDurata' : dur, 'idSezione' : idSezione , 'spazio': self.spazio}
+                newDictSezioneFromForma.update(dizionarioSezioneFromJSON)
+                self.sezioni.append(Sezione(newDictSezioneFromForma))
+            else:
+                print(f"Warning: La sezione {whichSezione} non esiste nel dizionario. Saltando...")
 
     def scriviCsd(self):
         for sezione in self.sezioni:

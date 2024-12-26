@@ -22,31 +22,43 @@ class Comportamento:
             # Assegna sempre dinamicamente l'attributo
             setattr(self, chiave, valore)
             # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
-            if i > 3:
-                setattr(self, f"pfield{i-1}", [])
+            if i > 2:
+                setattr(self, f"pfield{i}", [])
 
     def creaEventoSonoro(self,spazio):
         self.spazio = spazio
         self.calcolaPfield2()
         self.calcolaPfield()
-        # Cicliamo per ogni evento che dobbiamo creare
+
         for i in range(len(self.pfield2)):
-            indice_ritmo = next((i for i, (chiave, _) in enumerate(self.lista_tuples) if chiave == "ritmo"), -1)
-            dictEvento = {
-                ("attacco" if self.lista_tuples[j][0] == "ritmo" else self.lista_tuples[j][0]): getattr(self, f"pfield{j-1}")[i]
-                for j in range(indice_ritmo, len(self.lista_tuples))
-                if hasattr(self, f"pfield{j-1}")
-            }
+            # Trova l'indice della chiave "ritmo" in lista_tuples
+            indice_ritmo = next(
+                (index for index, (chiave, _) in enumerate(self.lista_tuples) if chiave == "ritmo"),
+                -1
+            )
+            # Costruisci il dizionario dell'evento
+            dictEvento = {}
+            for j in range(indice_ritmo, len(self.lista_tuples)):
+                # Recupera la chiave corrente dalla lista di tuple
+                chiave = self.lista_tuples[j][0]
+                # Se la chiave è "ritmo", sostituiscila con "attacco" nel dizionario
+                nome_campo = "attacco" if chiave == "ritmo" else chiave
+                # Controlla se l'attributo `pfield{j}` esiste e aggiungilo al dizionario
+                if hasattr(self, f"pfield{j}"):
+                    valore = getattr(self, f"pfield{j}")[i]
+                    dictEvento[nome_campo] = valore
+            # Aggiungi un identificatore univoco all'evento
             dictEvento["idEventoSonoro"] = i
+            # Crea e aggiungi l'oggetto EventoSonoro alla lista
             self.eventiSonori.append(EventoSonoro(dictEvento))
 
     def calcolaPfield(self):
         self.cycled = cycle(self.ritmo)
         # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
-        for i in range(4, len(self.lista_tuples[2:]) + 2):  # Iniziamo da 3 per "pfield3"
+        for i in range(3, len(self.lista_tuples[2:]) + 2):  # Iniziamo da 3 per "pfield3"
             # Inizializzazione per prevenire UnboundLocalError
             var_name = ""
-            pfield_attr = f"pfield{i-1}"
+            pfield_attr = f"pfield{i}"
             # Verifica se l'attributo esiste
             if hasattr(self, pfield_attr):
                     # Recupera l'attributo
@@ -62,14 +74,17 @@ class Comportamento:
     def creamidurata(self,raw_value):
         ritmo=next(self.cycled)
         rand = random.randint(1,ritmo)
-        return round(rand / ritmo,4)*self.durataArmonica
+        return min(round(rand / ritmo,4)*self.durataArmonica,raw_value)
     
     def creamiampiezza(self,raw_value):
-        return self.linear2db(self.spazio.ampiezzaSpazio(np.pi/next(self.cycled)))
+        return self.linear2db(self.spazio.ampiezzaSpazio(np.pi/next(self.cycled), self.db2linear(raw_value)))
     
     def linear2db(self,g):
         return  20.0 * math.log10(max(sys.float_info.min, g))
     
+    def db2linear(self,l):
+        return 10.0 ** (l / 20.0)
+
     def creamiposizione(self,raw_value):
         return random.randint(1, next(self.cycled)*2) 
 
@@ -77,8 +92,11 @@ class Comportamento:
         return next(self.cycled)
 
     def creamifrequenza(self,raw_value):
-        larghezzaLista = int(self.durataArmonica)
-        offsetIntervallo = int(raw_value*53/3) #andrebbe a terzi d'ottava
+        ottava = raw_value[0]
+        regioneOttava = raw_value[1]
+        registroOttava = int(ottava*200)
+        larghezzaLista = int(self.durataArmonica) if self.durataArmonica>=1 else 1
+        offsetIntervallo = registroOttava+int(regioneOttava*200/5) #andrebbe a terzi d'ottava
         sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:(offsetIntervallo+larghezzaLista)]
         return sottoinsieme_frequenze[next(self.cycled)  % len(sottoinsieme_frequenze)]
 
@@ -86,7 +104,7 @@ class Comportamento:
     def calcolaPfield2(self):
         self.pfield2 = []
         cycled_ritmo = cycle(self.ritmo)
-        cdurata = self.cDurata
+        cdurata = self.durataArmonica
         while cdurata > 0:
             if not self.pfield2:
                 atN = round(self.cAttacco, 4)
