@@ -5,7 +5,7 @@ from funzioni import *
 class Forma:
     def __init__(self, dizionario):
         """Inizializza la classe con una lista di sezioni della forma."""
-        self.dizionario = dizionario  # La forma è una lista di sezioni con i punti e la grandezza
+        self.dizionario = dizionario[1:]  # La forma è una lista di sezioni con i punti e la grandezza
         self.funzione = None
         self.sezioni = []
         self.crea_funzione_a_tratti()

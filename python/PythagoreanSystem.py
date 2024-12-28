@@ -10,7 +10,7 @@ class PythagoreanSystem:
     def generate_ratios(self,i):
         ratios =[Fraction(1, 1)]  # Lista vuota da riempire con i rapporti
         fifth_ratio = Fraction(3, 2)  # Il rapporto della quinta giusta
-        for _ in range((self.intervalli-1)*i):  # Genera 53 intervalli
+        for _ in range((self.intervalli-1)):  # Genera 53 intervalli
             next_ratio = ratios[-1] * fifth_ratio
             # Riduci il rapporto all'interno dell'ottava
             while next_ratio >= 2:
@@ -28,12 +28,11 @@ class PythagoreanSystem:
             self.ratios.extend(ratios)
             self.frequencies.extend(frequencies)  # Estendi self.frequencies
 
-
     def sort_ratios(self,listRatios):
         # Ordina i rapporti basandoti sul loro valore reale
         return listRatios.sort(key=lambda ratio: ratio.numerator / ratio.denominator)
 
     def __repr__(self):
         return (f"PythagoreanSystem(frequencies={self.frequencies}, "
-                f"ratios={self.ratios})"
-                f"len={len(self.frequencies)}")
+                #f"ratios={self.ratios}"
+                f"len={len(self.frequencies)})")

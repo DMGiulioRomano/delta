@@ -17,9 +17,9 @@ comportamenti:
     posizione: -2
   - cAttacco: 1.4
     durataArmonica: 20
-    ritmo: [2,3,1]
+    ritmo: [1,2]
     durata: 5.1
-    ampiezza: -20 
+    ampiezza: -20
     frequenza: [2,5]
     posizione: -5
   - cAttacco: 15
@@ -34,7 +34,7 @@ comportamenti:
     durataArmonica: 20
     ritmo: [4,5]
     durata: 7
-    ampiezza: -16
+    ampiezza: -12
     frequenza: [2,5]
     posizione: 6
   - cAttacco: 13
@@ -48,7 +48,7 @@ comportamenti:
     durataArmonica: 8
     ritmo: [4,2]
     durata: 5
-    ampiezza: -16
+    ampiezza: -14
     frequenza: [2,4]
     posizione: 6
   - cAttacco: 22
@@ -63,35 +63,13 @@ comportamenti:
     durataArmonica: 16
     ritmo: [4,6]
     durata: 17
-    ampiezza: -15
+    ampiezza: -14
     frequenza: [3,1]
     posizione: 6
   - cAttacco: 21
     durataArmonica: 17
     ritmo: [3,7,10]
     durata: 10
-    ampiezza: -15
+    ampiezza: -14
     frequenza: [3,2]
     posizione: 6
-    # - 10
-  - cAttacco: 49
-    durataArmonica: 35
-    ritmo: [7,15,10,4]
-    durata: [35,3]
-    ampiezza: [-25,-0.25]
-    frequenza: [6,1]
-    posizione: -8
-  - cAttacco: 49
-    durataArmonica: 35
-    ritmo: [15,7,10,4]
-    durata: [35,3]
-    ampiezza: [-18,-0.75]
-    frequenza: [6,1]
-    posizione: -3
-  - cAttacco: 49
-    durataArmonica: 35
-    ritmo: [7,4,15,10]
-    durata: [35,3]
-    ampiezza: -20
-    frequenza: [6,1]
-    posizione: -2

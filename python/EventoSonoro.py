@@ -20,7 +20,7 @@ class EventoSonoro:
             # Escludi l'attributo 'idEventoSonoro'
             if chiave != "idEventoSonoro":
                 valore = getattr(self, chiave)
-                csound_str += f"\t{valore}"
+                csound_str += f"\t\t {valore}"
         return csound_str
 
     def __str__(self) -> str:

@@ -66,18 +66,28 @@ class Comportamento:
                     raw_value = getattr(self, self.lista_tuples[i][0])
                     # Usa il valore raw_value come necessario
                     var_name = "creami" + str(self.lista_tuples[i][0])
-                for _ in range(len(self.pfield2)):
+                for p2 in self.pfield2:
                     #pdb.set_trace()
                     metodo = getattr(self, var_name, None)
-                    getattr(self, pfield_attr).append(metodo(raw_value))  
+                    getattr(self, pfield_attr).append(metodo(raw_value,p2))  
 
-    def creamidurata(self,raw_value):
+    def creamidurata(self,raw_value,p2):
         ritmo=next(self.cycled)
-        rand = random.randint(1,ritmo)
-        return min(round(rand / ritmo,4)*self.durataArmonica,raw_value)
-    
-    def creamiampiezza(self,raw_value):
-        return self.linear2db(self.spazio.ampiezzaSpazio(np.pi/next(self.cycled), self.db2linear(raw_value)))
+        if isinstance(raw_value, list):
+            rand = random.randint(1,raw_value[1])
+            res = rand/ritmo
+        else: 
+            res = 1/ritmo
+        return round(res * self.durataArmonica,3)
+
+    def creamiampiezza(self,raw_value,p2):
+        if isinstance(raw_value,list):
+            amp = raw_value[0]
+            dampening = raw_value[1]
+        else:
+            amp=raw_value
+            dampening = -.65
+        return round(self.linear2db(self.spazio.ampiezzaSpazio(np.pi/next(self.cycled), self.db2linear(amp),dampening)), 3)
     
     def linear2db(self,g):
         return  20.0 * math.log10(max(sys.float_info.min, g))
@@ -85,35 +95,36 @@ class Comportamento:
     def db2linear(self,l):
         return 10.0 ** (l / 20.0)
 
-    def creamiposizione(self,raw_value):
-        return random.randint(1, next(self.cycled)*2) 
+    def creamiposizione(self,raw_value,p2):
+        ritmo = next(self.cycled)
+        offsetPos = (abs(raw_value)-1) if raw_value else 0
+        return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(raw_value)
 
-    def creamiHR(self,raw_value):
+    def creamiHR(self,raw_value,p2):
         return next(self.cycled)
 
-    def creamifrequenza(self,raw_value):
+    def creamifrequenza(self,raw_value,p2):
         ottava = raw_value[0]
         regioneOttava = raw_value[1]
-        registroOttava = int(ottava*200)
-        larghezzaLista = int(self.durataArmonica) if self.durataArmonica>=1 else 1
-        offsetIntervallo = registroOttava+int(regioneOttava*200/5) #andrebbe a terzi d'ottava
-        sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:(offsetIntervallo+larghezzaLista)]
-        return sottoinsieme_frequenze[next(self.cycled)  % len(sottoinsieme_frequenze)]
+        registroOttava = int(ottava*self.spazio.sistema.intervalli)
+        offsetIntervallo = registroOttava+int(((regioneOttava*self.spazio.sistema.intervalli)/5)-(self.spazio.sistema.intervalli/5)) #andrebbe a terzi d'ottava
+        sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:]
+        return round(sottoinsieme_frequenze[next(self.cycled)  % len(sottoinsieme_frequenze)],3)
 
 
     def calcolaPfield2(self):
         self.pfield2 = []
         cycled_ritmo = cycle(self.ritmo)
-        cdurata = self.durataArmonica
+        cdurata = self.durata if isinstance(self.durata,(float,int)) else self.durata[0]
         while cdurata > 0:
             if not self.pfield2:
-                atN = round(self.cAttacco, 4)
-                ritmoN = round(1 / self.ritmo[0], 4)
+                atN = round(float(self.cAttacco), 3)
+                ritmoN = round(1 / self.ritmo[0], 3)
             else:
-                ritmoN = round(1 / next(cycled_ritmo), 4)
-                atN = round(self.durataArmonica * ritmoN + self.pfield2[-1], 4)
+                ritmoN = round(1 / next(cycled_ritmo), 3)
+                atN = round(self.durataArmonica * ritmoN + self.pfield2[-1], 3)
             self.pfield2.append(atN)
-            cdurata = round(cdurata - self.durataArmonica * ritmoN, 4)
+            cdurata = round(cdurata - self.durataArmonica * ritmoN, 3)
 
 
     def toCsoundStr(self):

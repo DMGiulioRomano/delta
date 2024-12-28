@@ -9,11 +9,12 @@
 
 brano:
   titolo: "delta"
-  attacco: 4
+  attacco: 0
   durata:
     minuti: 8
     secondi: 0
   forma:
+    - onOff: false
     - grandezza: 0.5
       punti:
         - [0, 0.0001, "Expon"]

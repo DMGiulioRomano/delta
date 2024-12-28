@@ -51,7 +51,9 @@ if __name__ == "__main__":
     
     # Eventuali altre operazioni
     # brano.spazio.genera_e_plotta_con_slider_esponente_globale()
-    # brano.spazio.genera_e_plotta_funzioni()
-    # brano.spazio.plot_sinusoide_smorzata()
+    #brano.spazio.genera_e_plotta_funzioni()
+    #brano.spazio.plot_sinusoide_smorzata()
+    #brano.spazio.genera_e_plotta_polare_sine()
+    #brano.spazio.genera_e_plotta_polare_cosine()
     # Stampa l'oggetto (opzionale, utile per debug)
-    # print(brano)
+    #print(brano)

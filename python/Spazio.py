@@ -121,8 +121,8 @@ class Spazio:
     def sinusoide_smorzata(self,t, A, omega, phi, gamma):
         return A * np.sin(omega * t + phi) * np.exp(-gamma * t)
 
-    def ampiezzaSpazio(self,t,amp):
-        return amp * np.sin(.5 * t + 0) * np.exp(-.65 * t)
+    def ampiezzaSpazio(self,t,amp,gamma=-.65):
+        return amp * np.sin(.5 * t + 0) * np.exp(gamma * t)
 
 
     # Funzione per generare il grafico interattivo
@@ -170,6 +170,171 @@ class Spazio:
 
         fig.show()
 
+    def genera_e_plotta_polare_sine(self):
+        """
+        Genera un grafico polare delle funzioni sin(x * i / 2)^n 
+        per i in range(1, 11), con uno slider interattivo per variare l'esponente n.
+        """
+        theta = np.linspace(0, 2 * np.pi, 500)  # Angolo theta per il grafico polare
+        num_funzioni = 10  # Numero di funzioni sinusoidali
+        colori = [f"hsl({hue}, 70%, 50%)" for hue in np.linspace(0, 360, num_funzioni)]  # Colori per le tracce
+
+        # Base delle funzioni sinusoidali
+        r_base = [np.abs(np.sin(theta * i / 2)) for i in range(1, num_funzioni + 1)]
+
+        # Figura iniziale
+        fig = go.Figure(
+            data=[
+                go.Scatterpolar(
+                    r=r_base[i]**1,  # Esponente iniziale = 1
+                    theta=np.degrees(theta),  # Converti da radianti a gradi
+                    mode='lines',
+                    line=dict(width=2, color=colori[i]),
+                    name=f'sin({(i+1)/2}θ)'
+                )
+                for i in range(num_funzioni)
+            ],
+            layout=go.Layout(
+                title="Grafico Polare delle Funzioni sin(θ * i / 2)^n",
+                polar=dict(
+                    angularaxis=dict(
+                        tickvals=[0, 90, 180, 270],  # Etichette angolari
+                        ticktext=["0°", "90°", "180°", "270°"],
+                        rotation=90,  # Ruota il sistema polare
+                        direction="counterclockwise"  # Angoli crescono in senso antiorario
+                    ),
+                    radialaxis=dict(
+                        visible=True,
+                        showline=True,  # Mostra linea radiale
+                        linewidth=2  # Spessore linea
+                    )
+                ),
+                template="plotly_white"
+            )
+        )
+
+        # Aggiungi i frame per l'animazione
+        frames = []
+        valori_n = np.arange(1, 5, 0.5)  # Esponenti da 1 a 5 con passo 0.5
+        for n in valori_n:
+            frames.append(go.Frame(
+                data=[
+                    go.Scatterpolar(
+                        r=r_base[i]**n,  # Applica l'esponente
+                        theta=np.degrees(theta),  # Angoli in gradi
+                        mode='lines',
+                        line=dict(width=2, color=colori[i]),
+                        name=f'sin({(i+1)/2}θ)'
+                    )
+                    for i in range(num_funzioni)
+                ],
+                name=f'n={n:.1f}'
+            ))
+
+        fig.frames = frames
+
+        # Slider per animare l'esponente
+        sliders = [{
+            "steps": [
+                {
+                    "args": [[f'n={n:.1f}'], {"frame": {"duration": 500, "redraw": True}, "mode": "immediate"}],
+                    "label": f"n = {n:.1f}",
+                    "method": "animate"
+                }
+                for n in valori_n
+            ],
+            "active": 0,
+            "currentvalue": {"font": {"size": 20}, "prefix": "Esponente n: ", "visible": True, "xanchor": "center"},
+            "pad": {"b": 10, "t": 50},
+            "x": 0.1,
+            "len": 0.9
+        }]
+
+        fig.update_layout(sliders=sliders)
+        fig.show()
+        
+    def genera_e_plotta_polare_cosine(self):
+        """
+        Genera un grafico polare delle funzioni sin(x * i / 2)^n 
+        per i in range(1, 11), con uno slider interattivo per variare l'esponente n.
+        """
+        theta = np.linspace(0, 2 * np.pi, 500)  # Angolo theta per il grafico polare
+        num_funzioni = 10  # Numero di funzioni sinusoidali
+        colori = [f"hsl({hue}, 70%, 50%)" for hue in np.linspace(0, 360, num_funzioni)]  # Colori per le tracce
+
+        # Base delle funzioni sinusoidali
+        r_base = [np.abs(np.cos(theta * i / 2)) for i in range(1, num_funzioni + 1)]
+
+        # Figura iniziale
+        fig = go.Figure(
+            data=[
+                go.Scatterpolar(
+                    r=r_base[i]**1,  # Esponente iniziale = 1
+                    theta=np.degrees(theta),  # Converti da radianti a gradi
+                    mode='lines',
+                    line=dict(width=2, color=colori[i]),
+                    name=f'cos({(i+1)/2}θ)'
+                )
+                for i in range(num_funzioni)
+            ],
+            layout=go.Layout(
+                title="Grafico Polare delle Funzioni cos(θ * i / 2)^n",
+                polar=dict(
+                    angularaxis=dict(
+                        tickvals=[0, 90, 180, 270],  # Etichette angolari
+                        ticktext=["0°", "90°", "180°", "270°"],
+                        rotation=90,  # Ruota il sistema polare
+                        direction="counterclockwise"  # Angoli crescono in senso antiorario
+                    ),
+                    radialaxis=dict(
+                        visible=True,
+                        showline=True,  # Mostra linea radiale
+                        linewidth=2  # Spessore linea
+                    )
+                ),
+                template="plotly_white"
+            )
+        )
+
+        # Aggiungi i frame per l'animazione
+        frames = []
+        valori_n = np.arange(1, 5, 0.5)  # Esponenti da 1 a 5 con passo 0.5
+        for n in valori_n:
+            frames.append(go.Frame(
+                data=[
+                    go.Scatterpolar(
+                        r=r_base[i]**n,  # Applica l'esponente
+                        theta=np.degrees(theta),  # Angoli in gradi
+                        mode='lines',
+                        line=dict(width=2, color=colori[i]),
+                        name=f'cos({(i+1)/2}θ)'
+                    )
+                    for i in range(num_funzioni)
+                ],
+                name=f'n={n:.1f}'
+            ))
+
+        fig.frames = frames
+
+        # Slider per animare l'esponente
+        sliders = [{
+            "steps": [
+                {
+                    "args": [[f'n={n:.1f}'], {"frame": {"duration": 500, "redraw": True}, "mode": "immediate"}],
+                    "label": f"n = {n:.1f}",
+                    "method": "animate"
+                }
+                for n in valori_n
+            ],
+            "active": 0,
+            "currentvalue": {"font": {"size": 20}, "prefix": "Esponente n: ", "visible": True, "xanchor": "center"},
+            "pad": {"b": 10, "t": 50},
+            "x": 0.1,
+            "len": 0.9
+        }]
+
+        fig.update_layout(sliders=sliders)
+        fig.show()
 
     def __str__(self):
         """
@@ -177,7 +342,7 @@ class Spazio:
         """
         return (f"Spazio(\n"
                 f"  frequenze={self.frequenze},\n"
-                f" ratios = {self.sistema.ratios}"
                 f"  durate={self.durate},\n"
                 f"  ampiezze={self.ampiezze}\n"
+                f" {str(self.sistema)}"
                 f")")

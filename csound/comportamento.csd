@@ -14,18 +14,19 @@ nchnls=2
     ; inizializzazioni
         iamp  = ampdbfs(p4)                 
         ifreq = p5
-        iwhichZero = p6
+        iwhichZero = abs(p6)
+        idirection = signum(p6)
         iHR = p7
         iT = ($M_PI*2)/iHR
         iradi = 0 + (iwhichZero-1) * iT
-        iradf = iradi + iT        
+        iradf = iradi + (idirection*iT)        
         krad line iradi,p3,iradf
-        kEnv = sin(krad*iHR/2)
+        kEnv = abs(sin(krad*iHR/2))
         kMid1 = cos(krad)
         kSide1=sin(krad)
     ; sintesi                  
         as poscil3 iamp, ifreq
-        aMid = kMid1 * as
+        aMid = ((kMid1 * as)) + (as*0)
         aSide = kSide1 * as
         aL = (aMid+aSide)/sqrt(2)
         aR = (aMid-aSide)/sqrt(2)
