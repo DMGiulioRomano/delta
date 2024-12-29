@@ -29,7 +29,7 @@ comportamenti:
     ampiezza: -16
     frequenza: [2,5]
     posizione: 6
-    # - 4
+# - 4
   - cAttacco: 12
     durataArmonica: 20
     ritmo: [4,5]
@@ -44,6 +44,7 @@ comportamenti:
     ampiezza: -14
     frequenza: [2,4]
     posizione: 6
+# - 6
   - cAttacco: 15
     durataArmonica: 8
     ritmo: [4,2]
@@ -58,7 +59,7 @@ comportamenti:
     ampiezza: -13
     frequenza: [2,3]
     posizione: 6
-    # - 8
+# - 8
   - cAttacco: 20
     durataArmonica: 16
     ritmo: [4,6]
@@ -73,7 +74,7 @@ comportamenti:
     ampiezza: -15
     frequenza: [3,2]
     posizione: 6
-    # - 10
+# - 10
   - cAttacco: 49
     durataArmonica: 35
     ritmo: [7,15,10,4]

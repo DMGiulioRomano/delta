@@ -9,7 +9,7 @@
 
 brano:
   titolo: "delta"
-  attacco: 0
+  attacco: 3
   durata:
     minuti: 8
     secondi: 0
