@@ -33,7 +33,7 @@ csound: create_dir
 
 run:
 	open $(CSOUND_DIR)/$(CSD_DIR)/$(WAV_DIR)
-	open -a Reaper
+	open -a Reaper dcBlockerAt.RPP
 clean:
 	rm -rf $(PYTHON_DIR)/$(FUNZIONI_DIR)/__pycache__ $(PYTHON_DIR)/__pycache__ $(CSOUND_DIR)/$(CSD_DIR)
 

@@ -24,6 +24,9 @@ class Comportamento:
             # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
             if i > 2:
                 setattr(self, f"pfield{i}", [])
+                if chiave == "frequenza":
+                    setattr(self, f"pfield8", [])
+                    
 
     def creaEventoSonoro(self,spazio):
         self.spazio = spazio
@@ -47,6 +50,7 @@ class Comportamento:
                 if hasattr(self, f"pfield{j}"):
                     valore = getattr(self, f"pfield{j}")[i]
                     dictEvento[nome_campo] = valore
+            dictEvento["ifreq2"] = self.pfield8[i]
             # Aggiungi un identificatore univoco all'evento
             dictEvento["idEventoSonoro"] = i
             # Crea e aggiungi l'oggetto EventoSonoro alla lista
@@ -55,7 +59,7 @@ class Comportamento:
     def calcolaPfield(self):
         self.cycled = cycle(self.ritmo)
         # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
-        for i in range(3, len(self.lista_tuples[2:]) + 2):  # Iniziamo da 3 per "pfield3"
+        for i in range(3, len(self.lista_tuples[2:]) + 3):  # Iniziamo da 3 per "pfield3"
             # Inizializzazione per prevenire UnboundLocalError
             var_name = ""
             pfield_attr = f"pfield{i}"
@@ -67,9 +71,10 @@ class Comportamento:
                     # Usa il valore raw_value come necessario
                     var_name = "creami" + str(self.lista_tuples[i][0])
                 for p2 in self.pfield2:
-                    #pdb.set_trace()
-                    metodo = getattr(self, var_name, None)
-                    getattr(self, pfield_attr).append(metodo(raw_value,p2))  
+                    if var_name > "":
+                        metodo = getattr(self, var_name, None)
+                        getattr(self, pfield_attr).append(metodo(raw_value,p2))
+                        
 
     def creamidurata(self,raw_value,p2):
         ritmo=next(self.cycled)
@@ -104,12 +109,23 @@ class Comportamento:
         return next(self.cycled)
 
     def creamifrequenza(self,raw_value,p2):
-        ottava = raw_value[0]
-        regioneOttava = raw_value[1]
+        cycledF = next(self.cycled)
+        ottava = raw_value[0] if isinstance(raw_value[0],int) else raw_value[0][0]
+        regioneOttava = raw_value[1] if isinstance(raw_value[0],int) else raw_value[0][1]
         registroOttava = int(ottava*self.spazio.sistema.intervalli)
         offsetIntervallo = registroOttava+int(((regioneOttava*self.spazio.sistema.intervalli)/self.spazio.nDottava)-(self.spazio.sistema.intervalli/self.spazio.nDottava)) 
         sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:]
-        return round(sottoinsieme_frequenze[next(self.cycled)  % len(sottoinsieme_frequenze)],3)
+
+        direction = 0 if isinstance(raw_value[0],int) else raw_value[2]
+        ottava2 = ottava if isinstance(raw_value[0],int) else raw_value[1][0]
+        regioneOttava2 = regioneOttava if isinstance(raw_value[0],int) else raw_value[1][1]
+        registroOttava2 = int(ottava2*self.spazio.sistema.intervalli)
+        offsetIntervallo2 = registroOttava2+int(((regioneOttava2*self.spazio.sistema.intervalli)/self.spazio.nDottava)-(self.spazio.sistema.intervalli/self.spazio.nDottava)) 
+        sottoinsieme_frequenze2 = self.spazio.frequenze[offsetIntervallo2+direction:]
+        f = sottoinsieme_frequenze[cycledF  % len(sottoinsieme_frequenze)]
+        f1 = sottoinsieme_frequenze2[(cycledF  % len(sottoinsieme_frequenze))]
+        self.pfield8.append(f1)
+        return f
 
 
     def calcolaPfield2(self):
@@ -136,7 +152,7 @@ class Comportamento:
         subdirExport = "wav/"
         namefile = f"-o \"{directory}{subdirExport}sezione{idSezione}-Comportamento{self.idComportamento}.wav\" -W"
         # Leggi il file originale
-        with open('csound/comportamento.csd', 'r') as file:
+        with open('csound/comportamento2.csd', 'r') as file:
             lines = file.readlines()
         # Cerca la stringa "comportamento" e aggiungi "hello!" sotto di essa
         for index, line in enumerate(lines):

@@ -24,7 +24,7 @@ class PythagoreanSystem:
             self.fundamental = 2 ** i  # Aggiorna il fondamentale
             ratios = self.generate_ratios(i-4)  # Genera i rapporti
             self.sort_ratios(ratios)
-            frequencies = [float(ratio * self.fundamental) for ratio in  ratios]
+            frequencies = [round(float(ratio * self.fundamental),3) for ratio in  ratios]
             self.ratios.extend(ratios)
             self.frequencies.extend(frequencies)  # Estendi self.frequencies
 

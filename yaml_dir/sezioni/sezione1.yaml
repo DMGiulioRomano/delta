@@ -10,7 +10,7 @@
 comportamenti:
   - cAttacco: 0
     durataArmonica: 35
-    ritmo: [3,4]
+    ritmo: [3]
     durata: 10
     ampiezza: -14
     frequenza: [2,5]
@@ -27,7 +27,7 @@ comportamenti:
     ritmo: [3,2]
     durata: 10.1
     ampiezza: -16
-    frequenza: [2,5]
+    frequenza: [[2,5],[2,5],+5]
     posizione: -2
 # - 4
   - cAttacco: 43
@@ -36,14 +36,14 @@ comportamenti:
     durata: 7
     ampiezza: -16
     frequenza: [2,5]
-    posizione: 6
+    posizione: 3
   - cAttacco: 44
     durataArmonica: 8
     ritmo: [1]
     durata: 9
     ampiezza: -14
     frequenza: [2,4]
-    posizione: 6
+    posizione: 1
 # - 6
   - cAttacco: 52
     durataArmonica: 8
