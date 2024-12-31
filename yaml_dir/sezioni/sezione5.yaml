@@ -1,0 +1,43 @@
+comportamenti:
+  - cAttacco: 0
+    durataArmonica: 1
+    ritmo: [22,2,3,7,4,3,21,14,32,10,32,5,16,4,17,3,2]
+    durata: [5,3]
+    ampiezza: [-12,-0.5]
+    frequenza: [2,5]
+    posizione: -5
+  - cAttacco: 6
+    durataArmonica: 1
+    ritmo: [22,2,3,7,4,3,21,14,32,10,32,5,16,4,17,3,2]
+    durata: [2,3]
+    ampiezza: [-12,-0.5]
+    frequenza: [4,2]
+    posizione: -5
+  - cAttacco: 3
+    durataArmonica: 1
+    ritmo: [22,2,3,7,4,3,21,14,32,10,32,5,16,4,17,3,2]
+    durata: [5,3]
+    ampiezza: [-12,-0.5]
+    frequenza: [3,2]
+    posizione: -5
+  - cAttacco: 2
+    durataArmonica: 2
+    ritmo: [22,2,3,7,4,3,21,14,32,10]
+    durata: [7,2]
+    ampiezza: [-18,-0.75]
+    frequenza: [4,2]
+    posizione: -9
+  - cAttacco: 8
+    durataArmonica: 2
+    ritmo: [22,2,3,7,4,3,21,14,32,10]
+    durata: [4,2]
+    ampiezza: [-18,-0.75]
+    frequenza: [3,1]
+    posizione: -9
+  - cAttacco: 0
+    durataArmonica: 13
+    ritmo: [2,3,7,4]
+    durata: [4,2]
+    ampiezza: [-18,-0.75]
+    frequenza: [4,1]
+    posizione: 3

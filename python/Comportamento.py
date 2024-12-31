@@ -97,8 +97,8 @@ class Comportamento:
 
     def creamiposizione(self,raw_value,p2):
         ritmo = next(self.cycled)
-        offsetPos = (abs(raw_value)-1) if raw_value else 0
-        return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(raw_value)
+        offsetPos = (abs(raw_value)-1) if raw_value else int(0)
+        return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(raw_value if raw_value else 1)
 
     def creamiHR(self,raw_value,p2):
         return next(self.cycled)
@@ -107,7 +107,7 @@ class Comportamento:
         ottava = raw_value[0]
         regioneOttava = raw_value[1]
         registroOttava = int(ottava*self.spazio.sistema.intervalli)
-        offsetIntervallo = registroOttava+int(((regioneOttava*self.spazio.sistema.intervalli)/5)-(self.spazio.sistema.intervalli/5)) #andrebbe a terzi d'ottava
+        offsetIntervallo = registroOttava+int(((regioneOttava*self.spazio.sistema.intervalli)/self.spazio.nDottava)-(self.spazio.sistema.intervalli/self.spazio.nDottava)) 
         sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:]
         return round(sottoinsieme_frequenze[next(self.cycled)  % len(sottoinsieme_frequenze)],3)
 

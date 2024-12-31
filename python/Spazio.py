@@ -9,6 +9,7 @@ class Spazio:
         sistema_str = dizionario['frequenze'][0]
         sistema = eval(sistema_str)
         self.sistema = sistema(dizionario['frequenze'][1])
+        self.nDottava = dizionario['frequenze'][2]
         self.durate = dizionario.get("durate", [])
         self.ampiezze = dizionario.get("ampiezze", [])
         self.frequenze = self.creaDimensioneFrequenze()

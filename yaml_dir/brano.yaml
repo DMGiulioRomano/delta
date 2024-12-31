@@ -37,6 +37,7 @@ brano:
     frequenze: 
       - "PythagoreanSystem"
       - 200
+      - 10
     durate:
       - 1
     ampiezze:
