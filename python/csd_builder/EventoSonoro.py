@@ -1,4 +1,6 @@
 import pdb 
+from tabelle import Tabella
+
 class EventoSonoro:
     def __init__(self, dizionario):
         self.dizionario = dizionario
@@ -13,16 +15,30 @@ class EventoSonoro:
             setattr(self, chiave, valore)
             # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
 
-    def toCsoundStr(self):
-        # Genera una stringa in formato Csound, partendo dall'ordine degli attributi in lista_tuples
-        csound_str = "i1"  # Tipo di evento sonoro (i1 rappresenta un evento sonoro)
+    def toCsoundStr(self, skip_table_gen=False):
+        csound_str = ""
+        csound_str+=f";i1\t\t|at|\t\t|dur|\t\t|amp|\t\t\t|freqi|\t\t\t|wchZ|\t|HR|\t|freqf|\t\t\t|funPos|" + "\n"
+        try:
+            if isinstance(self.tabellaPosizione, Tabella):
+                if not skip_table_gen:
+                    # Only generate table string if not skipped
+                    csound_str += self.tabellaPosizione.genera() + "\n"
+                self.lista_tuples.append(('ifnPos', self.tabellaPosizione.numero_tabella))
+                setattr(self, 'ifnPos', self.tabellaPosizione.numero_tabella)
+            else:
+                raise TypeError("tabellaPosizione non è una classe figlia di Tabella.")
+        except Exception as e:
+            raise ValueError(f"Errore nella generazione dell'istanza tabellaPosizione: {e}")
+
+        # Generate event string
+        csound_str += "i1"
+        esclusi = ["idEventoSonoro", "tabellaPosizione"]
         for chiave, _ in self.lista_tuples:
-            # Escludi l'attributo 'idEventoSonoro'
-            if chiave != "idEventoSonoro":
+            if chiave not in esclusi:
                 valore = getattr(self, chiave)
                 csound_str += f"\t\t {valore}"
         return csound_str
-
+        
     def __str__(self) -> str:
         output ="\n\t\t"
         esclusi ={"lista_tuples", "dizionario", "idEventoSonoro"}

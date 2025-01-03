@@ -14,14 +14,14 @@ comportamenti:
     durata: 10
     ampiezza: -14
     frequenza: [2,5]
-    posizione: -2
+    posizione: [-2,GEN06]
   - cAttacco: 14
     durataArmonica: 35
     ritmo: [3,4]
     durata: 11.8
     ampiezza: -14
     frequenza: [2,5]
-    posizione: -5
+    posizione: [-5,GEN11]
   - cAttacco: 17
     durataArmonica: 30
     ritmo: [3,2]

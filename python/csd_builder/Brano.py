@@ -1,6 +1,6 @@
-from Sezione import Sezione  # Importa la classe Sezioni, presumibilmente definita altrove
-from Forma import Forma  # Importa la classe Forma, presumibilmente definita altrove
-from Spazio import Spazio
+from .Forma import Forma
+from .Sezione import Sezione
+from .Spazio import Spazio
 import pdb
 class Brano:
     def __init__(self, dizionario):

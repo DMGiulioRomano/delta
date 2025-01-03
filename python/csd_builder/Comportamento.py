@@ -1,4 +1,3 @@
-from EventoSonoro import EventoSonoro
 from itertools import cycle
 import random
 import pdb
@@ -6,6 +5,9 @@ import numpy as np
 from funzioni import *
 import math
 import sys
+from tabelle import *
+from .EventoSonoro import EventoSonoro
+
 class Comportamento:
     # attributi relativi al comportamento hanno lachiave che inizia per c. 
     # es. cAttacco, cDurata. 
@@ -15,6 +17,8 @@ class Comportamento:
         self.lista_tuples.append(("HR", 0))          # Aggiungi la tupla ("HR", 0)
         self.generaAttributi()
         self.eventiSonori = []
+        self._tabelle_cache = {}  # Cache to store created tables
+        self._tabelle_generate = set()  # Set to track which tables have been generated
     
     def generaAttributi(self):
         # Itera su tutta la lista di tuple, partendo dall'indice 0
@@ -26,13 +30,14 @@ class Comportamento:
                 setattr(self, f"pfield{i}", [])
                 if chiave == "frequenza":
                     setattr(self, f"pfield8", [])
+                if chiave == "posizione":
+                    setattr(self, f"pfield9", [])
                     
 
     def creaEventoSonoro(self,spazio):
         self.spazio = spazio
         self.calcolaPfield2()
         self.calcolaPfield()
-
         for i in range(len(self.pfield2)):
             # Trova l'indice della chiave "ritmo" in lista_tuples
             indice_ritmo = next(
@@ -51,6 +56,7 @@ class Comportamento:
                     valore = getattr(self, f"pfield{j}")[i]
                     dictEvento[nome_campo] = valore
             dictEvento["ifreq2"] = self.pfield8[i]
+            dictEvento["tabellaPosizione"] = self.pfield9[i]
             # Aggiungi un identificatore univoco all'evento
             dictEvento["idEventoSonoro"] = i
             # Crea e aggiungi l'oggetto EventoSonoro alla lista
@@ -102,8 +108,37 @@ class Comportamento:
 
     def creamiposizione(self,raw_value,p2):
         ritmo = next(self.cycled)
-        offsetPos = (abs(raw_value)-1) if raw_value else int(0)
-        return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(raw_value if raw_value else 1)
+        offsetPos = raw_value if isinstance(raw_value, int) else (raw_value[0] if raw_value else 0)
+        sign = raw_value if isinstance(raw_value, int) else (raw_value[0] if raw_value else 1)
+        self.creatiTabella(raw_value)
+        return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(sign)
+
+    def creatiTabella(self, raw_value):
+        try:
+            tabella_nome = raw_value[1] if isinstance(raw_value, list) else "GEN07"
+            
+            # Check if we already have this type of table in our cache
+            if tabella_nome in self._tabelle_cache:
+                # Reuse existing table
+                self.pfield9.append(self._tabelle_cache[tabella_nome])
+                return
+
+            # If not in cache, create new table
+            tabella_classe = eval(tabella_nome)
+            if not issubclass(tabella_classe, Tabella):
+                raise TypeError("La classe specificata non è una sottoclasse di Tabella")
+            
+            # Create new table instance
+            tabella_istanza = tabella_classe()
+            
+            # Store in cache
+            self._tabelle_cache[tabella_nome] = tabella_istanza
+            
+            # Use the table
+            self.pfield9.append(tabella_istanza)
+
+        except Exception as e:
+            raise ValueError(f"Errore nell'assegnazione di pfield9: {str(e)}")
 
     def creamiHR(self,raw_value,p2):
         return next(self.cycled)
@@ -144,7 +179,20 @@ class Comportamento:
 
 
     def toCsoundStr(self):
-        return "\n".join([ evento.toCsoundStr() for evento in self.eventiSonori])
+        # First generate all unique table definitions
+        table_definitions = []
+        for evento in self.eventiSonori:
+            if hasattr(evento, 'tabellaPosizione'):
+                table_key = evento.tabellaPosizione.__class__.__name__
+                if table_key not in self._tabelle_generate:
+                    table_definitions.append(evento.tabellaPosizione.genera())
+                    self._tabelle_generate.add(table_key)
+        
+        # Then generate all event strings
+        event_strings = [evento.toCsoundStr(skip_table_gen=True) for evento in self.eventiSonori]
+        
+        # Combine table definitions and event strings
+        return "\n".join(table_definitions) + "\n; ---- Eventi sonori ----\n" + "\n".join(event_strings)
 
     def scriviCsd(self,idSezione):
         comportamento = self.toCsoundStr()

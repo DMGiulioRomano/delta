@@ -1,4 +1,4 @@
-<REAPER_PROJECT 0.1 "7.01/macOS-arm64" 1735673265
+<REAPER_PROJECT 0.1 "7.01/macOS-arm64" 1735922946
   <NOTES 0 2
   >
   RIPPLE 0
@@ -17,8 +17,8 @@
   VIDEO_CONFIG 0 0 256
   PANMODE 3
   CURSOR 2
-  ZOOM 66.35019390585518 15 0
-  VZOOMEX 6 0
+  ZOOM 66.35019390585518 0 0
+  VZOOMEX 6 254
   USE_REC_CFG 0
   RECMODE 1
   SMPTESYNC 0 30 100 40 1000 300 0 0 1 0 0
@@ -97,7 +97,7 @@
   >
   <TEMPOENVEX
     EGUID {CB82B909-C952-BA4D-8173-71A66388755C}
-    ACT 1 -1
+    ACT 0 -1
     VIS 1 0 1
     LANEHEIGHT 0 0
     ARM 0
@@ -105,8 +105,8 @@
   >
   <PROJBAY
   >
-  <TRACK {64C1DF2F-828F-4C48-8D86-72367920A2A9}
-    NAME sezione5-Comportamento1
+  <TRACK {2C454244-A1BA-7643-ACB4-78ABDBBC08EB}
+    NAME sezione1-Comportamento1
     PEAKCOL 16576
     BEAT -1
     AUTOMODE 0
@@ -125,13 +125,35 @@
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {64C1DF2F-828F-4C48-8D86-72367920A2A9}
+    TRACKID {2C454244-A1BA-7643-ACB4-78ABDBBC08EB}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
+    <ITEM
+      POSITION 0
+      SNAPOFFS 0
+      LENGTH 11.667
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 5 0 0 5 0 0 0
+      FADEOUT 5 0 0 5 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {8968709C-4535-DE42-A63A-5C8B74DA2F25}
+      IID 1
+      NAME sezione1-Comportamento1.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {DDE1E17D-2CE7-4040-92FA-9708838064A6}
+      <SOURCE WAVE
+        FILE "csound/generazione/wav/sezione1-Comportamento1.wav"
+      >
+    >
   >
-  <TRACK {FBCA173F-0502-5947-8910-12578831288F}
-    NAME sezione5-Comportamento2
+  <TRACK {9D8A62A4-A9A3-A748-96CF-D802FBF91301}
+    NAME sezione1-Comportamento2
     PEAKCOL 16576
     BEAT -1
     AUTOMODE 0
@@ -150,13 +172,35 @@
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {FBCA173F-0502-5947-8910-12578831288F}
+    TRACKID {9D8A62A4-A9A3-A748-96CF-D802FBF91301}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
+    <ITEM
+      POSITION 0
+      SNAPOFFS 0
+      LENGTH 34.405
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 5 0 0 5 0 0 0
+      FADEOUT 5 0 0 5 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {CDCFB298-8329-9E47-A22F-26267F8082CF}
+      IID 2
+      NAME sezione1-Comportamento2.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {7C9235A5-7A9B-4648-9A1B-BB5BA27E9846}
+      <SOURCE WAVE
+        FILE "csound/generazione/wav/sezione1-Comportamento2.wav"
+      >
+    >
   >
-  <TRACK {120F393B-6A7A-A348-BE2B-F6B71BF94BCE}
-    NAME sezione5-Comportamento3
+  <TRACK {0CEEA56A-E7B9-0B4D-A355-06251360BDBD}
+    NAME sezione1-Comportamento3
     PEAKCOL 16576
     BEAT -1
     AUTOMODE 0
@@ -175,13 +219,35 @@
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {120F393B-6A7A-A348-BE2B-F6B71BF94BCE}
+    TRACKID {0CEEA56A-E7B9-0B4D-A355-06251360BDBD}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
+    <ITEM
+      POSITION 0
+      SNAPOFFS 0
+      LENGTH 41.99
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 5 0 0 5 0 0 0
+      FADEOUT 5 0 0 5 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {B18E3291-7CB2-2E48-B306-8FCD39B7B2F6}
+      IID 3
+      NAME sezione1-Comportamento3.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {4E791620-B488-7648-B120-5D3873FBA7C1}
+      <SOURCE WAVE
+        FILE "csound/generazione/wav/sezione1-Comportamento3.wav"
+      >
+    >
   >
-  <TRACK {5226F63F-7D87-8843-A387-8602C4D7E83D}
-    NAME sezione5-Comportamento4
+  <TRACK {9D8EFC2D-06F2-0744-A72B-CD51CFAFE7A7}
+    NAME sezione1-Comportamento4
     PEAKCOL 16576
     BEAT -1
     AUTOMODE 0
@@ -200,13 +266,35 @@
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {5226F63F-7D87-8843-A387-8602C4D7E83D}
+    TRACKID {9D8EFC2D-06F2-0744-A72B-CD51CFAFE7A7}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
+    <ITEM
+      POSITION 0
+      SNAPOFFS 0
+      LENGTH 52
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 5 0 0 5 0 0 0
+      FADEOUT 5 0 0 5 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {06B39335-071D-5942-88A5-2EA5E64136DA}
+      IID 4
+      NAME sezione1-Comportamento4.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {8A75FD39-A0EC-DE4D-9CBB-45CCE3F8BA29}
+      <SOURCE WAVE
+        FILE "csound/generazione/wav/sezione1-Comportamento4.wav"
+      >
+    >
   >
-  <TRACK {B7753DB0-0424-1244-9CD7-8517BFF1A715}
-    NAME sezione5-Comportamento5
+  <TRACK {B0291285-C671-294D-8F36-7BAD31A74216}
+    NAME sezione1-Comportamento5
     PEAKCOL 16576
     BEAT -1
     AUTOMODE 0
@@ -225,13 +313,35 @@
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {B7753DB0-0424-1244-9CD7-8517BFF1A715}
+    TRACKID {B0291285-C671-294D-8F36-7BAD31A74216}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
+    <ITEM
+      POSITION 0
+      SNAPOFFS 0
+      LENGTH 60
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 5 0 0 5 0 0 0
+      FADEOUT 5 0 0 5 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {77C50704-567F-8F4B-9449-5A9068A389D8}
+      IID 5
+      NAME sezione1-Comportamento5.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {8396DABF-62AA-6F4C-8863-13609CABC5D0}
+      <SOURCE WAVE
+        FILE "csound/generazione/wav/sezione1-Comportamento5.wav"
+      >
+    >
   >
-  <TRACK {DE8C7102-6F36-FA40-95FF-6737CC5062B2}
-    NAME sezione5-Comportamento6
+  <TRACK {46AEA210-6A68-3C42-923D-DD50385DC998}
+    NAME sezione1-Comportamento6
     PEAKCOL 16576
     BEAT -1
     AUTOMODE 0
@@ -250,10 +360,32 @@
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {DE8C7102-6F36-FA40-95FF-6737CC5062B2}
+    TRACKID {46AEA210-6A68-3C42-923D-DD50385DC998}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
+    <ITEM
+      POSITION 0
+      SNAPOFFS 0
+      LENGTH 58
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 5 0 0 5 0 0 0
+      FADEOUT 5 0 0 5 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {68689A5D-0F65-B046-AC75-E349EAD1DA41}
+      IID 6
+      NAME sezione1-Comportamento6.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {CC564C2C-F038-864B-9095-B3934A21C741}
+      <SOURCE WAVE
+        FILE "csound/generazione/wav/sezione1-Comportamento6.wav"
+      >
+    >
   >
   <EXTENSIONS
   >

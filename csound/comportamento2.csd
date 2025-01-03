@@ -18,22 +18,25 @@ nchnls=2
         idirection = signum(p6)
         iHR = p7
         ifreq2 = p8
+        ifn = p9
         iT = ($M_PI*2)/iHR
         iradi = 0 + (iwhichZero-1) * iT
-        iradf = iradi + (idirection*iT)        
-        krad line iradi,p3,iradf
+    ; lettura tabella fasore
+        kndx line 0, p3, 1                  ; Vary our index linearly from 0 to 1.
+        ktab table kndx, ifn, 1
+        krad = iradi + (ktab * iT * idirection)
         kEnv = abs(sin(krad*iHR/2))
         kMid1 = cos(krad)
         kSide1=sin(krad)
         kfreq line ifreq, p3, ifreq2
     ; sintesi                  
-        as poscil3 iamp, kfreq
-        aMid = ((kMid1 * as)) + (as*0)
+        as poscil3 iamp*kEnv, kfreq
+        aMid = kMid1 * as
         aSide = kSide1 * as
         aL = (aMid+aSide)/sqrt(2)
         aR = (aMid-aSide)/sqrt(2)
-        aEnvL = aL * kEnv
-        aEnvR = aR * kEnv
+        aEnvL = aL ;* kEnv
+        aEnvR = aR ;* kEnv
             outs aEnvL,aEnvR;,a1,a2,aL,aR,aMid,aSide
     endin
 

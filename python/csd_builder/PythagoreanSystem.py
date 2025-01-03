@@ -1,5 +1,6 @@
 from fractions import Fraction
 import pdb
+
 class PythagoreanSystem:
     def __init__(self,intervalli):
         self.intervalli = intervalli

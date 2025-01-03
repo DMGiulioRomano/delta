@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from PythagoreanSystem import PythagoreanSystem
+from .PythagoreanSystem import PythagoreanSystem
 import plotly.graph_objects as go
 import pdb
 
