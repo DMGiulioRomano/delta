@@ -21,7 +21,7 @@ comportamenti:
     durata: 11.8
     ampiezza: -14
     frequenza: [2,5]
-    posizione: [-5,GEN11]
+    posizione: -5
   - cAttacco: 17
     durataArmonica: 30
     ritmo: [3,2]

@@ -63,6 +63,7 @@ class Comportamento:
             self.eventiSonori.append(EventoSonoro(dictEvento))
 
     def calcolaPfield(self):
+        self.ritmo = [int(x) for x in self.ritmo]
         self.cycled = cycle(self.ritmo)
         # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
         for i in range(3, len(self.lista_tuples[2:]) + 3):  # Iniziamo da 3 per "pfield3"
@@ -108,8 +109,8 @@ class Comportamento:
 
     def creamiposizione(self,raw_value,p2):
         ritmo = next(self.cycled)
-        offsetPos = raw_value if isinstance(raw_value, int) else (raw_value[0] if raw_value else 0)
-        sign = raw_value if isinstance(raw_value, int) else (raw_value[0] if raw_value else 1)
+        offsetPos = int(raw_value if isinstance(raw_value, (int,float)) else (raw_value[0] if raw_value else 0))
+        sign = int(raw_value if isinstance(raw_value, (int,float)) else (raw_value[0] if raw_value else 1))
         self.creatiTabella(raw_value)
         return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(sign)
 
@@ -145,15 +146,21 @@ class Comportamento:
 
     def creamifrequenza(self,raw_value,p2):
         cycledF = next(self.cycled)
-        ottava = raw_value[0] if isinstance(raw_value[0],int) else raw_value[0][0]
-        regioneOttava = raw_value[1] if isinstance(raw_value[0],int) else raw_value[0][1]
+        ottava = int(raw_value[0] if isinstance(raw_value[0], (int,float)) else raw_value[0][0])
+        regioneOttava = int(raw_value[1] if isinstance(raw_value[0],(int,float)) else raw_value[0][1])
         registroOttava = int(ottava*self.spazio.sistema.intervalli)
         offsetIntervallo = registroOttava+int(((regioneOttava*self.spazio.sistema.intervalli)/self.spazio.nDottava)-(self.spazio.sistema.intervalli/self.spazio.nDottava)) 
         sottoinsieme_frequenze = self.spazio.frequenze[offsetIntervallo:]
 
-        direction = 0 if isinstance(raw_value[0],int) else raw_value[2]
-        ottava2 = ottava if isinstance(raw_value[0],int) else raw_value[1][0]
-        regioneOttava2 = regioneOttava if isinstance(raw_value[0],int) else raw_value[1][1]
+        try:
+            # Logica originale
+            direction = int(0 if isinstance(raw_value[0], (int,float)) else raw_value[2])
+        except (TypeError, IndexError) as e:
+            # Stampa dell'errore e del valore di raw_value
+            print(f"Errore: {e}. raw_value: {raw_value}")
+            raise  # Rilancia l'eccezione per una gestione successiva
+        ottava2 = int(ottava if isinstance(raw_value[0],(int,float)) else raw_value[1][0])
+        regioneOttava2 = int(regioneOttava if isinstance(raw_value[0],(int,float)) else raw_value[1][1])
         registroOttava2 = int(ottava2*self.spazio.sistema.intervalli)
         offsetIntervallo2 = registroOttava2+int(((regioneOttava2*self.spazio.sistema.intervalli)/self.spazio.nDottava)-(self.spazio.sistema.intervalli/self.spazio.nDottava)) 
         sottoinsieme_frequenze2 = self.spazio.frequenze[offsetIntervallo2+direction:]

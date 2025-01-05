@@ -20,7 +20,7 @@ class GEN07(Tabella):
         self._verifica_x_punti(punti)
         parametri = self._calcola_punti_scalati(punti)
 
-        commento = "; ---- GEN07 pfields: ----\n"
+        commento = "; ---- GEN07 (spezzata di rette) pfields: ----\n"
         commento += "; number, start, size, \t\tGEN07,   p5/p6/p7...=valore/segmenti"
         tabella = f"f {self.numero_tabella}\t\t  0 \t {self.lunghezza}\t7\t\t" + " ".join(map(str, parametri))
         return f"{commento}\n{tabella}"

@@ -61,7 +61,7 @@ class GEN11(Tabella):
             if r != 1.0:
                 parametri.append(r)
 
-        commento = "; ---- GEN11 pfields: ----\n"
+        commento = "; ---- GEN11 (insieme additivo di parziali cosinusoidali) pfields: ----\n"
         commento += "; number, start, \tsize, \t\t\tGEN11, p5=nh, p6=lh(opt), p7=r(opt)"
         tabella = "f " + " \t\t".join(map(str, parametri))
         return f"{commento}\n{tabella}"

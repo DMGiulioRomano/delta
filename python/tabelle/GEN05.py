@@ -51,7 +51,7 @@ class GEN05(Tabella):
         self._verifica_x_punti(punti)
         parametri = self._calcola_punti_scalati(punti)
 
-        commento = "; ---- GEN05 pfields: ----\n"
+        commento = "; ---- GEN05 (curve esponenziali) pfields: ----\n"
         commento += "; number, start, size, \t\tGEN05,   p5/p6/p7...=valore/segmenti"
         normalizzazione = "5" if normalizza else "-5"
         tabella = f"f {self.numero_tabella}\t\t  0 \t {self.lunghezza}\t{normalizzazione}\t\t  " + " ".join(map(str, parametri))

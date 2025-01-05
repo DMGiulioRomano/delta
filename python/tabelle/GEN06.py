@@ -31,8 +31,8 @@ class GEN06(Tabella):
         self._verifica_x_punti(punti, min_punti=3)  # GEN06 richiede minimo 3 punti
         parametri = self._calcola_punti_scalati(punti)
 
-        commento = "; GEN06 pfields:\n"
-        commento += "p1=tabella, p2=start, p3=size, p4=GEN06, p5/p7/p9...=valori (max/min locali), " + \
+        commento = "; ---- GEN06 (polinomi cubici) pfields: ---- \n"
+        commento += "; number, start, size, \t\tGEN06, p5/p7/p9...=valori (max/min locali), " + \
                  "p6/p8/p10...=punti di inflessione, " + \
                  "p7/p9/p11...=numero segmenti"
         tabella = f"f {self.numero_tabella} 0 {self.lunghezza} 6 " + " ".join(map(str, parametri))
