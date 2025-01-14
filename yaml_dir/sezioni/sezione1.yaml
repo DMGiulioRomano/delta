@@ -52,6 +52,7 @@ comportamenti:
     ampiezza: -16
     frequenza: [2,6]
     posizione: 6
+# STOP
   - cAttacco: 24
     durataArmonica: 20
     ritmo: [7,15,10,4]
@@ -96,4 +97,3 @@ comportamenti:
     ampiezza: -20
     frequenza: [6,1]
     posizione: -2
-# STOP

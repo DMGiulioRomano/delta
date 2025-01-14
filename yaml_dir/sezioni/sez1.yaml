@@ -11,7 +11,7 @@ comportamenti:
   ritmo: [4]
   durata: 10.0
   ampiezza: [-30, -0.25]
-  frequenza: [2, 1]
+  frequenza: [[2, 1], [2,2], 3]
   posizione: -8
 - cAttacco: 0
   durataArmonica: 26
