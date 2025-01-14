@@ -1,100 +1,92 @@
-# File YAML: regole principali
-# - Indentazione: Usa spazi (non tab), mantenendo consistenza (di solito 2 spazi).
-# - Chiavi e valori: Formato `chiave: valore`. Stringhe con spazi vanno tra virgolette.
-# - Liste: Usa `-` seguito da uno posizione (es. `- elemento`).
-# - Dizionari annidati: Indenta per rappresentare gerarchie (es. chiave: sottochiave: valore).
-# - Commenti: Inizia con `#`.
-# - Booleani: Usa `true` o `false` (in minuscolo).
-# - Nullo: Usa `null`, `~` o lascia vuoto il valore.
-
 comportamenti:
-  - cAttacco: 49
-    durataArmonica: 26
-    ritmo: [7,15,10,12,19,23]
-    durata: 14
-    ampiezza: [-30,-0.25]
-    frequenza: [6,1]
-    posizione: -8
-  - cAttacco: 55
-    durataArmonica: 20
-    ritmo: [7,15,10,4]
-    durata: 20
-    ampiezza: [-36,-0.25]
-    frequenza: [6,2]
-    posizione: 6
-# - 3
-  - cAttacco: 49
-    durataArmonica: 35
-    ritmo: [15,7,10,4]
-    durata: [15,2]
-    ampiezza: [-32,-0.25]
-    frequenza: [6,3]
-    posizione: -3
-  - cAttacco: 49
-    durataArmonica: 35
-    ritmo: [7,4,15,10]
-    durata: 19
-    ampiezza: [-34,0.25]
-    frequenza: [7,2]
-    posizione: -2
-# - 5
-  - cAttacco: 81
-    durataArmonica: 10
-    ritmo: [3,2,4]
-    durata: 14
-    ampiezza: [-34,0.25]
-    frequenza: [7,2]
-    posizione: 8
-  - cAttacco: 70
-    durataArmonica: 35
-    ritmo: [7,4,15,10]
-    durata: 24
-    ampiezza: [-34,0.25]
-    frequenza: [7,3]
-    posizione: -2
-# - 7
-  - cAttacco: 60
-    durataArmonica: 25
-    ritmo: [12,16,15,19]
-    durata: [30,6]
-    ampiezza: [-30,-0.25]
-    frequenza: [7,4]
-    posizione: -2
-  - cAttacco: 53
-    durataArmonica: 25
-    ritmo: [12,15,19]
-    durata: [35,6]
-    ampiezza: [-27,-0.25]
-    frequenza: [8,1]
-    posizione: 9
-# - 9
-  - cAttacco: 53
-    durataArmonica: 10
-    ritmo: [12,15,19]
-    durata: [35,6]
-    ampiezza: [-27,-0.25]
-    frequenza: [8,2]
-    posizione: 10
-  - cAttacco: 53
-    durataArmonica: 10
-    ritmo: [12,15,19]
-    durata: [35,6]
-    ampiezza: [-27,-0.25]
-    frequenza: [8,3]
-    posizione: 10
-# - 11
-  - cAttacco: 50
-    durataArmonica: 20
-    ritmo: [12,15,19]
-    durata: [35,6]
-    ampiezza: [-27,-0.25]
-    frequenza: [8,4]
-    posizione: 10
-  - cAttacco: 53
-    durataArmonica: 20
-    ritmo: [12,15,19]
-    durata: [35,6]
-    ampiezza: [-27,-0.25]
-    frequenza: [8,5]
-    posizione: 10
-# - 13
+- cAttacco: 48.062
+  durataArmonica: 25.0
+  ritmo: [12.0, 16.0, 15.0, 19.0]
+  durata: [30.0, 6.0]
+  ampiezza: [-30.0, -0.25]
+  frequenza: [8.0, 4.0]
+  posizione: -2.0
+- cAttacco: 49.0
+  durataArmonica: 35.0
+  ritmo: [7.0, 4.0, 15.0, 10.0]
+  durata: 19.0
+  ampiezza: [-28.0, 0.25]
+  frequenza: [7.0, 2.0]
+  posizione: -2.0
+- cAttacco: 49.0
+  durataArmonica: 26.0
+  ritmo: [7.0, 15.0, 10.0, 12.0, 19.0, 23.0]
+  durata: 20.0
+  ampiezza: [-26.0, -0.25]
+  frequenza: [6.0, 9.0]
+  posizione: -8.0
+- cAttacco: 49.812
+  durataArmonica: 20.0
+  ritmo: [12.0, 15.0, 19.0]
+  durata: [35.0, 6.0]
+  ampiezza: [-250.0, -0.25]
+  frequenza: [8.0, 5.0]
+  posizione: 10.0
+- cAttacco: 50.625
+  durataArmonica: 20.0
+  ritmo: [12.0, 15.0, 19.0]
+  durata: [35.0, 6.0]
+  ampiezza: [-27.0, -0.25]
+  frequenza: [8.0, 4.0]
+  posizione: 10.0
+- cAttacco: 50.75
+  durataArmonica: 35.0
+  ritmo: [15.0, 7.0, 10.0, 4.0]
+  durata: [15.0, 2.0]
+  ampiezza: [-25.0, -0.25]
+  frequenza: [7.0, 3.0]
+  posizione: -3.0
+- cAttacco: 51.562
+  durataArmonica: 10.0
+  ritmo: [12.0, 15.0, 19.0]
+  durata: [35.0, 6.0]
+  ampiezza: [-27.0, -0.25]
+  frequenza: [8.0, 3.0]
+  posizione: 10.0
+- cAttacco: 53.0
+  durataArmonica: 10.0
+  ritmo: [12.0, 15.0, 19.0]
+  durata: [35.0, 6.0]
+  ampiezza: [-27.0, -0.25]
+  frequenza: [8.0, 2.0]
+  posizione: 10.0
+- cAttacco: 55.0
+  durataArmonica: 20.0
+  ritmo: [7.0, 15.0, 10.0, 4.0]
+  durata: 40.0
+  ampiezza: [-36.0, -0.25]
+  frequenza: [6.0, 8.0]
+  posizione: 6.0
+- cAttacco: 55.25
+  durataArmonica: 25.0
+  ritmo: [12.0, 15.0, 19.0]
+  durata: [35.0, 6.0]
+  ampiezza: [-27.0, -0.25]
+  frequenza: [8.0, 1.0]
+  posizione: 9.0
+- cAttacco: 58.688
+  durataArmonica: 25.0
+  ritmo: [12.0, 16.0, 15.0, 19.0]
+  durata: [30.0, 6.0]
+  ampiezza: [-30.0, -0.25]
+  frequenza: [7.0, 4.0]
+  posizione: -2.0
+- cAttacco: 70
+  durataArmonica: 35
+  ritmo: [7, 4, 15, 10]
+  durata: 24
+  ampiezza: [-34, 0.25]
+  frequenza: [7, 3]
+  posizione: -2
+- cAttacco: 81
+  durataArmonica: 10
+  ritmo: [3, 2, 4]
+  durata: 14
+  ampiezza: [-34, 0.25]
+  frequenza: [7, 2]
+  posizione: 8

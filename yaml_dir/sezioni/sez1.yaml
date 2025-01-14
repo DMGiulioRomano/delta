@@ -1,0 +1,134 @@
+comportamenti:
+- cAttacco: 0.0
+  durataArmonica: 26
+  ritmo: [3]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 0.0
+  durataArmonica: 26
+  ritmo: [4]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 0
+  durataArmonica: 26
+  ritmo: [2]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 13.125
+  durataArmonica: 20
+  ritmo: [3]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 13.125
+  durataArmonica: 20
+  ritmo: [4]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 13.125
+  durataArmonica: 20
+  ritmo: [2]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 23.125
+  durataArmonica: 15
+  ritmo: [3]
+  durata: 10.0
+  ampiezza: [-27, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 23.125
+  durataArmonica: 15
+  ritmo: [4]
+  durata: 10.0
+  ampiezza: [-27, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 23.1875
+  durataArmonica: 15
+  ritmo: [2]
+  durata: 10.0
+  ampiezza: [-27, -0.25]
+  frequenza: [2, 1]
+  posizione: -8
+- cAttacco: 25.312
+  durataArmonica: 15
+  ritmo: [2]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 2]
+  posizione: -8
+- cAttacco: 25.312
+  durataArmonica: 15
+  ritmo: [4]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 2]
+  posizione: -8
+- cAttacco: 25.3125
+  durataArmonica: 15
+  ritmo: [3]
+  durata: 10.0
+  ampiezza: [-30, -0.25]
+  frequenza: [2, 2]
+  posizione: -8
+- cAttacco: 34.062
+  durataArmonica: 15
+  ritmo: [3]
+  durata: 10.0
+  ampiezza: [-27, -0.25]
+  frequenza: [2, 2]
+  posizione: -8
+- cAttacco: 34.062
+  durataArmonica: 15
+  ritmo: [2]
+  durata: 10.0
+  ampiezza: [-27, -0.25]
+  frequenza: [2, 3]
+  posizione: -8
+- cAttacco: 34.062
+  durataArmonica: 15
+  ritmo: [4]
+  durata: 10.0
+  ampiezza: [-27, -0.25]
+  frequenza: [2, 4]
+  posizione: -8
+- cAttacco: 47.313
+  durataArmonica: 5
+  ritmo: [5, 5, 5, 2]
+  durata: 4.0
+  ampiezza: [-17, -0.25]
+  frequenza: [2, 4]
+  posizione: 2
+- cAttacco: 50.938
+  durataArmonica: 15
+  ritmo: [3, 6, 10]
+  durata: 17.28
+  ampiezza: [-24, -0.25]
+  frequenza: [2, 4]
+  posizione: 5
+- cAttacco: 53.0
+  durataArmonica: 15
+  ritmo: [4, 7, 11]
+  durata: 17.28
+  ampiezza: [-20, -0.25]
+  frequenza: [2, 5]
+  posizione: 5
+- cAttacco: 56.217210107110056
+  durataArmonica: 15
+  ritmo: [2, 5, 9]
+  durata: 17.28
+  ampiezza: [-20, -0.25]
+  frequenza: [2, 7]
+  posizione: 3

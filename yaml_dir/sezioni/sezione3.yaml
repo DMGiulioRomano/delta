@@ -1,43 +1,46 @@
 comportamenti:
-  - cAttacco: 0
-    durataArmonica: 30
-    ritmo: [22,2,3,7,4,3,21,14,32,10,32,5,16,4,17,3,2]
-    durata: [30,3]
-    ampiezza: [-12,-0.5]
-    frequenza: [2,5]
-    posizione: -5
-  - cAttacco: 6
-    durataArmonica: 30
-    ritmo: [22,2,3,7,4,3,21,14,32,10,32,5,16,4,17,3,2]
-    durata: 30
-    ampiezza: [-18,-0.5]
-    frequenza: [4,2]
-    posizione: -5
-  - cAttacco: 3
-    durataArmonica: 30
-    ritmo: [22,2,3,7,4,3,21,14,32,10,32,5,16,4,17,3,2]
-    durata: 30
-    ampiezza: [-12,-0.5]
-    frequenza: [3,2]
-    posizione: -5
-  - cAttacco: 2
-    durataArmonica: 30
-    ritmo: [22,19,3,7,4,3,21,14,32,10]
-    durata: [30,2]
-    ampiezza: [-26,-0.5]
-    frequenza: [4,2]
-    posizione: -9  
-  - cAttacco: 8  
-    durataArmonica: 30
-    ritmo: [22,2,3,7,4,3,21,14,32,10]
-    durata: 30
-    ampiezza: [-18,-0.75]
-    frequenza: [3,1]
-    posizione: -9
-  - cAttacco: 15 
-    durataArmonica: 27
-    ritmo: [2,3,7,4]
-    durata: 20
-    ampiezza: [-20,-0.75]
-    frequenza: [4,1]
-    posizione: -3
+- cAttacco: 0.0
+  durataArmonica: 30.0
+  ritmo: [22.0, 2.0, 3.0, 7.0, 4.0, 3.0, 21.0, 14.0, 32.0, 10.0, 32.0, 5.0, 16.0,
+    4.0, 17.0, 3.0, 2.0]
+  durata: [30.0, 3.0]
+  ampiezza: [-12.0, -0.5]
+  frequenza: [2.0, 5.0]
+  posizione: '[-5, GEN06]'
+- cAttacco: 2.0
+  durataArmonica: 30.0
+  ritmo: [22.0, 19.0, 3.0, 7.0, 4.0, 3.0, 21.0, 14.0, 32.0, 10.0]
+  durata: [30.0, 2.0]
+  ampiezza: [-26.0, -0.5]
+  frequenza: [4.0, 2.0]
+  posizione: '[-9,GEN06]'
+- cAttacco: 3.0
+  durataArmonica: 30.0
+  ritmo: [22.0, 2.0, 3.0, 7.0, 4.0, 3.0, 21.0, 14.0, 32.0, 10.0, 32.0, 5.0, 16.0,
+    4.0, 17.0, 3.0, 2.0]
+  durata: 30.0
+  ampiezza: [-12.0, -0.5]
+  frequenza: [3.0, 2.0]
+  posizione: '[-5,GEN06]'
+- cAttacco: 6.0
+  durataArmonica: 30.0
+  ritmo: [22.0, 2.0, 3.0, 7.0, 4.0, 3.0, 21.0, 14.0, 32.0, 10.0, 32.0, 5.0, 16.0,
+    4.0, 17.0, 3.0, 2.0]
+  durata: 30.0
+  ampiezza: [-18.0, -0.5]
+  frequenza: [4.0, 2.0]
+  posizione: '[-5,GEN06]'
+- cAttacco: 7.75
+  durataArmonica: 30.0
+  ritmo: [22.0, 2.0, 3.0, 7.0, 4.0, 3.0, 21.0, 14.0, 32.0, 10.0]
+  durata: 30.0
+  ampiezza: [-18.0, -0.75]
+  frequenza: [3.0, 1.0]
+  posizione: '[9,GEN06]'
+- cAttacco: 15.0
+  durataArmonica: 27.0
+  ritmo: [2.0, 3.0, 7.0, 4.0]
+  durata: 20.0
+  ampiezza: [-20.0, -0.75]
+  frequenza: [4.0, 1.0]
+  posizione: '[-3,GEN06]'
