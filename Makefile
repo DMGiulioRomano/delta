@@ -18,6 +18,10 @@ py: clean create_dir
 	@echo "Running Python script..."
 	python3.11 $(PYTHON_DIR)/main.py yaml_dir/$(YAML).yaml $(if $(SEZIONE),--sezione $(SEZIONE))
 
+delta: clean create_dir
+	@echo "Running Python script..."
+	python3.11 $(PYTHON_DIR)/sistemaIntegrazione/delta.py
+
 pyDebug: clean create_dir
 	python3.11 $(PYTHON_DIR)/main.py $(YAML).yaml >logPython.log
 

@@ -1,0 +1,529 @@
+<CsoundSynthesizer>
+<CsOptions>
+; namefile
+-o "csound/generazione/wav/sezioneX-Comportamento24.wav" -W
+</CsOptions>
+<CsInstruments>
+
+sr=96000
+kr=96000
+0dbfs=1
+nchnls=2
+
+    instr 1
+    ; inizializzazioni
+        iamp  = ampdbfs(p4)                 
+        ifreq = p5
+        iwhichZero = abs(p6)
+        idirection = signum(p6)
+        iHR = p7
+        ifreq2 = p8
+        ifn = p9
+        iT = ($M_PI*2)/iHR
+        iradi = 0 + (iwhichZero-1) * iT
+    ; lettura tabella fasore
+        kndx line 0, p3, 1                  ; Vary our index linearly from 0 to 1.
+        ktab table kndx, ifn, 1
+        krad = iradi + (ktab * iT * idirection)
+        kEnv = abs(sin(krad*iHR/2))
+        kMid1 = cos(krad)
+        kSide1=sin(krad)
+        kfreq line ifreq, p3, ifreq2
+    ; sintesi                  
+        as poscil3 iamp*kEnv, kfreq
+        aMid = kMid1 * as
+        aSide = kSide1 * as
+        aL = (aMid+aSide)/sqrt(2)
+        aR = (aMid-aSide)/sqrt(2)
+        aEnvL = aL ;* kEnv
+        aEnvR = aR ;* kEnv
+            outs aEnvL,aEnvR;,a1,a2,aL,aR,aMid,aSide
+    endin
+
+</CsInstruments>
+<CsScore>
+f1 0 16777216 10 1
+
+; "comportamento"
+; ---- GEN07 (spezzata di rette) pfields: ----
+; number, start, size, 		GEN07,   p5/p6/p7...=valore/segmenti
+f 2		  0 	 16777216	7		0 16777216 1
+; ---- Eventi sonori ----
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 23.279		 0.441		 -51.664		 361.854		 13		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 23.721		 0.433		 -51.808		 360.346		 20		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 24.163		 0.426		 -51.519		 361.099		 3		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 24.579		 0.441		 -51.664		 361.854		 47		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 25.021		 0.433		 -51.808		 360.346		 33		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 25.463		 0.426		 -51.519		 361.099		 51		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 25.879		 0.441		 -51.664		 361.854		 58		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 26.321		 0.433		 -51.808		 360.346		 16		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 26.763		 0.426		 -51.519		 361.099		 53		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 27.179		 0.441		 -51.664		 361.854		 6		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 27.621		 0.433		 -51.808		 360.346		 59		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 28.063		 0.426		 -51.519		 361.099		 45		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 28.479		 0.441		 -51.664		 361.854		 46		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 28.921		 0.433		 -51.808		 360.346		 15		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 29.363		 0.426		 -51.519		 361.099		 12		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 29.779		 0.441		 -51.664		 361.854		 10		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 30.221		 0.433		 -51.808		 360.346		 16		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 30.663		 0.426		 -51.519		 361.099		 42		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 31.079		 0.441		 -51.664		 361.854		 31		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 31.521		 0.433		 -51.808		 360.346		 48		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 31.963		 0.426		 -51.519		 361.099		 43		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 32.379		 0.441		 -51.664		 361.854		 24		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 32.821		 0.433		 -51.808		 360.346		 34		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 33.263		 0.426		 -51.519		 361.099		 18		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 33.679		 0.441		 -51.664		 361.854		 36		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 34.121		 0.433		 -51.808		 360.346		 30		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 34.563		 0.426		 -51.519		 361.099		 16		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 34.979		 0.441		 -51.664		 361.854		 53		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 35.421		 0.433		 -51.808		 360.346		 46		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 35.863		 0.426		 -51.519		 361.099		 49		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 36.279		 0.441		 -51.664		 361.854		 30		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 36.721		 0.433		 -51.808		 360.346		 14		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 37.163		 0.426		 -51.519		 361.099		 58		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 37.579		 0.441		 -51.664		 361.854		 48		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 38.021		 0.433		 -51.808		 360.346		 13		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 38.463		 0.426		 -51.519		 361.099		 29		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 38.879		 0.441		 -51.664		 361.854		 6		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 39.321		 0.433		 -51.808		 360.346		 4		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 39.763		 0.426		 -51.519		 361.099		 42		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 40.179		 0.441		 -51.664		 361.854		 44		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 40.621		 0.433		 -51.808		 360.346		 39		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 41.063		 0.426		 -51.519		 361.099		 7		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 41.479		 0.441		 -51.664		 361.854		 46		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 41.921		 0.433		 -51.808		 360.346		 47		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 42.363		 0.426		 -51.519		 361.099		 43		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 42.779		 0.441		 -51.664		 361.854		 42		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 43.221		 0.433		 -51.808		 360.346		 46		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 43.663		 0.426		 -51.519		 361.099		 45		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 44.079		 0.441		 -51.664		 361.854		 46		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 44.521		 0.433		 -51.808		 360.346		 46		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 44.963		 0.426		 -51.519		 361.099		 36		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 45.379		 0.441		 -51.664		 361.854		 43		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 45.821		 0.433		 -51.808		 360.346		 7		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 46.263		 0.426		 -51.519		 361.099		 38		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 46.679		 0.441		 -51.664		 361.854		 4		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 47.121		 0.433		 -51.808		 360.346		 32		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 47.563		 0.426		 -51.519		 361.099		 19		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 47.979		 0.441		 -51.664		 361.854		 39		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 48.421		 0.433		 -51.808		 360.346		 11		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 48.863		 0.426		 -51.519		 361.099		 40		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 49.279		 0.441		 -51.664		 361.854		 56		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 49.721		 0.433		 -51.808		 360.346		 42		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 50.163		 0.426		 -51.519		 361.099		 22		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 50.579		 0.441		 -51.664		 361.854		 58		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 51.021		 0.433		 -51.808		 360.346		 54		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 51.463		 0.426		 -51.519		 361.099		 5		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 51.879		 0.441		 -51.664		 361.854		 44		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 52.321		 0.433		 -51.808		 360.346		 46		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 52.763		 0.426		 -51.519		 361.099		 36		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 53.179		 0.441		 -51.664		 361.854		 45		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 53.621		 0.433		 -51.808		 360.346		 56		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 54.063		 0.426		 -51.519		 361.099		 42		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 54.479		 0.441		 -51.664		 361.854		 15		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 54.921		 0.433		 -51.808		 360.346		 12		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 55.363		 0.426		 -51.519		 361.099		 21		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 55.779		 0.441		 -51.664		 361.854		 41		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 56.221		 0.433		 -51.808		 360.346		 42		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 56.663		 0.426		 -51.519		 361.099		 55		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 57.079		 0.441		 -51.664		 361.854		 8		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 57.521		 0.433		 -51.808		 360.346		 22		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 57.963		 0.426		 -51.519		 361.099		 11		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 58.379		 0.441		 -51.664		 361.854		 45		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 58.821		 0.433		 -51.808		 360.346		 58		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 59.263		 0.426		 -51.519		 361.099		 52		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 59.679		 0.441		 -51.664		 361.854		 41		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 60.121		 0.433		 -51.808		 360.346		 5		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 60.563		 0.426		 -51.519		 361.099		 36		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 60.979		 0.441		 -51.664		 361.854		 9		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 61.421		 0.433		 -51.808		 360.346		 37		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 61.863		 0.426		 -51.519		 361.099		 16		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 62.279		 0.441		 -51.664		 361.854		 55		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 62.721		 0.433		 -51.808		 360.346		 58		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 63.163		 0.426		 -51.519		 361.099		 57		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 63.579		 0.441		 -51.664		 361.854		 33		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 64.021		 0.433		 -51.808		 360.346		 26		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 64.463		 0.426		 -51.519		 361.099		 17		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 64.879		 0.441		 -51.664		 361.854		 24		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 65.321		 0.433		 -51.808		 360.346		 28		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 65.763		 0.426		 -51.519		 361.099		 47		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 66.179		 0.441		 -51.664		 361.854		 21		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 66.621		 0.433		 -51.808		 360.346		 28		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 67.063		 0.426		 -51.519		 361.099		 58		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 67.479		 0.441		 -51.664		 361.854		 6		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 67.921		 0.433		 -51.808		 360.346		 35		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 68.363		 0.426		 -51.519		 361.099		 33		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 68.779		 0.441		 -51.664		 361.854		 11		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 69.221		 0.433		 -51.808		 360.346		 16		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 69.663		 0.426		 -51.519		 361.099		 14		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 70.079		 0.441		 -51.664		 361.854		 50		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 70.521		 0.433		 -51.808		 360.346		 47		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 70.963		 0.426		 -51.519		 361.099		 58		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 71.379		 0.441		 -51.664		 361.854		 29		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 71.821		 0.433		 -51.808		 360.346		 51		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 72.263		 0.426		 -51.519		 361.099		 24		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 72.679		 0.441		 -51.664		 361.854		 19		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 73.121		 0.433		 -51.808		 360.346		 41		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 73.563		 0.426		 -51.519		 361.099		 37		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 73.979		 0.441		 -51.664		 361.854		 40		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 74.421		 0.433		 -51.808		 360.346		 20		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 74.863		 0.426		 -51.519		 361.099		 49		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 75.279		 0.441		 -51.664		 361.854		 56		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 75.721		 0.433		 -51.808		 360.346		 30		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 76.163		 0.426		 -51.519		 361.099		 26		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 76.579		 0.441		 -51.664		 361.854		 54		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 77.021		 0.433		 -51.808		 360.346		 14		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 77.463		 0.426		 -51.519		 361.099		 5		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 77.879		 0.441		 -51.664		 361.854		 38		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 78.321		 0.433		 -51.808		 360.346		 52		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 78.763		 0.426		 -51.519		 361.099		 29		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 79.179		 0.441		 -51.664		 361.854		 9		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 79.621		 0.433		 -51.808		 360.346		 18		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 80.063		 0.426		 -51.519		 361.099		 24		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 80.479		 0.441		 -51.664		 361.854		 53		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 80.921		 0.433		 -51.808		 360.346		 53		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 81.363		 0.426		 -51.519		 361.099		 26		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 81.779		 0.441		 -51.664		 361.854		 54		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 82.221		 0.433		 -51.808		 360.346		 21		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 82.663		 0.426		 -51.519		 361.099		 53		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 83.079		 0.441		 -51.664		 361.854		 16		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 83.521		 0.433		 -51.808		 360.346		 14		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 83.963		 0.426		 -51.519		 361.099		 25		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 84.379		 0.441		 -51.664		 361.854		 34		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 84.821		 0.433		 -51.808		 360.346		 8		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 85.263		 0.426		 -51.519		 361.099		 41		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 85.679		 0.441		 -51.664		 361.854		 5		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 86.121		 0.433		 -51.808		 360.346		 59		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 86.563		 0.426		 -51.519		 361.099		 9		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 86.979		 0.441		 -51.664		 361.854		 37		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 87.421		 0.433		 -51.808		 360.346		 13		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 87.863		 0.426		 -51.519		 361.099		 12		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 88.279		 0.441		 -51.664		 361.854		 36		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 88.721		 0.433		 -51.808		 360.346		 55		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 89.163		 0.426		 -51.519		 361.099		 21		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 89.579		 0.441		 -51.664		 361.854		 36		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 90.021		 0.433		 -51.808		 360.346		 16		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 90.463		 0.426		 -51.519		 361.099		 25		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 90.879		 0.441		 -51.664		 361.854		 26		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 91.321		 0.433		 -51.808		 360.346		 21		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 91.763		 0.426		 -51.519		 361.099		 47		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 92.179		 0.441		 -51.664		 361.854		 25		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 92.621		 0.433		 -51.808		 360.346		 33		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 93.063		 0.426		 -51.519		 361.099		 46		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 93.479		 0.441		 -51.664		 361.854		 21		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 93.921		 0.433		 -51.808		 360.346		 53		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 94.363		 0.426		 -51.519		 361.099		 53		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 94.779		 0.441		 -51.664		 361.854		 9		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 95.221		 0.433		 -51.808		 360.346		 42		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 95.663		 0.426		 -51.519		 361.099		 4		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 96.079		 0.441		 -51.664		 361.854		 3		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 96.521		 0.433		 -51.808		 360.346		 32		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 96.963		 0.426		 -51.519		 361.099		 38		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 97.379		 0.441		 -51.664		 361.854		 31		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 97.821		 0.433		 -51.808		 360.346		 4		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 98.263		 0.426		 -51.519		 361.099		 15		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 98.679		 0.441		 -51.664		 361.854		 19		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 99.121		 0.433		 -51.808		 360.346		 7		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 99.563		 0.426		 -51.519		 361.099		 49		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 99.979		 0.441		 -51.664		 361.854		 16		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 100.421		 0.433		 -51.808		 360.346		 50		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 100.863		 0.426		 -51.519		 361.099		 26		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 101.279		 0.441		 -51.664		 361.854		 38		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 101.721		 0.433		 -51.808		 360.346		 35		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 102.163		 0.426		 -51.519		 361.099		 14		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 102.579		 0.441		 -51.664		 361.854		 54		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 103.021		 0.433		 -51.808		 360.346		 48		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 103.463		 0.426		 -51.519		 361.099		 3		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 103.879		 0.441		 -51.664		 361.854		 44		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 104.321		 0.433		 -51.808		 360.346		 8		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 104.763		 0.426		 -51.519		 361.099		 56		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 105.179		 0.441		 -51.664		 361.854		 51		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 105.621		 0.433		 -51.808		 360.346		 55		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 106.063		 0.426		 -51.519		 361.099		 5		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 106.479		 0.441		 -51.664		 361.854		 28		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 106.921		 0.433		 -51.808		 360.346		 44		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 107.363		 0.426		 -51.519		 361.099		 38		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 107.779		 0.441		 -51.664		 361.854		 35		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 108.221		 0.433		 -51.808		 360.346		 21		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 108.663		 0.426		 -51.519		 361.099		 44		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 109.079		 0.441		 -51.664		 361.854		 23		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 109.521		 0.433		 -51.808		 360.346		 23		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 109.963		 0.426		 -51.519		 361.099		 14		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 110.379		 0.441		 -51.664		 361.854		 56		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 110.821		 0.433		 -51.808		 360.346		 26		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 111.263		 0.426		 -51.519		 361.099		 34		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 111.679		 0.441		 -51.664		 361.854		 47		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 112.121		 0.433		 -51.808		 360.346		 10		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 112.563		 0.426		 -51.519		 361.099		 42		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 112.979		 0.441		 -51.664		 361.854		 9		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 113.421		 0.433		 -51.808		 360.346		 31		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 113.863		 0.426		 -51.519		 361.099		 57		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 114.279		 0.441		 -51.664		 361.854		 29		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 114.721		 0.433		 -51.808		 360.346		 30		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 115.163		 0.426		 -51.519		 361.099		 51		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 115.579		 0.441		 -51.664		 361.854		 11		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 116.021		 0.433		 -51.808		 360.346		 47		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 116.463		 0.426		 -51.519		 361.099		 47		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 116.879		 0.441		 -51.664		 361.854		 14		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 117.321		 0.433		 -51.808		 360.346		 55		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 117.763		 0.426		 -51.519		 361.099		 18		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 118.179		 0.441		 -51.664		 361.854		 59		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 118.621		 0.433		 -51.808		 360.346		 9		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 119.063		 0.426		 -51.519		 361.099		 47		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 119.479		 0.441		 -51.664		 361.854		 14		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 119.921		 0.433		 -51.808		 360.346		 9		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 120.363		 0.426		 -51.519		 361.099		 57		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 120.779		 0.441		 -51.664		 361.854		 10		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 121.221		 0.433		 -51.808		 360.346		 39		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 121.663		 0.426		 -51.519		 361.099		 47		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 122.079		 0.441		 -51.664		 361.854		 26		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 122.521		 0.433		 -51.808		 360.346		 31		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 122.963		 0.426		 -51.519		 361.099		 52		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 123.379		 0.441		 -51.664		 361.854		 24		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 123.821		 0.433		 -51.808		 360.346		 32		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 124.263		 0.426		 -51.519		 361.099		 49		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 124.679		 0.441		 -51.664		 361.854		 5		 60		 361.854		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 125.121		 0.433		 -51.808		 360.346		 4		 61		 360.346		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 125.563		 0.426		 -51.519		 361.099		 28		 59		 361.099		 2
+;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
+i1		 125.979		 0.441		 -51.664		 361.854		 7		 60		 361.854		 2
+</CsScore>
+</CsoundSynthesizer>

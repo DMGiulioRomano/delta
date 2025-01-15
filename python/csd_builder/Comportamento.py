@@ -95,7 +95,10 @@ class Comportamento:
     def creamiampiezza(self,raw_value,p2):
         if isinstance(raw_value,list):
             amp = raw_value[0]
-            dampening = raw_value[1]
+            if len(raw_value)==2:
+                dampening = raw_value[1]
+            else: 
+                dampening = -0.05
         else:
             amp=raw_value
             dampening = -.65
