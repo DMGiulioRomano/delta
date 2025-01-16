@@ -1,0 +1,21 @@
+# Test Framework
+pytest==8.0.0
+pytest-cov==4.1.0         # Per il coverage dei test
+pytest-mock==3.12.0       # Per il mocking durante i test
+
+# Test Utilities
+hypothesis==6.98.0        # Per property-based testing
+freezegun==1.4.0         # Per testare codice che dipende dal tempo
+
+# Code Quality
+black==24.1.0            # Formatter
+pylint==3.0.3            # Linter
+mypy==1.8.0              # Type checker
+
+# Project Dependencies (versioni specifiche per test)
+PyYAML==6.0.1           # Per testare la generazione YAML
+dataclasses==0.6        # Se usi Python < 3.7
+
+# Coverage Tools
+coverage==7.4.1         # Tool base per il coverage
+coverage-badge==1.1.0   # Per generare badge di coverage
