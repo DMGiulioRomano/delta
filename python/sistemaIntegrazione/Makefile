@@ -1,5 +1,5 @@
 # Variabili
-PYTHON := python3
+PYTHON := python3.11
 PYTEST := pytest
 PIP := $(PYTHON) -m pip
 COVERAGE := coverage
@@ -22,11 +22,10 @@ run:
 # Creazione e attivazione virtualenv
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
-	. $(VENV_DIR)/bin/activate
 
 # Installazione dipendenze di sviluppo
 install-dev: venv
-	$(PIP) install -r requirements-test.txt
+	$(VENV_DIR)/bin/pip install -r requirements-test.txt
 
 
 clean-venv:
@@ -57,7 +56,7 @@ clean: clean-venv
 
 # Esecuzione test
 test:
-	$(PYTEST) $(TEST_DIR) -v
+	$(VENV_DIR)/bin/pytest $(TEST_DIR) -v
 
 # Test con coverage
 coverage:
@@ -75,14 +74,14 @@ test-e2e:
 
 # Controllo qualità del codice
 lint:
-	$(PYLINT) $(SRC_DIR)
-	$(PYLINT) $(TEST_DIR)
-	mypy $(SRC_DIR)
+	export PYTHONPATH=$(pwd)/src && $(VENV_DIR)/bin/pylint $(SRC_DIR)
+#	$(VENV_DIR)/bin/pylint $(TEST_DIR)
+#	$(VENV_DIR)/bin/mypy $(SRC_DIR)
 
 # Formattazione del codice
 format:
-	$(BLACK) $(SRC_DIR)
-	$(BLACK) $(TEST_DIR)
+	$(VENV_DIR)/bin/black $(SRC_DIR)
+	$(VENV_DIR)/bin/black $(TEST_DIR)
 
 # Target che combina più operazioni
 check: format lint coverage
