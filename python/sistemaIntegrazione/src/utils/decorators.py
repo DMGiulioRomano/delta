@@ -1,4 +1,5 @@
 """Module containing decorators for logging and debugging functions."""
+
 import functools
 import time
 import traceback
@@ -8,13 +9,14 @@ from typing import Callable
 def debug_log(func: Callable):
     """
     Decoratore che aggiunge logging di debug a una funzione.
-    
+
     Args:
         func: La funzione da decorare
-        
+
     Returns:
         wrapper: La funzione decorata con logging
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         print(f"\nEntrando in {func.__name__}")

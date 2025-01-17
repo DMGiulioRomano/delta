@@ -3,18 +3,18 @@ Modulo principale per la composizione algoritmica musicale.
 """
 
 import math
-from typing import Dict, List
+from typing import Dict, List, Any
 from ..models.musical_state import StatoMusicale
 from .perturbations.base import Perturbation
 from .perturbations.rhythm import RhythmPerturbation
 from .perturbations.frequency import FrequencyPerturbation
 from .validator import StatoMusicaleValidator, ParameterRules
 from ..utils.yaml_utils import generate_yaml
-
+from .types import FrequencyType
 
 class ComposizioneAlgoritmica:
     """
-    Gestisce il processo di composizione algoritmica musicale, 
+    Gestisce il processo di composizione algoritmica musicale,
     applicando perturbazioni e validando gli stati risultanti.
     """
 
@@ -41,7 +41,7 @@ class ComposizioneAlgoritmica:
 
     def componi(self):
         """
-        Esegue il processo di composizione algoritmica, 
+        Esegue il processo di composizione algoritmica,
         generando una sequenza di stati musicali.
         """
         tempo = 0
@@ -92,10 +92,10 @@ class ComposizioneAlgoritmica:
     def valida_stato(self, stato: StatoMusicale) -> bool:
         """
         Valida uno stato musicale usando il validatore.
-        
+
         Args:
             stato: Lo stato musicale da validare
-            
+
         Returns:
             bool: True se lo stato è valido, False altrimenti
         """
@@ -110,10 +110,10 @@ class ComposizioneAlgoritmica:
     def adjust_time_step(self, resonance_score: float) -> float:
         """
         Adjust time step based on resonance score.
-        
+
         Args:
             resonance_score: Current resonance score
-            
+
         Returns:
             float: Adjusted time step
         """
@@ -126,11 +126,11 @@ class ComposizioneAlgoritmica:
     def analizza_risonanze(self, stato: StatoMusicale) -> Dict[str, float]:
         """
         Analyzes resonance characteristics of a musical state by calculating various metrics.
-        
+
         This method evaluates three main aspects of resonance:
         1. Harmonic alignment: How well frequencies align with harmonic ratios
         2. Rhythm coherence: The internal consistency of rhythmic patterns
-        3. Amplitude stability: How well amplitude values 
+        3. Amplitude stability: How well amplitude values
                 match expected levels for given frequencies
 
         Args:
@@ -142,73 +142,82 @@ class ComposizioneAlgoritmica:
                 - 'rhythm_coherence': Score for rhythmic pattern consistency (0-1)
                 - 'amplitude_stability': Score for amplitude appropriateness (0-1)
         """
-        freq_ratios = [
-            f2 / f1 for f1, f2 in zip(stato.frequenza[:-1], stato.frequenza[1:])
-        ]
+        freq_ratios: List[float] = []
+        match stato.frequenza:
+            case [int() as f1, int() as f2]:
+                freq_ratios = [float(f2) / float(f1)]
+            case [[int() as o1, int() as r1], [int() as o2, int() as r2], int()]:
+                freq_ratios = [float(o2 * 10 + r2) / float(o1 * 10 + r1)]
+            case _:
+                freq_ratios = [1.0]
 
         # Calculate resonance metrics
         resonance_metrics = {
             "harmonic_alignment": sum(abs(1 - (ratio % 1)) for ratio in freq_ratios),
             "rhythm_coherence": self._calculate_rhythm_coherence(stato.ritmo),
             "amplitude_stability": self._analyze_amplitude_stability(
-                stato.ampiezza, tuple(stato.frequenza)
+                stato.ampiezza, stato.frequenza
             ),
         }
 
         return resonance_metrics
 
     def _analyze_amplitude_stability(
-        self, ampiezza, frequenza: tuple[int, int]
+        self, ampiezza: Any, frequenza: FrequencyType
     ) -> float:
         """
         Analizza la stabilità dell'ampiezza in relazione alla frequenza.
         """
-        ottava, registro = frequenza
-        if ottava == 0:
-            ampiezza_attesa = -6.0
-        else:
-            ampiezza_attesa = (
-                -6.0 - (math.log(ottava * 10 + registro) / math.log(2)) * 3
-            )
-            ampiezza_attesa = max(ampiezza_attesa, -25.0)  # Limita a -25 dB
+        match frequenza:
+            case [int() as ottava, int() as registro]:
+                if ottava == 0:
+                    ampiezza_attesa = -6.0
+                else:
+                    ampiezza_attesa = (
+                        -6.0 - (math.log(float(ottava * 10 + registro)) / math.log(2.0)) * 3.0
+                    )
+                    ampiezza_attesa = max(ampiezza_attesa, -25.0)  # Limita a -25 dB
+            case _:
+                raise ValueError("frequenza must be [ottava, registro]")
 
-        ampiezza_corrente = ampiezza[0] if isinstance(ampiezza, list) else ampiezza
+        ampiezza_corrente = float(ampiezza[0]) if isinstance(ampiezza, list) else float(ampiezza)
 
         delta = abs(ampiezza_corrente - ampiezza_attesa)
         stability = math.exp(-delta / 10)
 
-        return stability
+        return float(stability)
 
     def _calculate_rhythm_coherence(self, ritmo: List[int]) -> float:
+        """Calculates rhythm coherence."""
         if not ritmo or len(ritmo) < 2:
             return 1.0
 
         coherence_score = 0.0
 
         # 1. Rapporti tra valori adiacenti
-        ratios = [b / a if a != 0 else 0 for a, b in zip(ritmo[:-1], ritmo[1:])]
+        ratios = [float(b) / float(a) if a != 0 else 0.0 for a, b in zip(ritmo[:-1], ritmo[1:])]
         ratio_coherence = sum(1.0 for r in ratios if abs(r - 1.0) < 0.5) / len(ratios)
         coherence_score += ratio_coherence * 0.4
 
         # 2. Regolarità della sequenza
-        mean_rhythm = sum(ritmo) / len(ritmo)
+        mean_rhythm = float(sum(ritmo) / len(ritmo))
         if mean_rhythm > 0:
             std_dev = math.sqrt(sum((x - mean_rhythm) ** 2 for x in ritmo) / len(ritmo))
             regularity = 1.0 - min(std_dev / mean_rhythm, 1.0)
             coherence_score += regularity * 0.3
 
         # 3. Pattern ripetitivi
-        pattern_score = 0
+        pattern_score = 0.0
         for pattern_length in range(1, len(ritmo) // 2 + 1):
             chunks = [
                 tuple(ritmo[i : i + pattern_length])
                 for i in range(0, len(ritmo) - pattern_length + 1)
             ]
-            repetitions = len(chunks) - len(set(chunks))
+            repetitions = float(len(chunks) - len(set(chunks)))
             pattern_score = max(pattern_score, repetitions / len(chunks))
         coherence_score += pattern_score * 0.3
 
-        return coherence_score
+        return float(coherence_score)
 
     def scegli_perturbazione(self, resonance_scores: Dict[str, float]) -> Perturbation:
         """

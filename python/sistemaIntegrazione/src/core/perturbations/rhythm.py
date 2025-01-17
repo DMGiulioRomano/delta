@@ -3,7 +3,7 @@ Modulo che gestisce le perturbazioni ritmiche nel sistema musicale.
 """
 
 from copy import deepcopy
-from typing import List
+from typing import List, Optional
 from .base import Perturbation
 from ...models.musical_state import StatoMusicale
 from ...models.perturbation_result import PerturbationResult
@@ -14,7 +14,8 @@ class RhythmPerturbation(Perturbation):
     Implementa una perturbazione che modifica il ritmo dello stato musicale
     secondo una progressione predefinita.
     """
-    def __init__(self, progression: List[int] = None):
+
+    def __init__(self, progression: Optional[List[int]] = None):
         self.progression = progression or [1, 2, 2, 3, 3, 4, 4, 5]
         self.index = 0
 
@@ -55,7 +56,9 @@ class RhythmPerturbation(Perturbation):
             for new_value, old_value in zip(new_rhythm, old_rhythm)
         ) / len(old_rhythm)
 
-        # Calcola la risonanza basata su rhythm_diff e la lunghezza della progressione
-        resonance = 1.0 / (rhythm_diff * len(self.progression))
-
-        return resonance
+        # Se non ci sono differenze, risonanza perfetta
+        if rhythm_diff == 0:
+            return 1.0
+            
+        # Altrimenti calcola la risonanza basata su rhythm_diff e lunghezza progressione
+        return 1.0 / (rhythm_diff * len(self.progression))

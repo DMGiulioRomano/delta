@@ -1,6 +1,7 @@
-# tests/conftest.py
+"""Configuration file for pytest fixtures used across test modules."""
+
 import pytest
-from src.models.musical_state import StatoMusicale
+from ..src.models.musical_state import StatoMusicale
 
 
 @pytest.fixture

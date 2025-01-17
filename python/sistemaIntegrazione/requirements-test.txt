@@ -15,6 +15,7 @@ mypy==1.8.0              # Type checker
 # Project Dependencies (versioni specifiche per test)
 PyYAML==6.0.1           # Per testare la generazione YAML
 dataclasses==0.6        # Se usi Python < 3.7
+types-PyYAML
 
 # Coverage Tools
 coverage==7.4.1         # Tool base per il coverage

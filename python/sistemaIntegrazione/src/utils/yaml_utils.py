@@ -2,8 +2,9 @@
 Utilities per la gestione dei file YAML nel progetto di composizione algoritmica.
 Gestisce la serializzazione e deserializzazione degli stati musicali.
 """
+
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Optional
 from collections import OrderedDict
 from dataclasses import asdict
 import yaml
@@ -24,6 +25,7 @@ DEFAULT_KEY_ORDER = [
 # Campi da escludere nella serializzazione YAML
 EXCLUDED_FIELDS = ["resonance_strength", "resonance_duration", "resonance_frequencies"]
 
+
 # pylint: disable=R0901
 class OrderedDumper(yaml.Dumper):
     """Custom YAML Dumper that preserves key order."""
@@ -41,7 +43,7 @@ OrderedDumper.add_representer(OrderedDict, _dict_representer)
 
 
 def stato_to_ordered_dict(
-    stato: StatoMusicale, key_order: List[str] = None
+    stato: StatoMusicale, key_order: Optional[List[str]] = None
 ) -> OrderedDict:
     """
     Converte uno StatoMusicale in un OrderedDict con l'ordine specificato.
