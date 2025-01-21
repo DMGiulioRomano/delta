@@ -34,7 +34,7 @@ test:
 
 # Test specifici
 test-unit:
-	. $(VENV_DIR)/bin/activate && $(PYTEST) $(TEST_DIR)/unit -v
+	. $(VENV_DIR)/bin/activate && $(VENV_DIR)/bin/pytest $(TEST_DIR)/unit -v
 
 test-integration:
 	. $(VENV_DIR)/bin/activate && $(PYTEST) $(TEST_DIR)/integration -v
@@ -73,6 +73,7 @@ help:
 	@echo "  make format        	: Formatta il codice con black"
 	@echo "  make check         	: Esegue format, lint e coverage"
 	@echo "  make clean         	: Rimuove file temporanei e cache"
+	@echo "  make run               : Esegue il programma"
 
 clean-venv:
 	@if [ -d "$(VENV_DIR)" ]; then \

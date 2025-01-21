@@ -64,11 +64,11 @@ if __name__ == "__main__":
     brano.scriviCsd()
     
     # Eventuali altre operazioni (opzionali)
-    # brano.spazio.genera_e_plotta_con_slider_esponente_globale()
-    # brano.spazio.genera_e_plotta_funzioni()
-    # brano.spazio.plot_sinusoide_smorzata()
-    # brano.spazio.genera_e_plotta_polare_sine()
-    # brano.spazio.genera_e_plotta_polare_cosine()
+    brano.spazio.genera_e_plotta_con_slider_esponente_globale()
+    brano.spazio.genera_e_plotta_funzioni()
+    brano.spazio.plot_sinusoide_smorzata()
+    brano.spazio.genera_e_plotta_polare_sine()
+    brano.spazio.genera_e_plotta_polare_cosine()
 
     # Debug opzionale: stampa l'oggetto Brano
     # print(brano)

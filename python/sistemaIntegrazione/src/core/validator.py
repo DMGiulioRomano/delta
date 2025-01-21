@@ -2,58 +2,114 @@
 Modulo per la validazione degli stati musicali e dei loro parametri.
 """
 
-from typing import List, Tuple, cast
+from typing import List, Tuple, cast, Optional
 import math
 from ..models.musical_state import StatoMusicale
-from ..core.types import FrequencyType, RhythmType, PositionType
+from ..core.types import FrequencyType, RhythmType, PositionType, DurationType, ErrorLogType, HarmsDurationType
 
 
 class ParameterRules:
     """Classe che gestisce le regole e le relazioni tra i parametri musicali"""
 
     @staticmethod
-    def validate_position(ritmo: RhythmType, posizione: PositionType) -> bool:
+    def validate_rhythm(ritmo: RhythmType) -> ErrorLogType:
+        """Validates that rhythm is non-empty and contains valid values."""
+        if not isinstance(ritmo, list):
+            return False, "Rhythm must be a List"
+        if not ritmo:
+            return False, "Empty rhythm: rhythm list cannot be empty"
+        if not all(isinstance(x, int) and x > 0 for x in ritmo):
+            return False, "Invalid rhythm: all values must be positive integers"
+        return True, None
+
+    @staticmethod
+    def validate_duration(
+        durata: float, durata_armonica: HarmsDurationType, ritmo: RhythmType
+    ) -> ErrorLogType:
+        """
+        Validates that duration respects the harmonic duration rule.
+        
+        Args:
+            durata: Duration to validate
+            durata_armonica: Harmonic duration reference
+            ritmo: Rhythm values to check against
+            
+        Returns:
+            Tuple[bool, Optional[str]]: (is_valid, error_message)
+        """
+        match durata:
+            case float() if isinstance(durata, float):
+                cast_durata = float(durata)
+                if cast_durata <= 0:
+                    return False, f"Harmonic duration must be positive, got {durata_armonica}"
+                min_duration = durata_armonica / min(ritmo)
+                if cast_durata <= min_duration:
+                    return False, f"Harmonic duration {durata_armonica} incompatible with rhythm (minimum duration needed: {min_duration:.2f})"
+            case _:
+                print("this is cast duration\n")
+                return False, f"Duration must be a float, got {type(durata)}"
+        return True, None
+
+    @staticmethod
+    def validate_harmonics_duration(durata_armonica: HarmsDurationType, 
+                                ritmo: RhythmType, 
+                                durata: DurationType) -> ErrorLogType:
+        """
+        Validates harmonic duration relationships.
+        
+        Args:
+            durata_armonica: Harmonic duration to validate
+            ritmo: Rhythm values to check against
+            durata: Reference duration
+            
+        Returns:
+            Tuple[bool, Optional[str]]: (is_valid, error_message)
+        """
+        if not isinstance(durata_armonica, float):
+            return False, f"Harmonic duration must be numeric, got {type(durata_armonica)}"
+            
+        if durata_armonica <= 0:
+            return False, f"Harmonic duration must be positive, got {durata_armonica}"
+        
+        min_duration = durata_armonica / min(ritmo)
+        if durata <= min_duration:
+            return False, f"Harmonic duration {durata_armonica} incompatible with rhythm (minimum duration needed: {min_duration:.2f})"
+            
+        return True, None
+    
+    @staticmethod
+    def validate_position(ritmo: RhythmType, posizione: PositionType) -> ErrorLogType:
         """
         Validates position against rhythm values using pattern matching.
+        
+        Args:
+            ritmo: Must be a non-empty list of positive integers (pre-validated by validate_rhythm)
+            posizione: Position to validate
+            
+        Returns:
+            bool: True if position is valid for the given rhythm
         """
-        if not isinstance(ritmo, list):
-            return False
-
         match posizione:
-            case float():
-                raise TypeError("La posizione deve essere un intero, non un float")
-
             case int():
-                if not ritmo:  # Protezione contro lista ritmo vuota
-                    return False
                 media_ritmi = sum(ritmo) / len(ritmo)
-                return 0 <= posizione <= media_ritmi
+                if not (0 <= posizione <= media_ritmi):
+                    return False, f"Position {posizione} out of valid range [0, {media_ritmi}]"
+                return True, None
 
             case list():
                 # Verifica che le liste abbiano la stessa lunghezza
                 if len(posizione) != len(ritmo):
-                    return False
+                    return False, f"Position list length ({len(posizione)}) must match rhythm length ({len(ritmo)})"
 
-                return all(
-                    isinstance(pos, int) and 0 <= pos <= rit 
-                    for pos, rit in zip(posizione, ritmo)
-                )
+                for pos, rit in zip(posizione, ritmo):
+                    if not isinstance(pos, int):
+                        return False, f"All positions must be integers, found {type(pos)}"
+                    if not (0 <= pos <= rit):
+                        return False, f"Position {pos} out of valid range [0, {rit}]"
+                return True, None
 
             case _:
-                return False
-
-    @staticmethod
-    def generate_valid_positions(ritmo: PositionType) -> List[List[int]]:
-        """Genera tutte le possibili posizioni valide per un dato ritmo"""
-        match ritmo:
-            case int():
-                # Se ritmo è un intero, genera una singola lista di posizioni valide
-                return [list(range(ritmo + 1))]
-            case list():
-                # Se ritmo è una lista, genera una lista di posizioni valide per ogni elemento
-                return [list(range(r + 1)) for r in ritmo]
-            case _:
-                return []
+                return False, f"Invalid position type: {type(posizione)}"
 
     @staticmethod
     def calculate_max_amplitude(frequenza: FrequencyType) -> float:
@@ -111,19 +167,6 @@ class ParameterRules:
                 raise ValueError("Formato di frequenza non valido")
 
     @staticmethod
-    def validate_duration(
-        durata: float, durata_armonica: float, ritmo: List[int]
-    ) -> bool:
-        """Validates that duration respects the harmonic duration rule."""
-        min_duration = durata_armonica / max(ritmo) * 2
-        return durata > min_duration
-
-    @staticmethod
-    def calculate_min_duration(durata_armonica: float, ritmo: List[int]) -> float:
-        """Calculates minimum duration for given harmonic duration and rhythm."""
-        return durata_armonica / max(ritmo) * 2
-
-    @staticmethod
     def validate_frequency(freq: FrequencyType) -> bool:
         """
         Validates that frequency is in allowed range.
@@ -165,9 +208,31 @@ class StatoMusicaleValidator:
         """Validates a complete musical state and returns any errors."""
         errors = []
 
-        # Valida posizione-ritmo
-        if not self.rules.validate_position(stato.ritmo, stato.posizione):
-            errors.append("Invalid position for given rhythm")
+
+        # Validate rhythm
+        is_valid, error = self.rules.validate_rhythm(stato.ritmo)
+        if not is_valid:
+            errors.append(error)
+            return False, errors
+
+        # Validate durations
+        is_valid, error = self.rules.validate_duration(
+            stato.durata, stato.durataArmonica, stato.ritmo
+        )
+        if not is_valid:
+            errors.append(error)
+            return False, errors
+
+        is_valid, error = self.rules.validate_harmonics_duration(
+            stato.durataArmonica, stato.ritmo, stato.durata
+        )
+        if not is_valid:
+            errors.append(error)
+
+        # Validate position-rhythm
+        is_valid, error = self.rules.validate_position(stato.ritmo, stato.posizione)
+        if not is_valid:
+            errors.append(error)
 
         # Valida ampiezza-frequenza
         try:
@@ -179,15 +244,6 @@ class StatoMusicaleValidator:
                 errors.append(f"Amplitude too high for given frequency (max: {max_amp})")
         except (ValueError, IndexError) as e:
             errors.append(f"Invalid frequency format: {str(e)}")
-
-        # Valida durata
-        if not self.rules.validate_duration(
-            stato.durata, stato.durataArmonica, stato.ritmo
-        ):
-            min_dur = self.rules.calculate_min_duration(
-                stato.durataArmonica, stato.ritmo
-            )
-            errors.append(f"Duration too short (min: {min_dur})")
 
         # Valida frequenza
         if not self.rules.validate_frequency(stato.frequenza):
