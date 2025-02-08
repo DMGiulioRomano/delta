@@ -37,7 +37,7 @@ instr Gestore
   schedule "Frequencies", 0, 0.001
   iRitmi[] tab2array gi_ritmi, 0, ftlen(gi_ritmi)-1
   iPosizioni[] tab2array gi_posizioni, 0 , ftlen(gi_posizioni)-1
-  GenComportamento 1, $INIT_C_ATTACCO, $INIT_DUR_ARM, $INIT_DURATA, $INIT_AMPIEZZA, $INIT_FREQ_OCT, $INIT_FREQ_REG, iRitmi, iPosizioni, 1
+  GenComportamento 1, $INIT_C_ATTACCO, $INIT_DUR_ARM, $INIT_DURATA, $INIT_AMPIEZZA, $INIT_FREQ_OCT, $INIT_FREQ_REG, iRitmi, iPosizioni, 1, giIndex
 endin
 
 

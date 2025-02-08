@@ -12,7 +12,13 @@
 ; p9 - function table number for position
 ;==================================================================
 
-instr eventoSonoro    
+instr eventoSonoro
+    i_debug = gi_debug
+    ktim timeinsts				;read time 
+    if i_debug == 1 || i_debug == 2 then
+        prints "\n\t\t\tevento sonoro"   
+        prints "\nattacco: %f\ndurata: %f\namp: %f\nfreq1: %f\nwz: %f\ndir: %f\nHR: %f\nfreq2: %f\nifn: %f\nid_evento: %f\n\n", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
+    endif
     ;--------------------------------------------------------------
     ; Parameter Initialization and Validation
     ;--------------------------------------------------------------
@@ -34,21 +40,23 @@ instr eventoSonoro
     
     ; Initial radius calculation with safety check
     iradi = (iwhichZero > 0 ? (iwhichZero-1) * iPeriod : 0)
-    
+    ifn = p9
+    id_evento=p10
     ;--------------------------------------------------------------
     ; Position and Envelope Generation
     ;--------------------------------------------------------------
     ; Position from table lookup
     kndx line 0, p3, 1               ; Normalized time index
-    ktab table kndx, p9, 1           ; Table lookup for position
+    ktab table kndx, ifn, 1           ; Table lookup for position
     
     ; Spatial angle calculation
     krad = iradi + (ktab * iPeriod * idirection)
     
     ; Envelope generation
     kEnv = abs(sin(krad*iHR/2))     ; Basic envelope shape
-    kEnv = pow(kEnv, 0.707)         ; Smooth the envelope curve
-    
+    if i_debug == 2 then
+      printks "\ninviluppo: %f della funzione: %d instr: %d, tempo: %f\n", 0.5, kEnv, ifn, id_evento, ktim 
+    endif
     ;--------------------------------------------------------------
     ; Sound Generation and Spatialization
     ;--------------------------------------------------------------
@@ -56,7 +64,7 @@ instr eventoSonoro
     kfreq line ifreq1, p3, ifreq2
     
     ; Main oscillator
-    as poscil3 iamp* kEnv, kfreq
+    as poscil3 iamp, kfreq
     asEnv = as * kEnv
     ; Spatial encoding
     kMid = cos(krad)

@@ -17,13 +17,14 @@ opcode calcPfield2, i[], iiii[]
   ; Calcola il primo attacco
   iAttaccoN round3 iCAttack
   iOutArray[0] = iAttaccoN
+  if int(iRitmi[0]) == 0 then
+    goto fine
+  endif
   iRitmoN round3 1/iRitmi[0]
   iNumAttacchi = 1
   
   ; Ciclo principale
   while iDurataRimanente > 0 do
-    ; Aggiorna l'indice del ritmo ciclicamente
-    iRitmoIndex = (iRitmoIndex + 1) % iLenRitmi
     
     ; Calcola il nuovo ritmo
     iRitmoN round3 1/iRitmi[iRitmoIndex]
@@ -37,6 +38,8 @@ opcode calcPfield2, i[], iiii[]
     ; Aggiorna contatori
     iDurataRimanente round3 iDurataRimanente - (iDurataArmonica * iRitmoN)
     iNumAttacchi += 1
+    ; Aggiorna l'indice del ritmo ciclicamente
+    iRitmoIndex = (iRitmoIndex + 1) % iLenRitmi
     
     ; Controllo di sicurezza
     if iNumAttacchi >= iMaxAttacchi then

@@ -1,4 +1,4 @@
-opcode GenPythagFreqs, 0, iiii
+opcode GenPythagFreqs, i, iiii
   iFund, iNumIntervals, iNumOctaves, iTblNum xin
   iTotalLen = iNumIntervals * iNumOctaves
   iFreqs[] init iTotalLen
@@ -47,9 +47,17 @@ opcode GenPythagFreqs, 0, iiii
   iTotalLen = iNumIntervals * iNumOctaves
   iIndx = 0
   while (iIndx < iTotalLen) do
-    tablew iFreqs[iIndx], iIndx, iTblNum
+    tabw_i iFreqs[iIndx], iIndx, iTblNum
     iIndx += 1
   od
- 
+  
+  ;debug
+  if iOctave == iNumOctaves then
+    iRes = 1
+  else
+    iRes = 0
+  endif
+  
+  xout iRes
 endop
 

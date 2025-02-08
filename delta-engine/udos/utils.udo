@@ -36,3 +36,17 @@ opcode maxArray, i, i[]
   xout iMax
 endop
 
+
+; Funzione per leggere un numero specifico di valori da un offset
+opcode leggiTabArray, i[], iii
+    iOffset, iLen, iTableNum xin
+    iResult[] init iLen
+    
+    indx = 0
+    while indx < iLen do
+        iResult[indx] = tab_i(iOffset + indx, iTableNum)
+        indx += 1
+    od
+    
+    xout iResult
+endop

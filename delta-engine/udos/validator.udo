@@ -2,23 +2,21 @@
 ; Restituisce 1 se valido, 0 se non valido
 opcode validateRhythm, i, i[]
   iRhythm[] xin
-  
-  iLen = lenarray(iRhythm)  
-  ; Verifica che tutti i valori siano positivi
+  iLen = lenarray(iRhythm)
   iIndex = 0
   iRes = 1
   while iIndex < iLen do
-    if iRhythm[iIndex] <= 0 then
+    iVal = iRhythm[iIndex]
+    iIntVal = int(iVal)
+    if abs(iVal - iIntVal) > 0 then
       iRes = 0
-      goto end
+      goto end  
     endif
     iIndex += 1
   od
-  
   end:
   xout iRes
 endop
-
 
 ; UDO per validare durata e durata armonica
 ; Restituisce 1 se valido, 0 se non valido
@@ -63,7 +61,7 @@ opcode validatePosition, i, i[]i[]i
   ; Verifica che ogni posizione sia valida per il suo ritmo
   iIndex = 0
   while iIndex < iLen do
-    if iPos[iIndex] < 0 || iPos[iIndex] > iRhythm[iIndex] then
+    if iPos[iIndex] < 0 || iPos[iIndex] > abs(iRhythm[iIndex]) then
       iRes = 0
       goto end
     endif
@@ -119,3 +117,37 @@ opcode validateFrequency, i, ii
   xout iRes
 endop
 
+
+opcode Validator, i, i[]i[]iiiii
+  iRhythm[], iPos[], iDur, iDurArm, iOct, iReg, i_Amp  xin
+  iRhythmValid validateRhythm iRhythm
+  iDurValid validateDuration iDur, iDurArm, iRhythm
+  iPosValid validatePosition iPos, iRhythm, lenarray(iPos)  
+  iAmpValid validateAmplitude i_Amp, iOct, iReg
+  iFreqValid validateFrequency iOct, iReg
+  if iRhythmValid == 1 && iDurValid == 1 && iPosValid == 1 && iAmpValid == 1 && iFreqValid == 1 then
+  i_Res = 1
+  else
+      prints "\n\n\nArresto.\n"
+      prints "\n\t---!!! ERRORE DI VALIDAZIONE !!!---\n\n"
+      ; Stampa messaggi di errore
+      if iRhythmValid == 0 then
+        prints "\nErrore: Ritmo presenta valori negativi.\n\n"
+      endif
+      if iDurValid == 0 then
+        prints "\nErrore: Durata non valida.\n\n"
+      endif
+      if iPosValid == 0 then
+        prints "Errore: Posizione non valida.\n\n"
+      endif
+      if iAmpValid == 0 then
+        prints "Errore: Ampiezza non valida per questa frequenza.\n\n"
+      endif
+      if iFreqValid == 0 then
+        prints "Errore: Frequenza fuori range.\n\n"
+      endif
+  prints "\n\n"
+  exitnow
+  endif
+  xout i_Res
+endop
