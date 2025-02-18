@@ -12,7 +12,7 @@ nchnls = 2
 ;           DEBUG
 ; ----
 ;       normal debug
-gi_debug init 0
+gi_debug init 1
 ; ---- 
 ;       verbose debug
 ;gi_debug init 2
@@ -51,6 +51,7 @@ instr GeneraComportamenti
         if i_debug == 1 || i_debug == 2 then
             prints "\n\n\n============================================================\n"
             prints "\n\t\t\t||Comportamento numero %d||\n", i_which_comp
+            prints "\n\t----------------------------------------------------\n\n"
         endif
     ; Lettura dei ritmi e posizioni che divengono array.
         i_Offset_Ritmi += i_LenRitmi          
@@ -59,12 +60,11 @@ instr GeneraComportamenti
         gi_temp_ritmi ftgen 0, 0, lenarray(i_Ritmi)+1, -2, 0
         copya2ftab i_Ritmi, gi_temp_ritmi
         if i_debug == 1 || i_debug == 2 then
-            prints "\n----------------------------------------------------\n"
-            prints "\t\t\t|gi_temp_ritmi|\n\n"
+            prints "\t\t---|gi_temp_ritmi|-----\n\n"
             ftprint gi_temp_ritmi, 1, 0, i_LenRitmi
-            prints "\n\niritmi\n"
+            prints "\n\t\t---|i_Ritmi (Array)|-----\n"
             printarray i_Ritmi
-            prints "\n\n\n"
+            prints "\t----------------------------------------------------\n\n"
         endif
 
         i_Offset_Pos += i_LenPos          
@@ -73,12 +73,10 @@ instr GeneraComportamenti
         gi_temp_pos ftgen 0, 0, lenarray(i_Pos)+1, -2, 0
         copya2ftab i_Pos, gi_temp_pos
         if i_debug == 1 || i_debug == 2 then
-            prints "\n----------------------------------------------------\n"
-            prints "\t\t\t|gi_temp_pos|\n\n"
+            prints "\t\t---|gi_temp_pos|-----\n\n"
             ftprint gi_temp_pos, 1, 0, i_LenPos
-            prints "\n\niPos\n"
+            prints "\tiPos\n"
             printarray i_Pos
-            prints "\n\n\n"
         endif
 
     ; Lettura degli altri parametri 
@@ -87,16 +85,15 @@ instr GeneraComportamenti
         i_DurArm tab_i i_which_comp, gi_val_durArm
         i_Amp tab_i i_which_comp, gi_val_amp
         if i_debug == 1 || i_debug == 2 then
-            prints "\n----------------------------------------------------\n"
-            prints "\nat: %f\ndur: %f\ndurArm: %f\namp: %f\n", i_Attacco, i_Durata, i_DurArm, i_Amp
-            prints "\n\n\n"
+            prints "\t----------------------------------------------------\n"
+            prints "\t\t---|lettura condizioni iniziali|-----"
+            prints "\n\tat: %f\n\tdur: %f\n\tdurArm: %f\n\tamp: %f\n", i_Attacco, i_Durata, i_DurArm, i_Amp
         endif
         i_Offset_Freq += i_LenFreq          
         i_LenFreq tab_i i_which_comp, gi_len_freq
         i_Freqs[] leggiTabArray i_Offset_Freq, i_LenFreq, gi_val_freq
         if i_debug == 1 || i_debug == 2 then
-            prints "\n----------------------------------------------------\n"
-            prints "\n\niFreqs\n\n"
+            prints "\tiFreqs: "
             printarray i_Freqs
             prints "\n\n\n"
         endif
@@ -113,7 +110,7 @@ instr GeneraComportamenti
 endin
 
 instr Generatore
-    i_debug = 1
+    i_debug = 0
     iRes init 0
     iRes GenPythagFreqs $FONDAMENTALE, $INTERVALLI, $OTTAVE, gi_Intonazione
     if iRes == 1 then

@@ -13,11 +13,13 @@
 ;==================================================================
 
 instr eventoSonoro
+    id_evento=p10
     i_debug = gi_debug
     ktim timeinsts				;read time 
     if i_debug == 1 || i_debug == 2 then
-        prints "\n\t\t\tevento sonoro"   
-        prints "\nattacco: %f\ndurata: %f\namp: %f\nfreq1: %f\nwz: %f\ndir: %f\nHR: %f\nfreq2: %f\nifn: %f\nid_evento: %f\n\n", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
+        prints "\n\t\t\tevento sonoro %d",    id_evento
+        prints "\n\t\t\t\tattacco: %f\n\t\t\t\tdurata: %f\n\t\t\t\tamp: %f\n\t\t\t\tfreq1: %f\n\t\t\t\twz: %f\n\t\t\t\tdir: %f\n\t\t\t\tHR: %f\n\t\t\t\tfreq2: %f\n\t\t\t\tifn: %f\n\t\t\t\tid_evento: %f\n\n", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
+        fprints "sco.sco", "\n%f\t\t%f\t\t%f\t\t%f\t\t %f\t\t%f\t\t%f\t\t%f\t\t%f\t\t%f", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
     endif
     ;--------------------------------------------------------------
     ; Parameter Initialization and Validation
@@ -41,7 +43,6 @@ instr eventoSonoro
     ; Initial radius calculation with safety check
     iradi = (iwhichZero > 0 ? (iwhichZero-1) * iPeriod : 0)
     ifn = p9
-    id_evento=p10
     ;--------------------------------------------------------------
     ; Position and Envelope Generation
     ;--------------------------------------------------------------

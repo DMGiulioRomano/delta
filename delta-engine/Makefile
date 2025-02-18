@@ -1,3 +1,3 @@
 .PHONY = clean
 clean:
-	rm -rf *.wav *.aif
+	rm -rf *.wav *.aif *.log *.sco

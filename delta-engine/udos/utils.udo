@@ -50,3 +50,21 @@ opcode leggiTabArray, i[], iii
     
     xout iResult
 endop
+
+; UDO per estendere un array con un nuovo elemento
+opcode ArrayExtend, i[], i[]i
+  iOldArray[], iNewElement xin
+  ; Ottieni la lunghezza del vecchio array
+  iOldLen = lenarray(iOldArray)
+  ; Crea il nuovo array con dimensione aumentata di 1
+  iNewArray[] init iOldLen + 1
+  ; Copia tutti gli elementi dal vecchio array
+  indx = 0
+  while indx < iOldLen do
+    iNewArray[indx] = iOldArray[indx]
+    indx += 1
+  od
+  ; Aggiungi il nuovo elemento alla fine
+  iNewArray[iOldLen] = iNewElement
+  xout iNewArray
+endop
