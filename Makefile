@@ -6,7 +6,7 @@ FILE =forma
 CSD_DIR = generazione
 WAV_DIR = wav
 YAML ?= brano
-SEZIONE ?= 
+SEZIONE ?= sezione1
 
 all : py csound run
 

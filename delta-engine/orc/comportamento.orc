@@ -1,7 +1,8 @@
 
 opcode NonlinearFunc, i, i
   iX xin
-  iPI = 3.14159
+  ;iPI = 3.14159
+  iPI = 4*taninv(1.0)
   iResult = abs(iX*2 * sin(iX * iPI/2 + iX)+ 1/(iX+0.001))
   iResult = round(iResult)
   xout iResult
@@ -9,7 +10,7 @@ endop
 
 instr Comportamento
    ; Input parameters
-   i_debug= 1;gi_debug
+   i_debug= gi_debug
    i_CAttacco = p2
    i_Durata = p3
    i_RitmiTab = p4
@@ -24,6 +25,13 @@ instr Comportamento
       prints "\n\t\t=========================================\n"
       prints "\t\t\tdentro comportamento %d\n", i_IdComp
    endif
+   ;!!!
+   ; --- usare tableicopy per coopiare le tabelle invece di usare array di mezzo
+   ; --- gli array vengono creati ed eliminati nello scope dello strumento
+   ;!!!
+
+;iout[] tab2array ifn [, istart, iend, istep ]   
+   i_Ritmi[]   
    gi_comp_temp_ritmi ftgen 0, 0, ftlen(i_RitmiTab)+100, -2, 0
    i_Ritmi[]        leggiTabArray 0, ftlen(i_RitmiTab)-1, i_RitmiTab
    i_Posizioni[]    leggiTabArray 0, ftlen(i_RitmiTab)-1, i_PosTab
@@ -34,9 +42,9 @@ instr Comportamento
       printarray i_Ritmi
       prints "---------------------"
       if i_debug == 2 then
-      prints "\n\t\t\tRitmi tabella\n"
-      ftprint gi_comp_temp_ritmi
-      prints "---------------------"
+         prints "\n\t\t\tRitmi tabella\n"
+         ftprint gi_comp_temp_ritmi, 1, 0, gi_Index
+         prints "---------------------"
       endif
       prints "\n\t\t\tPosizioni\n"
       printarray i_Posizioni
@@ -55,7 +63,9 @@ instr Comportamento
       ; Calcola il ritmo corrente
       if  i_Index < i_LenRitmi then
          i_RitmoCorrente tab_i i_Index, gi_comp_temp_ritmi 
-         print(i_RitmoCorrente)
+         if i_debug == 2 then
+            print(i_RitmoCorrente)
+         endif
          if i_Index == 0 then
          i_Vecchio_Ritmo = 1
          else
@@ -63,41 +73,46 @@ instr Comportamento
          endif
       else 
          i_Vecchio_Ritmo tab_i i_Index-1, gi_comp_temp_ritmi
-         print(i_Vecchio_Ritmo)
+         if i_debug == 2 then
+            print(i_Index)
+            print(i_Vecchio_Ritmo)
+         endif
          i_RitmoCorrente NonlinearFunc i_Vecchio_Ritmo
+         if i_debug == 2 then
+            print(i_RitmoCorrente)
+         endif
          tabw_i i_RitmoCorrente, i_Index,gi_comp_temp_ritmi
          if i_debug == 2 then
-         prints "\t\t---------------------"
-         prints "\n\t\t\tRitmi tabella\n"
-         ftprint gi_comp_temp_ritmi
+            prints "\t\t---------------------"
+            prints "\n\t\t\tRitmi tabella\n"
+            ftprint gi_comp_temp_ritmi, 1, 0, gi_Index
          endif
       endif
       if i_Index == 0 then
          i_Pfield2 = i_CAttacco
       else
-         iRitmoN round3 1/i_Vecchio_Ritmo
+      ;!!!
+      ; --- arrotondare solo nel print i valori! 
+      ;!!!
+         iRitmoN = 1/i_Vecchio_Ritmo
          iLast_at tab_i i_Index-1, gi_eve_attacco 
-         i_Pfield2 round3 i_DurataArmonica * iRitmoN + iLast_at
+         i_Pfield2 = i_DurataArmonica * iRitmoN + iLast_at
       endif
+
       ; Calcola ampiezza con smorzamento fisso per ora
       i_Amp = calcAmpiezza(i_Ampiezza, i_RitmoCorrente, -0.05)
-       
       ; Calcola frequenza
       i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
       if i_debug == 2 then 
-         prints "\nampiezza: %f\nfrequenza: %f\n", i_Amp, i_Freq1
+         prints "\nampiezza: %f\nfrequenza: %f\n", round3(i_Amp), round3(i_Freq1)
       endif
       i_Freq2 = i_Freq1  ; Per ora uguale, poi si può modificare
-       
       ; Calcola posizione
-      ;i_PosVal = i_Posizioni[i_Index % lenarray(i_Posizioni)]
-      i_PosVal = int(random:i(0, i_RitmoCorrente))
-      i_Pos = i_RitmoCorrente * signum(i_PosVal)
-    
+      i_Pos = int(random:i(0, i_RitmoCorrente))
       ; Durata dell'evento (per ora fissa a 1)
       i_DurEvento = i_DurataArmonica/i_RitmoCorrente
       if i_debug == 2 then
-         prints "\t\t\tdurata evento\n%f\n", i_DurEvento
+         prints "\t\t\tdurata evento\n%f\n", round3(i_DurEvento)
       endif
        ; Store in global tables
       tabw_i i_Pfield2,             gi_Index, gi_eve_attacco
@@ -108,15 +123,18 @@ instr Comportamento
       tabw_i i_Pos,                 gi_Index, gi_eve_posizione
       tabw_i i_RitmoCorrente,       gi_Index, gi_eve_hr
       tabw_i i_Freq2,               gi_Index, gi_eve_ifn
-
+      if i_debug == 2 then
+         print(i_Pos)
+         ftprint gi_eve_posizione, 1, 0, gi_Index
+      endif
       ; Schedule evento sonoro
-      schedule "eventoSonoro", i_Pfield2, i_DurEvento, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index
+      schedule "eventoSonoro", i_Pfield2, i_DurEvento, i_Amp, i_Freq1, tab_i(gi_Index,gi_eve_posizione), tab_i(gi_Index,gi_eve_hr), i_Freq2, 2, gi_Index
        
       ; Aggiorna indici 
       i_RitmoIndex += 1
       i_Index += 1
       gi_Index += 1
-      i_time += i_Pfield2
+      i_time = i_Pfield2 + i_DurEvento
    od
    if i_debug == 1 || i_debug == 2 then
       ; Print useful debug info

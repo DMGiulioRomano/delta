@@ -47,7 +47,7 @@ opcode leggiTabArray, i[], iii
         iResult[indx] = tab_i(iOffset + indx, iTableNum)
         indx += 1
     od
-    
+
     xout iResult
 endop
 
@@ -67,4 +67,19 @@ opcode ArrayExtend, i[], i[]i
   ; Aggiungi il nuovo elemento alla fine
   iNewArray[iOldLen] = iNewElement
   xout iNewArray
+endop
+
+
+; Opcode per sommare tutti gli elementi di una ftable
+opcode sumFTable, i, i
+    iTableNum xin
+    iSize = ftlen(iTableNum)
+    iSum = 0
+    indx = 0
+    while indx < iSize do
+        iVal = tab_i(indx, iTableNum)
+        iSum = iSum + iVal
+        indx += 1
+    od
+    xout iSum
 endop

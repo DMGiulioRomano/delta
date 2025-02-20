@@ -1,12 +1,12 @@
 ; UDO per validare il ritmo
 ; Restituisce 1 se valido, 0 se non valido
-opcode validateRhythm, i, i[]
-  iRhythm[] xin
-  iLen = lenarray(iRhythm)
+opcode validateRhythm, i, i
+  iRhythm xin
+  iLen = ftlen(iRhythm)
   iIndex = 0
   iRes = 1
   while iIndex < iLen do
-    iVal = iRhythm[iIndex]
+    iVal tab_i iIndex, iRhythm
     iIntVal = int(iVal)
     if abs(iVal - iIntVal) > 0 then
       iRes = 0
@@ -20,8 +20,8 @@ endop
 
 ; UDO per validare durata e durata armonica
 ; Restituisce 1 se valido, 0 se non valido
-opcode validateDuration, i, iii[]
-  iDur, iHarmDur, iRhythm[] xin
+opcode validateDuration, i, iii
+  iDur, iHarmDur, iRhythm xin
   
   ; Verifica che le durate siano positive
   if iDur <= 0 || iHarmDur <= 0 then
@@ -30,10 +30,10 @@ opcode validateDuration, i, iii[]
   endif
   
   ; Trova il minimo del ritmo
-  iMinRhythm = iRhythm[0]
+  iMinRhythm tab_i 0,iRhythm
   iIndex = 1
-  while iIndex < lenarray(iRhythm) do
-    iMinRhythm = iMinRhythm < iRhythm[iIndex] ? iMinRhythm : iRhythm[iIndex]
+  while iIndex < ftlen(iRhythm) do
+    iMinRhythm = iMinRhythm < tab_i(iIndex,iRhythm) ? iMinRhythm : tab_i(iIndex,iRhythm)
     iIndex += 1
   od
   
@@ -47,21 +47,21 @@ endop
 
 ; UDO per validare la posizione
 ; Restituisce 1 se valido, 0 se non valido
-opcode validatePosition, i, i[]i[]i
-  iPos[], iRhythm[], iLen xin
-  
+opcode validatePosition, i, ii
+  iPos, iRhythm xin
+  iLen = ftlen(iPos)
   iRes = 1
   
   ; Verifica che le liste abbiano la stessa lunghezza
-  if lenarray(iPos) != lenarray(iRhythm) then
+  if (iLen) != (ftlen(iRhythm)) then
     iRes = 0
     goto end
   endif
   
   ; Verifica che ogni posizione sia valida per il suo ritmo
   iIndex = 0
-  while iIndex < iLen do
-    if iPos[iIndex] < 0 || iPos[iIndex] > abs(iRhythm[iIndex]) then
+  while iIndex < iLen-1 do
+    if tab_i(iIndex,iPos) < 0 || tab_i(iIndex,iPos) > abs(tab_i(iIndex,iRhythm)) then
       iRes = 0
       goto end
     endif
@@ -118,17 +118,17 @@ opcode validateFrequency, i, ii
 endop
 
 
-opcode Validator, i, i[]i[]iiiii
-  iRhythm[], iPos[], iDur, iDurArm, iOct, iReg, i_Amp  xin
+opcode Validator, i, iiiiiiii
+  iPos, iRhythm, iDur, iDurArm, iOct, iReg, i_Amp, i_which_comp  xin
   iRhythmValid validateRhythm iRhythm
   iDurValid validateDuration iDur, iDurArm, iRhythm
-  iPosValid validatePosition iPos, iRhythm, lenarray(iPos)  
+  iPosValid validatePosition iPos, iRhythm  
   iAmpValid validateAmplitude i_Amp, iOct, iReg
   iFreqValid validateFrequency iOct, iReg
   if iRhythmValid == 1 && iDurValid == 1 && iPosValid == 1 && iAmpValid == 1 && iFreqValid == 1 then
   i_Res = 1
   else
-      prints "\n\n\nArresto.\n"
+      prints "\n\n\nArresto al comportamento %d\n", i_which_comp
       prints "\n\t---!!! ERRORE DI VALIDAZIONE !!!---\n\n"
       ; Stampa messaggi di errore
       if iRhythmValid == 0 then

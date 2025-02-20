@@ -1,3 +1,8 @@
+
+; !!!
+; inserire un debug più chiaro. all'interno dell'opcode. nel main non devono esserci i frammenti di debug.
+; !!!
+
 opcode GenPythagFreqs, i, iiii
   iFund, iNumIntervals, iNumOctaves, iTblNum xin
   iTotalLen = iNumIntervals * iNumOctaves

@@ -4,6 +4,9 @@ opcode calcAmpiezza, i, iii
   
   ; Converti da dB a linear
   iAmpLinear db2linear iAmpDB
+  ;!!!
+  ; ampdbfs - usare opcode già fatto per ottimizzazione in init time
+  ;!!!
   
   ; Calcola il tempo basato sul ritmo (t = π/rhythm)
   iTime = $M_PI / iRhythm
@@ -16,6 +19,10 @@ opcode calcAmpiezza, i, iii
   
   ; Converti il risultato in dB e arrotonda a 3 decimali
   iResultDB = linear2db(iResult)
+  ;!!!
+  ; dbfsamp - usare opcode già fatto per ottimizzazione in init time
+  ;!!!
+  
   iResultRounded round3 iResultDB
   
   xout iResultRounded
