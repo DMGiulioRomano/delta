@@ -3,6 +3,9 @@ gi_Index init 0
 
 gi_init_cond init 10
 
+; --- CONSTANTS ---
+#define SQRT2 #1.4142135623730951# ; sqrt(2) for normalization
+#define MAX_AMP #0.999# ; Maximum amplitude to prevent clipping
 
 ; --- MACRO DELLO SPAZIO ---
 #define FONDAMENTALE    #32#      

@@ -12,13 +12,13 @@ nchnls = 2
 ;           DEBUG
 ; ----
 ;       no debug
-;gi_debug init -1
+gi_debug init -1
 ; ----
 ;       normal debug
 ;gi_debug init 1
 ; ---- 
 ;       verbose debug
-gi_debug init 2
+;gi_debug init 2
 ;       comportamento (& pythagoric system) verbose debug 
 ;gi_debug init 3
 ;       evento verbose debug
@@ -27,8 +27,8 @@ gi_debug init 2
 ; =============================
 
 ; Import MACROS
-#include "MACROS/first.udo"
-#include "MACROS/costants.udo"
+#include "MACROS/first.orc"
+#include "MACROS/debug.orc"
 
 ; Import UDOs
 #include "udos/utils.udo"
@@ -38,25 +38,11 @@ gi_debug init 2
 #include "udos/pfield_at.udo"
 #include "udos/pfield_freq.udo"
 ; -
-#include "orc/letMeLook.orc"
 #include "udos/validator.udo"
 #include "orc/eventoSonoro.orc"
 #include "orc/Comportamento.orc"
 #include "orc/GeneraComportamenti.orc"
 
-
-#define DEBUG_Generatore # 
-    if i_Res == 1 then
-        if i_debug == 3 then
-            prints "%d %d %d %d %d %d %d %d\n",i_Attacco, i_Durata, gi_temp_ritmi, i_DurArm, i_Amp,  i_Oct, i_Reg, gi_temp_pos
-        endif
-    endif
-    if i_debug == 3 then
-      ;schedule "letMeLook", 30, 1
-        ftprint gi_Intonazione
-    endif
-
-#
 
 instr Generatore
     i_debug = gi_debug

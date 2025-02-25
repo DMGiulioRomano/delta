@@ -8,57 +8,6 @@ opcode NonlinearFunc, i, i
   xout iResult
 endop
 
-#define DEBUG_Comp1 #
-   if i_debug == 1 || i_debug == 2 then
-      prints "\n\t\t=========================================\n"
-      prints "\t\t\tdentro comportamento %d\n", i_IdComp
-   endif#
-
-#define DEBUG_Comp2 #
-   if i_debug == 2 then
-      prints "\n\t\t\tRitmi (Array copiato)\n"
-      printarray i_Ritmi
-      prints "---------------------"
-      prints "\n\t\t\tRitmi tabella\n"
-      ftprint gi_comp_temp_ritmi, 1, 0, gi_Index+1
-      prints "---------------------"
-      prints "\n\t\t\tPosizioni\n"
-      printarray i_Posizioni
-      prints "---------------------"
-      prints "\n"
-   endif#
-
-#define DEBUG_Comp3 #
-   if i_debug == 3 then
-      prints "\t\t---------------------"
-      prints "\n\t\t\tRitmi tabella\n per gi_Index = %d\n", gi_Index
-      ftprint gi_comp_temp_ritmi, 1, 0, gi_Index+1
-   endif#
-
-#define DEBUG_Comp4 #
-   if i_debug == 3 then
-      prints "___\nritmo corrente: %d\nad index:%d\n",i_RitmoCorrente,i_Index
-   endif#
-
-#define DEBUG_Comp5 #
-   if i_debug == 3 then
-      prints "___\nvecchio ritmo: %d\nad index:%d\n",i_Vecchio_Ritmo,i_Index
-   endif#
-
-
-#define DEBUG_Comp6 #
-      if i_debug == 3 then 
-         prints "___\nad attacco:%f\nampiezza: %f\nfrequenza: %f\ndurata evento:%f\nposizione:%d\n\n", i_time, round3(i_Amp), round3(i_Freq1), round3(i_DurEvento), i_Pos
-         ftprint gi_eve_posizione, 1, 0, gi_Index+1
-      endif#
-
-#define DEBUG_CompEND #
-   if i_debug == 1 || i_debug == 2 || i_debug ==3 || i_debug == 4 then
-      ; Print useful debug info
-      prints "\tComportamento %d completed.\n\tGenerated %d events.\n", i_IdComp, i_Index
-      prints "=========================================\n\n"
-   endif#
-
 
 instr Comportamento
    ; Input parameters
@@ -146,4 +95,7 @@ instr Comportamento
       gi_Index += 1
       i_time = i_Pfield2 + i_DurEvento
    od
+   Sst sprintf "comp%d.table", i_IdComp
+   ;Snd sprintf "attacco%s", Sst
+   ftsave Sst, 1, gi_comp_ATTACCO;, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
 endin
