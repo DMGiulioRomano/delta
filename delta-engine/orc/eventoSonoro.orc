@@ -12,15 +12,27 @@
 ; p9 - function table number for position
 ;==================================================================
 
-instr eventoSonoro
-    id_evento=p10
-    i_debug = 2
-    ktim timeinsts				;read time 
+#define DEBUG_Evento1 #
     if i_debug == 1 || i_debug == 2 then
-        prints "\n\t\t\tevento sonoro %d",    id_evento
+        prints "\n\t\t\tevento sonoro %d del comportamento %d",id_evento, id_comportamento
         prints "\n\t\t\t\tattacco: %f\n\t\t\t\tdurata: %f\n\t\t\t\tamp: %f\n\t\t\t\tfreq1: %f\n\t\t\t\twz: %f\n\t\t\t\tdir: %f\n\t\t\t\tHR: %f\n\t\t\t\tfreq2: %f\n\t\t\t\tifn: %f\n\t\t\t\tid_evento: %f\n\n", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
         fprints "sco.sco", "\n%f\t\t%f\t\t%f\t\t%f\t\t %f\t\t%f\t\t%f\t\t%f\t\t%f\t\t%f", p2, p3, p4, p5, p6, p7, p8, p9, p10    
-    endif
+    endif#
+
+#define DEBUG_Evento2 #
+    ktim timeinsts				;read time 
+    if i_debug == 4 then
+      printks "\ninviluppo: %f della funzione: %d instr: %d, tempo: %f\n", 0.5, kEnv, ifn, id_evento, ktim 
+    endif#
+
+
+
+
+instr eventoSonoro
+    id_evento=p10
+    id_comportamento=p11
+    i_debug=gi_debug
+    $DEBUG_Evento1
     ;--------------------------------------------------------------
     ; Parameter Initialization and Validation
     ;--------------------------------------------------------------
@@ -55,9 +67,7 @@ instr eventoSonoro
     
     ; Envelope generation
     kEnv = abs(sin(krad*iHR/2))     ; Basic envelope shape
-    if i_debug == 2 then
-      printks "\ninviluppo: %f della funzione: %d instr: %d, tempo: %f\n", 0.5, kEnv, ifn, id_evento, ktim 
-    endif
+    $DEBUG_Evento2
     ;--------------------------------------------------------------
     ; Sound Generation and Spatialization
     ;--------------------------------------------------------------

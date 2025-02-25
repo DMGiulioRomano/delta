@@ -1,5 +1,5 @@
 .PHONY = clean
-CSD ?= prova
+CSD ?= main
 CS = csound
 clean:
 	rm -rf *.wav *.aif *.log *.sco
