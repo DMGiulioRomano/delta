@@ -97,5 +97,5 @@ instr Comportamento
    od
    Sst sprintf "comp%d.table", i_IdComp
    ;Snd sprintf "attacco%s", Sst
-   ftsave Sst, 1, gi_comp_ATTACCO;, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
+   ftsave Sst, 1, gi_comp_ATTACCO, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
 endin
