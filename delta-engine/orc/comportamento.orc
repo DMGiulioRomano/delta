@@ -95,7 +95,9 @@ instr Comportamento
       gi_Index += 1
       i_time = i_Pfield2 + i_DurEvento
    od
-   Sst sprintf "comp%d.table", i_IdComp
-   ;Snd sprintf "attacco%s", Sst
-   ftsave Sst, 1, gi_comp_ATTACCO, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
+   i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
+   Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
+   ftsave Snd, 1, gi_comp_ATTACCO, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
+   Scmd sprintf "python3.11 docs/plot.py %s", Snd
+   i_tmp_res system_i 1, Scmd, 0
 endin
