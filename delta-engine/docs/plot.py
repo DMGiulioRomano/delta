@@ -40,6 +40,9 @@ def extract_tables(file_path):
 
 def create_combined_plot(tables, file_path, output_dir, output_filename="all_tables_grid.png"):
     """Create a single figure with all tables in a grid of subplots."""
+    # Definizione delle etichette personalizzate per i subplot
+    custom_labels = ["attacco", "durata", "ritmi", "durata armonica", "ampiezza", "ottava", "registro", "posizione"]
+    
     if not tables:
         print(f"No valid tables found in {file_path}")
         return
@@ -75,7 +78,11 @@ def create_combined_plot(tables, file_path, output_dir, output_filename="all_tab
             
             # Add grid and labels
             ax.grid(True, linestyle='--', alpha=0.5)
-            ax.set_title(f"Table {table_num}")
+            # Usa l'etichetta personalizzata se disponibile, altrimenti usa l'etichetta predefinita
+            if i < len(custom_labels):
+                ax.set_title(custom_labels[i])
+            else:
+                ax.set_title(f"Table {table_num}")
             ax.set_xlabel("Index")
             ax.set_ylabel("Value")
             

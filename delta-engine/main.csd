@@ -12,10 +12,10 @@ nchnls = 2
 ;           DEBUG
 ; ----
 ;       no debug
-gi_debug init -1
+;gi_debug init -1
 ; ----
 ;       normal debug
-;gi_debug init 1
+gi_debug init 1
 ; ---- 
 ;       verbose debug
 ;gi_debug init 2
