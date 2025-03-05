@@ -21,6 +21,8 @@ def plot_overlap(file_path):
     
     # Crea directory di output
     output_dir = os.path.dirname(file_path)
+    output_dir = os.path.join(output_dir, "plots")
+    os.makedirs(output_dir, exist_ok=True)
     
     # Grafico principale della sovrapposizione
     plt.figure(figsize=(15, 8))

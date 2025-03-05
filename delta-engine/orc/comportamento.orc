@@ -74,21 +74,27 @@ instr Comportamento
       ; Calcola posizione
       i_Pos = int(random:i(0, i_RitmoCorrente))
 
-      ; Ottieni il valore corrente di sovrapposizione dall'Analizzatore
-      i_current_overlap = i(gk_current_overlap)
 
-      ; Calcola il fattore di durata basato sulla sovrapposizione
-      i_OverlapFactor = calcDurationFactor(i_current_overlap, i_RitmoCorrente, 1)
+      iCurrentTime = i_time + i_CAttacco
+      iLookbackTime = max(0, iCurrentTime - 30)  ; Guarda agli ultimi 30 secondi
+      i_OverlapFactor = suggestDurationFactor(iLookbackTime, iCurrentTime, i_RitmoCorrente)
       
       ; Calcola la durata dell'evento con il fattore di adattamento
       i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
 
       ; Debug opzionale
       if gi_debug >= 2 then
+         ; Ottieni il valore corrente di sovrapposizione dall'Analizzatore
+         i_current_overlap = i(gk_current_overlap)
          prints "Sovrapposizione: %d, Ritmo: %d, Fattore: %f, Durata: %f\n", 
                 i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_DurEvento
       endif
 
+      ; Debug opzionale
+      if gi_debug >= 2 then
+         prints "Evento %d: Tempo=%.2f, OverlapFactor=%.2f, Durata=%.2f\n", 
+               i_Index, iCurrentTime, i_OverlapFactor, i_DurEvento
+      endif
       ; Store in global tables
       tabw_i i_Pfield2,             gi_Index, gi_eve_attacco
       tabw_i i_DurEvento,           gi_Index, gi_eve_durata  

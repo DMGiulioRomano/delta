@@ -1,4 +1,4 @@
-.PHONY = clean venv analyze render
+.PHONY = clean venv analyze analyze-memory analyze-all render
 
 CSD ?= main
 CS = csound
@@ -14,7 +14,7 @@ clean:
 cs:
 	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=FILE.log
 
-# Nuovi target per l'ambiente Python e l'analisi
+# Gestione ambiente virtuale Python
 $(VENV)/bin/activate: requirements.txt
 	$(PYTHON) -m venv $(VENV)
 	$(VENV_PIP) install --upgrade pip
@@ -23,11 +23,22 @@ $(VENV)/bin/activate: requirements.txt
 
 venv: $(VENV)/bin/activate
 
+# Analisi sovrapposizione standard
 analyze: venv
-	mkdir -p docs/analysis
+	mkdir -p docs/analysis/plots
 	$(VENV_PYTHON) docs/plot_overlap.py docs/analysis/overlap_data.csv
 
+# Analisi memoria compositiva
+analyze-memory: venv
+	mkdir -p docs/analysis/plots
+	$(VENV_PYTHON) docs/visualize_memory.py docs/analysis/compositional_memory.csv
+
+# Esegui entrambe le analisi
+analyze-all: analyze analyze-memory
+
+# Rendering completo
 render: clean
 	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=FILE.log
 
-all: render analyze
+# Rendering e analisi completi
+all: render analyze-all

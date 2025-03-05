@@ -41,6 +41,17 @@ instr Analizzatore
         ; Avanzamento ciclico nell'indice della tabella
         gk_analysis_index = (gk_analysis_index + 1) % gi_analysis_buffer_size
     endif
+
+    kMemTrig metro 1/gi_memory_resolution
+    if kMemTrig == 1 then
+        kCurrentTime timeinsts
+        kMemIdx = int(kCurrentTime / gi_memory_resolution)
+        
+        if kMemIdx >= 0 && kMemIdx < gi_memory_size then
+            tabw gk_current_overlap, kMemIdx, gi_memory_overlap
+            tabw kActiveEventsCount, kMemIdx, gi_memory_events  ; Usa lo stesso valore calcolato sopra
+        endif
+    endif
     
     ; Stampa info di debug (opzionale)
     kDebugTrig metro 1  ; Stampa ogni secondo
@@ -64,6 +75,7 @@ instr Analizzatore
     endif
 endin
 
+; Strumento per l'analisi finale eseguito alla fine del rendering
 instr AnalisiFinale
     ; Crea la directory per i risultati
     iRes system_i 1, "mkdir -p ./docs/analysis", 0
@@ -108,16 +120,37 @@ instr AnalisiFinale
     
     iAvgOverlap = (iValidCount > 0) ? iOverlapSum / iValidCount : 0
     
+    ; NUOVO: Esporta i dati della memoria compositiva
+    SMemoryFile = "docs/analysis/compositional_memory.csv"
+    fprints SMemoryFile, "time,overlap,active_events\n"
+    
+    iIdx = 0
+    iValidPoints = 0
+    while iIdx < gi_memory_size do
+        iTime = iIdx * gi_memory_resolution
+        iOverlap table iIdx, gi_memory_overlap
+        iEvents table iIdx, gi_memory_events
+        
+        ; Esporta solo punti con dati validi
+        if iOverlap > 0 || iEvents > 0 then
+            fprints SMemoryFile, "%.2f,%d,%d\n", iTime, iOverlap, iEvents
+            iValidPoints += 1
+        endif
+        
+        iIdx += 1
+    od
+    
     ; Stampa statistiche finali
     prints "\n=== ANALISI SOVRAPPOSIZIONE EVENTI ===\n"
     prints "Punti analizzati: %d\n", iNumValidPoints
     prints "Sovrapposizione massima: %d eventi\n", iMaxOverlap
     prints "Sovrapposizione media: %.2f eventi\n", iAvgOverlap
     prints "Dati esportati in %s\n", SdataFile
+    prints "Memoria compositiva: %d punti esportati in %s\n", iValidPoints, SMemoryFile
     
     ; Avvia automaticamente l'analisi Python tramite make
-    prints "\nAvvio dell'analisi Python tramite 'make analyze'...\n"
-    iAnalysisRes system_i 1, "make analyze", 0
+    prints "\nAvvio dell'analisi Python...\n"
+    iAnalysisRes system_i 1, "make analyze-all", 0
     
     if iAnalysisRes == 0 then
         prints "Analisi Python completata con successo!\n"
