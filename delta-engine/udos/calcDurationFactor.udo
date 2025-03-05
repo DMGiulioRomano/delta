@@ -46,7 +46,7 @@ opcode suggestDurationFactor, i, iii
     iAvgOverlap, iMaxOverlap, iDensity, iSampleCount = analyzeCompositionMemory(iStartTime, iEndTime)
     
     ; Se non abbiamo abbastanza dati o il range è vuoto, usa valori predefiniti
-    if iSampleCount < 2 || iDensity < 0.1 then
+    if iSampleCount < 2 || iDensity < 0.05 then
         iSuggestedFactor = 1.0  ; Valore neutro
         goto end
     endif

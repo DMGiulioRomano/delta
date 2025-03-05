@@ -78,9 +78,15 @@ instr Comportamento
       iCurrentTime = i_time + i_CAttacco
       iLookbackTime = max(0, iCurrentTime - 30)  ; Guarda agli ultimi 30 secondi
       i_OverlapFactor = suggestDurationFactor(iLookbackTime, iCurrentTime, i_RitmoCorrente)
-      
+
+      if gi_Index < 10 then ; Per i primi 10 eventi
+         prints "MODALITÀ BOOTSTRAP: Forzatura durata evento\n"
+         i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * 3.0
+      else
       ; Calcola la durata dell'evento con il fattore di adattamento
-      i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
+         i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
+      endif
+      
 
       ; Debug opzionale
       if gi_debug >= 2 then
