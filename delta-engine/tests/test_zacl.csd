@@ -14,7 +14,7 @@ nchnls = 2
 0dbfs =1
 
 zakinit 1,1
-
+alwayson 2
 instr 1
 as oscil p5*linseg:k(0,p3/2,1,p3/2,0),p4,1
 zawm as, 1
@@ -48,7 +48,7 @@ i1  [1.50 + 0.75 * $CNT.]   2   880 .
 
 }
 ; Play Instrument #2 for 1 second.
-i 2 0 480
+;i 2 0 480
 
 </CsScore>
 </CsoundSynthesizer>

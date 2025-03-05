@@ -44,6 +44,7 @@ gi_debug init 1
 #include "orc/GeneraComportamenti.orc"
 
 
+
 instr Generatore
     i_debug = gi_debug
     i_Res init 0
