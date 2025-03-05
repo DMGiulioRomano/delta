@@ -31,6 +31,9 @@ instr Analizzatore
             kEventIdx += 1
         od
         
+        ; Aggiorna la variabile globale per comunicare con il Comportamento
+        gk_current_overlap = kActiveEventsCount
+        
         ; Memorizza il conteggio degli eventi attivi e il timestamp
         tabw kActiveEventsCount, gk_analysis_index, gi_analysis_active_events
         tabw kCurrentTime, gk_analysis_index, gi_analysis_timepoints

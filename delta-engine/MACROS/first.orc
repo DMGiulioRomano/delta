@@ -31,6 +31,7 @@ gi_eve_frequenza2 ftgen 0, 0, gi_NUMEVENTI, -2, 0
 gi_eve_posizione  ftgen 0, 0, gi_NUMEVENTI, -2, 0
 gi_eve_hr         ftgen 0, 0, gi_NUMEVENTI, -2, 0
 gi_eve_ifn        ftgen 0, 0, gi_NUMEVENTI, -2, 0
+gi_eve_comportamento ftgen 0, 0, gi_NUMEVENTI, -2, 0  ; Per memorizzare id_comp
 ; Inizializzazione delle tabelle per lo storico dei comportamenti
 gi_comp_ATTACCO     ftgen 0, 0, gi_NUMComportamenti, -2, 0
 gi_comp_RITMO_LEN   ftgen 0, 0, gi_NUMComportamenti, -2, 3
@@ -48,3 +49,6 @@ gi_analysis_buffer_size = 100000  ; Grande buffer per rendering offline
 gi_analysis_active_events ftgen 0, 0, gi_analysis_buffer_size, -2, 0
 gi_analysis_timepoints ftgen 0, 0, gi_analysis_buffer_size, -2, 0
 gk_analysis_index init 0
+
+
+gk_current_overlap init 1      ; Livello di sovrapposizione attuale

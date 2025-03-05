@@ -37,6 +37,7 @@ gi_debug init 1
 #include "udos/pfield_amp.udo"
 #include "udos/pfield_at.udo"
 #include "udos/pfield_freq.udo"
+#include "udos/calcDurationFactor.udo"
 ; -
 #include "udos/validator.udo"
 #include "orc/eventoSonoro.orc"

@@ -73,9 +73,23 @@ instr Comportamento
       i_Freq2 = i_Freq1  ; Per ora uguale, poi si può modificare
       ; Calcola posizione
       i_Pos = int(random:i(0, i_RitmoCorrente))
-      ; Durata dell'evento (per ora fissa a 1)
-      i_DurEvento = i_DurataArmonica/i_RitmoCorrente
-       ; Store in global tables
+
+      ; Ottieni il valore corrente di sovrapposizione dall'Analizzatore
+      i_current_overlap = i(gk_current_overlap)
+
+      ; Calcola il fattore di durata basato sulla sovrapposizione
+      i_OverlapFactor = calcDurationFactor(i_current_overlap, i_RitmoCorrente, 1)
+      
+      ; Calcola la durata dell'evento con il fattore di adattamento
+      i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
+
+      ; Debug opzionale
+      if gi_debug >= 2 then
+         prints "Sovrapposizione: %d, Ritmo: %d, Fattore: %f, Durata: %f\n", 
+                i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_DurEvento
+      endif
+
+      ; Store in global tables
       tabw_i i_Pfield2,             gi_Index, gi_eve_attacco
       tabw_i i_DurEvento,           gi_Index, gi_eve_durata  
       tabw_i i_Amp,                 gi_Index, gi_eve_ampiezza
@@ -84,6 +98,7 @@ instr Comportamento
       tabw_i i_Pos,                 gi_Index, gi_eve_posizione
       tabw_i i_RitmoCorrente,       gi_Index, gi_eve_hr
       tabw_i i_Freq2,               gi_Index, gi_eve_ifn
+      tabw_i i_IdComp,              gi_Index, gi_eve_comportamento
       ; debug line for i_Amp, i_Freq1, i_Freq2, i_DurEvento, gi_eve_posizione
       $DEBUG_Comp6
       ; Schedule evento sonoro
