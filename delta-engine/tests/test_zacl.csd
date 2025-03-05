@@ -24,7 +24,8 @@ endin
 instr 2
     a_gelo zar 1
 ;    a_gelo chnget "pino"
-    printk 1, k(a_gelo)
+    ;printk 1, k(a_gelo)
+    printk 1, rms(a_gelo)
     outs a_gelo, a_gelo
     zacl 1
 endin
@@ -39,8 +40,15 @@ i 1 .3 1 500 .5
 i 1 0 10 900  .1
 i 1 .1 3 1000 .2
 i 1 .3 7 3000 .3
+{ 300 CNT
+
+i1  [1.00 + 0.75 * $CNT.]   2   220 0.1
+i1  [1.25 + 0.75 * $CNT.]   1   440 .
+i1  [1.50 + 0.75 * $CNT.]   2   880 .
+
+}
 ; Play Instrument #2 for 1 second.
-i 2 0 20
+i 2 0 480
 
 </CsScore>
 </CsoundSynthesizer>
