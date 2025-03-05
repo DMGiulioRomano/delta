@@ -42,7 +42,10 @@ gi_debug init 1
 #include "orc/eventoSonoro.orc"
 #include "orc/Comportamento.orc"
 #include "orc/GeneraComportamenti.orc"
+#include "orc/Analizzatore.orc"
 
+
+alwayson Analizzatore
 
 
 instr Generatore
