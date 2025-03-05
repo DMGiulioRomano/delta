@@ -44,8 +44,9 @@ gi_debug init 1
 #include "orc/GeneraComportamenti.orc"
 #include "orc/Analizzatore.orc"
 
+zakinit 2,1
 
-alwayson Analizzatore
+alwayson "Analizzatore"
 
 
 instr Generatore
@@ -74,7 +75,7 @@ instr Generatore
     else
         prints "\nGenPythagFreqs failed: %d\n", i_Res
     endif
-
+    ;schedule "AnalisiFinale", p3 + 0.1, 0.1
 endin
 
 </CsInstruments>
@@ -86,6 +87,6 @@ f 2 0 [2^10] 6 0 [2^9] 0.5 [2^9] 1
 
 i "Generatore" 0 480
 
-
+i "AnalisiFinale" 480 1
 </CsScore>
 </CsoundSynthesizer>

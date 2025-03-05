@@ -83,7 +83,8 @@ instr eventoSonoro
     ; Safety limiting
     ;aL = limit(aL, -$MAX_AMP, $MAX_AMP)
     ;aR = limit(aR, -$MAX_AMP, $MAX_AMP)
-    zawm 1, aMid
-    zawm 2, aSide
+
+    zawm aMid, 1
+    zawm aSide, 2
     outs aL, aR
 endin

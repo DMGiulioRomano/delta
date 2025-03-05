@@ -42,3 +42,9 @@ gi_comp_OTTAVA      ftgen 0, 0, gi_NUMComportamenti, -2, 3
 gi_comp_REGISTRO    ftgen 0, 0, gi_NUMComportamenti, -2, 4
 gi_comp_POS_LEN     ftgen 0, 0, gi_NUMComportamenti, -2, 3
 gi_comp_POSIZIONE   ftgen 0, 0, gi_NUMComportamenti*5, -2, 0,0,0
+
+; Inizializzazione tabelle per l'analisi della sovrapposizione
+gi_analysis_buffer_size = 100000  ; Grande buffer per rendering offline
+gi_analysis_active_events ftgen 0, 0, gi_analysis_buffer_size, -2, 0
+gi_analysis_timepoints ftgen 0, 0, gi_analysis_buffer_size, -2, 0
+gk_analysis_index init 0
