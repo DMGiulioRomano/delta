@@ -50,17 +50,18 @@ def visualize_harmony(file_path):
         plt.close()
     except Exception as e:
         print(f"Errore nella visualizzazione distribuzione ottave: {e}")
-    
-    # Leggi matrice ottava/registro
+        
+    # Leggi matrice ottava/registro cumulativa
     try:
         matrix_df = pd.read_csv(os.path.join(output_dir, "..", "octave_register_matrix.csv"))
         # Converte in formato pivot per heatmap
         pivot_df = matrix_df.pivot(index='octave', columns='register', values='count')
         pivot_df = pivot_df.fillna(0)
         
+        # Crea la prima heatmap con la scala assoluta
         plt.figure(figsize=(14, 10))
         sns.heatmap(pivot_df, annot=True, cmap='viridis', fmt='g')
-        plt.title('Distribuzione Eventi per Ottava/Registro')
+        plt.title('Distribuzione Cumulativa Eventi per Ottava/Registro')
         plt.xlabel('Registro')
         plt.ylabel('Ottava')
         
@@ -68,9 +69,24 @@ def visualize_harmony(file_path):
         matrix_path = os.path.join(output_dir, "octave_register_matrix.png")
         plt.savefig(matrix_path, dpi=150)
         plt.close()
+        
+        # Crea una seconda heatmap con normalizzazione per evidenziare meglio la distribuzione relativa
+        plt.figure(figsize=(14, 10))
+        # Normalizza per riga (ottava)
+        row_sums = pivot_df.sum(axis=1)
+        pivot_norm = pivot_df.div(row_sums, axis=0).fillna(0)
+        sns.heatmap(pivot_norm, annot=True, cmap='viridis', fmt='.2f')
+        plt.title('Distribuzione Relativa Eventi per Ottava/Registro (normalizzato per ottava)')
+        plt.xlabel('Registro')
+        plt.ylabel('Ottava')
+        
+        plt.tight_layout()
+        matrix_norm_path = os.path.join(output_dir, "octave_register_matrix_normalized.png")
+        plt.savefig(matrix_norm_path, dpi=150)
+        plt.close()
     except Exception as e:
         print(f"Errore nella visualizzazione matrice ottava/registro: {e}")
-    
+            
     # Grafico di correlazione con sovrapposizione
     try:
         overlap_df = pd.read_csv(os.path.join(output_dir, "..", "overlap_data.csv"))

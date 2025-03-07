@@ -74,8 +74,11 @@ gi_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice otta
 gi_memory_harmonic_density ftgen 0, 0, gi_memory_size, -2, 0  ; Densità armonica nel tempo
 gi_memory_octave_spread ftgen 0, 0, gi_memory_size, -2, 0  ; Dispersione delle ottave
 gi_memory_spectral_centroid ftgen 0, 0, gi_memory_size, -2, 0  ; Centroide spettrale
+; Tabella per tracciamento armonico cumulativo
+gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice cumulativa ottava/registro
 
 ; Variabili globali per tracciamento corrente
 gk_current_harmonic_density init 0   ; Densità armonica corrente
 gk_current_octave_spread init 0      ; Dispersione ottave corrente
 gk_current_spectral_centroid init 0  ; Centroide spettrale corrente
+

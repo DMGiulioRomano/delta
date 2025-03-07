@@ -31,18 +31,18 @@ instr Analizzatore
         ; Analisi delle tabelle di eventi
         kEventIdx = 0
         while kEventIdx < gi_Index do
-            kAttackTime table kEventIdx, gi_eve_attacco
-            kDuration table kEventIdx, gi_eve_durata
+            kAttackTime tab kEventIdx, gi_eve_attacco
+            kDuration tab kEventIdx, gi_eve_durata
             
             ; Verifica se l'evento è attualmente attivo
             if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
                 kActiveEventsCount += 1
                 
                 ; Identifica ottava e registro dell'evento attivo
-                kBehaviorId table kEventIdx, gi_eve_comportamento
+                kBehaviorId tab kEventIdx, gi_eve_comportamento
                 if kBehaviorId >= 0 && kBehaviorId < gi_NUMComportamenti then
-                    kOctave table kBehaviorId, gi_comp_OTTAVA
-                    kRegister table kBehaviorId, gi_comp_REGISTRO
+                    kOctave tab kBehaviorId, gi_comp_OTTAVA
+                    kRegister tab kBehaviorId, gi_comp_REGISTRO
                     
                     ; Incrementa i contatori
                     if kOctave >= 0 && kOctave < $OTTAVE then
@@ -60,6 +60,9 @@ instr Analizzatore
                     if kMatrixIdx >= 0 && kMatrixIdx < ($OTTAVE * $REGISTRI) then
                         kMatrixVal tab kMatrixIdx, gi_octave_register_matrix
                         tabw kMatrixVal + 1, kMatrixIdx, gi_octave_register_matrix
+                        ; Aggiorna anche la matrice cumulativa
+                        kCumulativeVal tab kMatrixIdx, gi_cumulative_octave_register_matrix
+                        tabw kCumulativeVal + 1, kMatrixIdx, gi_cumulative_octave_register_matrix
                     endif
                 endif
             endif
@@ -135,8 +138,8 @@ instr Analizzatore
 
         kEventIdx = 0
         while kEventIdx < gi_Index do
-            kAttackTime table kEventIdx, gi_eve_attacco
-            kDuration table kEventIdx, gi_eve_durata
+            kAttackTime tab kEventIdx, gi_eve_attacco
+            kDuration tab kEventIdx, gi_eve_durata
             
             if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
                 kActiveEvents += 1
@@ -161,8 +164,8 @@ instr AnalisiFinale
     iNumValidPoints = 0
     iIdx = 0
     while iIdx < gi_analysis_buffer_size do
-        iTime table iIdx, gi_analysis_timepoints
-        iActiveEvents table iIdx, gi_analysis_active_events
+        iTime tab_i iIdx, gi_analysis_timepoints
+        iActiveEvents tab_i iIdx, gi_analysis_active_events
         
         ; Scrivi solo punti validi (tempo > 0)
         if iTime > 0 then
@@ -181,9 +184,9 @@ instr AnalisiFinale
     iIdx = 0
     while iIdx < gi_memory_size do
         iTime = iIdx * gi_memory_resolution
-        iHarmonicDensity table iIdx, gi_memory_harmonic_density
-        iOctaveSpread table iIdx, gi_memory_octave_spread
-        iSpectralCentroid table iIdx, gi_memory_spectral_centroid
+        iHarmonicDensity tab_i iIdx, gi_memory_harmonic_density
+        iOctaveSpread tab_i iIdx, gi_memory_octave_spread
+        iSpectralCentroid tab_i iIdx, gi_memory_spectral_centroid
         
         ; Esporta solo punti con dati validi
         if iHarmonicDensity > 0 || iOctaveSpread > 0 || iSpectralCentroid > 0 then
@@ -199,7 +202,7 @@ instr AnalisiFinale
     fprints SOctaveDistFile, "octave,count\n"
     iOctIdx = 0
     while iOctIdx < $OTTAVE do
-        iOctCount table iOctIdx, gi_active_octaves
+        iOctCount tab_i iOctIdx, gi_active_octaves
         fprints SOctaveDistFile, "%d,%d\n", iOctIdx, iOctCount
         iOctIdx += 1
     od
@@ -208,7 +211,7 @@ instr AnalisiFinale
     fprints SRegisterDistFile, "register,count\n"
     iRegIdx = 0
     while iRegIdx < $REGISTRI do
-        iRegCount table iRegIdx, gi_active_registers
+        iRegCount tab_i iRegIdx, gi_active_registers
         fprints SRegisterDistFile, "%d,%d\n", iRegIdx, iRegCount
         iRegIdx += 1
     od
@@ -220,15 +223,15 @@ instr AnalisiFinale
         iRegIdx = 0
         while iRegIdx < $REGISTRI do
             iMatrixIdx = iOctIdx * $REGISTRI + iRegIdx
-            iMatrixVal table iMatrixIdx, gi_octave_register_matrix
+            iMatrixVal table iMatrixIdx, gi_cumulative_octave_register_matrix
             if iMatrixVal > 0 then
                 fprints SMatrixFile, "%d,%d,%d\n", iOctIdx, iRegIdx, iMatrixVal
             endif
             iRegIdx += 1
         od
         iOctIdx += 1
-    od
-    
+    od    
+
     ; Esporta i dati della memoria compositiva
     SMemoryFile = "docs/analysis/compositional_memory.csv"
     fprints SMemoryFile, "time,overlap,active_events\n"
@@ -237,8 +240,8 @@ instr AnalisiFinale
     iValidPoints = 0
     while iIdx < gi_memory_size do
         iTime = iIdx * gi_memory_resolution
-        iOverlap table iIdx, gi_memory_overlap
-        iEvents table iIdx, gi_memory_events
+        iOverlap tab_i iIdx, gi_memory_overlap
+        iEvents tab_i iIdx, gi_memory_events
         
         ; Esporta solo punti con dati validi
         if iOverlap > 0 || iEvents > 0 then
@@ -256,8 +259,8 @@ instr AnalisiFinale
     iValidCount = 0
     
     while iIdx < gi_analysis_buffer_size do
-        iActiveEvents table iIdx, gi_analysis_active_events
-        iTime table iIdx, gi_analysis_timepoints
+        iActiveEvents tab_i iIdx, gi_analysis_active_events
+        iTime tab_i iIdx, gi_analysis_timepoints
         
         if iTime > 0 then
             iMaxOverlap = max(iMaxOverlap, iActiveEvents)
@@ -284,7 +287,7 @@ instr AnalisiFinale
     prints "Ottave attive: "
     iOctIdx = 0
     while iOctIdx < $OTTAVE do
-        iOctCount table iOctIdx, gi_active_octaves
+        iOctCount tab_i iOctIdx, gi_active_octaves
         if iOctCount > 0 then
             prints "Ottava %d: %d eventi, ", iOctIdx, iOctCount
         endif
