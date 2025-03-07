@@ -33,8 +33,13 @@ analyze-memory: venv
 	mkdir -p docs/analysis/plots
 	$(VENV_PYTHON) docs/visualize_memory.py docs/analysis/compositional_memory.csv
 
-# Esegui entrambe le analisi
-analyze-all: analyze analyze-memory
+# Analisi armonica
+analyze-harmony: venv
+	mkdir -p docs/analysis/plots
+	$(VENV_PYTHON) docs/visualize_harmony.py docs/analysis/harmonic_data.csv
+
+# Aggiorna il target analyze-all
+analyze-all: analyze analyze-memory analyze-harmony
 
 # Rendering completo
 render: clean

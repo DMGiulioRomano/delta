@@ -1,12 +1,14 @@
 ; indice che rappresenta eventi sonori nelle tabelle globali per scrittura dati.
+;===============================
 gi_Index init 0
-
 gi_init_cond init 10
 
+;===============================
 ; --- CONSTANTS ---
 #define SQRT2 #1.4142135623730951# ; sqrt(2) for normalization
 #define MAX_AMP #0.999# ; Maximum amplitude to prevent clipping
 
+;===============================
 ; --- MACRO DELLO SPAZIO ---
 #define FONDAMENTALE    #32#      
 #define OTTAVE          #10#      
@@ -14,14 +16,15 @@ gi_init_cond init 10
 #define REGISTRI        #10#
 
 
-
+;===============================
 ; Sistema di intonazione
 gi_Intonazione ftgen 0, 0, 2001, -2, 0
 
-
+;===============================
 gi_NUMEVENTI init 1000
 gi_NUMComportamenti init 100
 
+;===============================
 ; Inizializzazione delle tabelle per lo storico degli eventi
 gi_eve_attacco    ftgen 0, 0, gi_NUMEVENTI, -2, 0    
 gi_eve_durata     ftgen 0, 0, gi_NUMEVENTI, -2, 0    
@@ -44,8 +47,6 @@ gi_comp_REGISTRO    ftgen 0, 0, gi_NUMComportamenti, -2, 4
 gi_comp_POS_LEN     ftgen 0, 0, gi_NUMComportamenti, -2, 3
 gi_comp_POSIZIONE   ftgen 0, 0, gi_NUMComportamenti*5, -2, 0,0,0
 
-
-
 ;===============================
 ; Inizializzazione tabelle per l'analisi della sovrapposizione
 gi_analysis_buffer_size = 100000  ; Grande buffer per rendering offline
@@ -62,3 +63,10 @@ gi_memory_size = gi_memory_duration / gi_memory_resolution  ; Dimensione della t
 ; Tabelle per memorizzare la storia compositiva
 gi_memory_overlap ftgen 0, 0, gi_memory_size, -2, 0  ; Sovrapposizione nel tempo
 gi_memory_events ftgen 0, 0, gi_memory_size, -2, 0   ; Numero di eventi attivi nel tempo
+
+;===============================
+; Tabelle per analisi armonica
+gi_memory_harmonic_density ftgen 0, 0, gi_memory_size, -2, 0  ; Densità armonica nel tempo
+gi_memory_octave_spread ftgen 0, 0, gi_memory_size, -2, 0  ; Dispersione delle ottave
+gk_current_harmonic_density init 0  ; Densità armonica corrente
+gk_current_octave_spread init 0     ; Dispersione ottave corrente

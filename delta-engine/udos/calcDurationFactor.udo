@@ -68,3 +68,42 @@ opcode suggestDurationFactor, i, iii
     end:
     xout iSuggestedFactor
 endop
+
+; In udos/calcDurationFactor.udo
+opcode analyzeHarmonicMemory, iiii, ii
+    iStartTime, iEndTime xin
+    
+    ; Calcola indici nella tabella di memoria
+    iStartIdx = int(iStartTime / gi_memory_resolution)
+    iEndIdx = int(iEndTime / gi_memory_resolution)
+    
+    ; Assicurati che gli indici siano entro i limiti
+    iStartIdx = limit(iStartIdx, 0, gi_memory_size-1)
+    iEndIdx = limit(iEndIdx, 0, gi_memory_size-1)
+    
+    ; Inizializza contatori
+    iSumHarmonicDensity = 0
+    iSumOctaveSpread = 0
+    iMaxHarmonicDensity = 0
+    iCount = 0
+    
+    ; Analizza il range temporale
+    iIdx = iStartIdx
+    while iIdx <= iEndIdx do
+        iHarmonicDensity table iIdx, gi_memory_harmonic_density
+        iOctaveSpread table iIdx, gi_memory_octave_spread
+        
+        iSumHarmonicDensity += iHarmonicDensity
+        iSumOctaveSpread += iOctaveSpread
+        iMaxHarmonicDensity = max(iMaxHarmonicDensity, iHarmonicDensity)
+        
+        iCount += 1
+        iIdx += 1
+    od
+    
+    ; Calcola valori aggregati
+    iAvgHarmonicDensity = (iCount > 0) ? iSumHarmonicDensity / iCount : 0
+    iAvgOctaveSpread = (iCount > 0) ? iSumOctaveSpread / iCount : 0
+    
+    xout iAvgHarmonicDensity, iMaxHarmonicDensity, iAvgOctaveSpread, iCount
+endop

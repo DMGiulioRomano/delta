@@ -52,6 +52,6 @@ f 2		  0 	 16777216	7		0 16777216 1
 ;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
 i1		 52.0		 2.0		 -28.777		 183.013		 4		 4		 183.013		 2
 ;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
-i1		 54.0		 4.0		 -27.879		 182.25		 2		 2		 182.25		 2
+i1		 54.0		 4.0		 -27.879		 182.25		 1		 2		 182.25		 2
 </CsScore>
 </CsoundSynthesizer>

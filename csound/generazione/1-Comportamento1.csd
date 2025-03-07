@@ -50,6 +50,6 @@ f1 0 16777216 10 1
 f 2 0 16777216 6 0 8388608 0.5 8388608 1
 ; ---- Eventi sonori ----
 ;i1		|at|		|dur|		|amp|			|freqi|			|wchZ|	|HR|	|freqf|			|funPos|
-i1		 0.0		 11.667		 -25.933		 169.782		 -2		 3		 169.782		 2
+i1		 0.0		 11.667		 -25.933		 169.782		 -3		 3		 169.782		 2
 </CsScore>
 </CsoundSynthesizer>

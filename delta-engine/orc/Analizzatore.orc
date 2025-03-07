@@ -99,6 +99,32 @@ instr AnalisiFinale
         iIdx += 1
     od
     
+    ; Esporta i dati armonici in CSV
+    SHarmonicFile = "docs/analysis/harmonic_data.csv"
+    fprints SHarmonicFile, "time,harmonic_density,octave_spread\n"
+    
+    iHarmonicPoints = 0
+    iIdx = 0
+    while iIdx < gi_memory_size do
+        iTime = iIdx * gi_memory_resolution
+        iHarmonicDensity table iIdx, gi_memory_harmonic_density
+        iOctaveSpread table iIdx, gi_memory_octave_spread
+        
+        ; Esporta solo punti con dati validi
+        if iHarmonicDensity > 0 || iOctaveSpread > 0 then
+            fprints SHarmonicFile, "%.2f,%.4f,%.4f\n", iTime, iHarmonicDensity, iOctaveSpread
+            iHarmonicPoints += 1
+        endif
+        
+        iIdx += 1
+    od
+    
+    ; Stampa statistiche anche per i dati armonici
+    prints "\n=== ANALISI DATI ARMONICI ===\n"
+    prints "Punti analizzati: %d\n", iHarmonicPoints
+    prints "Dati esportati in %s\n", SHarmonicFile
+
+
     ; Calcola e stampa statistiche di base
     iMaxOverlap = 0
     iOverlapSum = 0
