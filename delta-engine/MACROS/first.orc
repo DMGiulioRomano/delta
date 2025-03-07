@@ -65,8 +65,17 @@ gi_memory_overlap ftgen 0, 0, gi_memory_size, -2, 0  ; Sovrapposizione nel tempo
 gi_memory_events ftgen 0, 0, gi_memory_size, -2, 0   ; Numero di eventi attivi nel tempo
 
 ;===============================
-; Tabelle per analisi armonica
+; Tabelle per tracciamento armonico
+gi_active_octaves ftgen 0, 0, $OTTAVE, -2, 0    ; Conteggio eventi attivi per ottava
+gi_active_registers ftgen 0, 0, $REGISTRI, -2, 0  ; Conteggio eventi attivi per registro
+gi_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice ottava/registro
+
+; Tabelle per storia armonica 
 gi_memory_harmonic_density ftgen 0, 0, gi_memory_size, -2, 0  ; Densità armonica nel tempo
 gi_memory_octave_spread ftgen 0, 0, gi_memory_size, -2, 0  ; Dispersione delle ottave
-gk_current_harmonic_density init 0  ; Densità armonica corrente
-gk_current_octave_spread init 0     ; Dispersione ottave corrente
+gi_memory_spectral_centroid ftgen 0, 0, gi_memory_size, -2, 0  ; Centroide spettrale
+
+; Variabili globali per tracciamento corrente
+gk_current_harmonic_density init 0   ; Densità armonica corrente
+gk_current_octave_spread init 0      ; Dispersione ottave corrente
+gk_current_spectral_centroid init 0  ; Centroide spettrale corrente
