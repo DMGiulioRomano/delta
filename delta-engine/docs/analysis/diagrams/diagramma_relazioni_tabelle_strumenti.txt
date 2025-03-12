@@ -1,0 +1,82 @@
+Relazioni Chiave tra Categorie di Tabelle
+
+Comportamenti → Eventi: Le tabelle dei comportamenti definiscono i parametri che guidano la generazione di eventi, i cui dettagli vengono memorizzati nelle tabelle degli eventi.
+Eventi → Analisi: Le tabelle degli eventi vengono monitorate dall'analizzatore, che popola le tabelle di analisi.
+Analisi → Memoria: I dati di analisi vengono memorizzati nelle tabelle di memoria compositiva per formare una storia temporale.
+Memoria → Stati: I dati di memoria vengono interpretati per determinare lo stato corrente del sistema.
+Stati → Comportamenti: Lo stato corrente e la storia degli stati guidano la selezione del prossimo stato target, che influenza la configurazione dei nuovi comportamenti.
+
+┌───────────────────────┐
+│ TABELLE DEGLI EVENTI  │
+│ gi_eve_*              │◄───┐
+└───────────┬───────────┘    │
+            │                │
+            ▼                │
+┌───────────────────────┐    │
+│     eventoSonoro      │    │
+│                       │    │
+│ - Legge parametri     │    │ Scrive
+│ - Genera suoni        │    │ parametri
+│ - Applica spazializ.  │    │ degli eventi
+└───────────┬───────────┘    │
+            │                │
+            │                │
+            ▼                │
+┌───────────────────────┐    │
+│     Analizzatore      │    │
+│                       │    │
+│ - Conta eventi attivi │    │
+│ - Calcola metriche    │    │
+│ - Determina stati     │    │
+└───────────┬───────────┘    │
+            │                │
+            │                │
+┌───────────▼───────────┐    │
+│  MEMORIA COMPOSITIVA  │    │
+│  gi_memory_*          │    │
+│  gi_active_*          │    │
+└───────────┬───────────┘    │
+            │                │
+            │                │
+            ▼                │
+┌───────────────────────┐    │
+│   CLASSIFICAZIONE     │    │
+│        STATI          │    │
+│  gi_state_history_*   │    │
+└───────────┬───────────┘    │
+            │                │
+            │                │
+            ▼                │
+┌───────────────────────┐    │
+│  GeneraComportamenti  │    │
+│                       │    │
+│ - Seleziona stati     │    │
+│ - Configura parametri │    │
+└───────────┬───────────┘    │
+            │                │
+            │                │
+┌───────────▼───────────┐    │
+│  TABELLE COMPORTAM.   │    │
+│  gi_comp_*            │    │
+└───────────┬───────────┘    │
+            │                │
+            │                │
+            ▼                │
+┌───────────────────────┐    │
+│    Comportamento      │    │
+│                       │────┘
+│ - Genera eventi       │
+│ - Adatta parametri    │
+│ - Schedule eventi     │
+└───────────┬───────────┘
+            │
+            │
+            ▼
+┌───────────────────────┐
+│    AnalisiFinale      │
+│                       │
+│ - Legge tutte le      │
+│   tabelle di memoria  │
+│ - Esporta dati        │
+│ - Genera report       │
+└───────────────────────┘
