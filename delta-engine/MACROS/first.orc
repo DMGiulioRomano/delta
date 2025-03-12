@@ -74,6 +74,7 @@ gi_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice otta
 gi_memory_harmonic_density ftgen 0, 0, gi_memory_size, -2, 0  ; Densità armonica nel tempo
 gi_memory_octave_spread ftgen 0, 0, gi_memory_size, -2, 0  ; Dispersione delle ottave
 gi_memory_spectral_centroid ftgen 0, 0, gi_memory_size, -2, 0  ; Centroide spettrale
+gi_memory_spatial_movement ftgen 0, 0, gi_memory_size, -2, 0  ; Movimento spaziale
 ; Tabella per tracciamento armonico cumulativo
 gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice cumulativa ottava/registro
 
@@ -81,4 +82,14 @@ gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; M
 gk_current_harmonic_density init 0   ; Densità armonica corrente
 gk_current_octave_spread init 0      ; Dispersione ottave corrente
 gk_current_spectral_centroid init 0  ; Centroide spettrale corrente
+gk_current_spatial_movement init 0   ; Movimento spaziale corrente
 
+; Definizione intervalli per densità
+gi_density_thresholds ftgen 0, 0, 4, -2, 0, 3, 7, 999  ; Sparse, Medium, Dense
+
+
+; Definizione storia degli stati
+gi_state_history_size = 10  ; Quanti stati ricordare
+gi_state_history_density ftgen 0, 0, gi_state_history_size, -2, 0
+gi_state_history_register ftgen 0, 0, gi_state_history_size, -2, 0
+gi_state_history_movement ftgen 0, 0, gi_state_history_size, -2, 0

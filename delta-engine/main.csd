@@ -44,6 +44,7 @@ gi_debug init 1
 #include "orc/Comportamento.orc"
 #include "orc/GeneraComportamenti.orc"
 #include "orc/Analizzatore.orc"
+#include "orc/AnalisiFinale.orc"
 
 zakinit 2,1
 

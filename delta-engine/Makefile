@@ -38,9 +38,11 @@ analyze-harmony: venv
 	mkdir -p docs/analysis/plots
 	$(VENV_PYTHON) docs/visualize_harmony.py docs/analysis/harmonic_data.csv
 
-# Aggiorna il target analyze-all
-analyze-all: analyze analyze-memory analyze-harmony
+analyze-spatial:
+    mkdir -p docs/analysis/plots
+    $(VENV_PYTHON) docs/visualize_spatial_movement.py docs/analysis/harmonic_data.csv
 
+analyze-all: analyze analyze-memory analyze-harmony analyze-spatial
 # Rendering completo
 render: clean
 	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=FILE.log
