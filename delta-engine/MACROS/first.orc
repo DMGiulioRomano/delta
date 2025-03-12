@@ -144,6 +144,7 @@ gi_state_history_size = 10  ; Quanti stati ricordare
 gi_state_history_density ftgen 0, 0, gi_state_history_size, -2, 0   ; Storia densità
 gi_state_history_register ftgen 0, 0, gi_state_history_size, -2, 0  ; Storia registro
 gi_state_history_movement ftgen 0, 0, gi_state_history_size, -2, 0  ; Storia movimento
+gk_state_history_index init 0  ; Indice per il buffer circolare della storia degli stati
 
 ; Memoria temporale degli stati per visualizzazione e analisi delle transizioni
 gi_memory_state_density ftgen 0, 0, gi_memory_size, -2, 0    ; Stati densità nel tempo

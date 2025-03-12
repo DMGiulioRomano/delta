@@ -139,6 +139,28 @@ instr Analizzatore
             tabw gk_current_octave_spread, kMemIdx, gi_memory_octave_spread
             tabw gk_current_spectral_centroid, kMemIdx, gi_memory_spectral_centroid
             tabw gk_current_spatial_movement, kMemIdx, gi_memory_spatial_movement  
+            ; Determina lo stato corrente
+            iCurrentDensity = i(gk_current_overlap)
+            iCurrentRegister = i(gk_current_octave_spread) 
+            iCurrentMovement = i(gk_current_spatial_movement)
+            
+            iDensityState, iRegisterState, iMovementState determineCurrentState iCurrentDensity, iCurrentRegister, iCurrentMovement
+            
+            ; Aggiorna la cronologia degli stati usando il buffer circolare
+            kNextIndex = (gk_state_history_index + 1) % gi_state_history_size
+            
+            ; Memorizza il nuovo stato nella posizione corrente del buffer
+            tabw iDensityState, kNextIndex, gi_state_history_density
+            tabw iRegisterState, kNextIndex, gi_state_history_register
+            tabw iMovementState, kNextIndex, gi_state_history_movement
+            
+            ; Aggiorna l'indice globale del buffer
+            gk_state_history_index = kNextIndex
+            
+            ; Memorizza lo stato nella cronologia temporale completa
+            tabw iDensityState, kMemIdx, gi_memory_state_density
+            tabw iRegisterState, kMemIdx, gi_memory_state_register
+            tabw iMovementState, kMemIdx, gi_memory_state_movement
         endif
     endif
 
