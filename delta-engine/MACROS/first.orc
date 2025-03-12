@@ -86,8 +86,8 @@ gk_current_spatial_movement init 0   ; Movimento spaziale corrente
 
 ; State classification tables
 gi_density_thresholds ftgen 0, 0, 4, -2, 0, 3, 7, 999  ; Sparse, Medium, Dense
-gi_register_states ftgen 0, 0, 4, -2, 0, 0.3, 0.7, 1  ; Low, Mid, High
-gi_movement_states ftgen 0, 0, 4, -2, 0, 0.2, 0.5, 1  ; Static, Moderate, Dynamic
+gi_register_thresholds ftgen 0, 0, 4, -2, 0, 0.3, 0.7, 1  ; Low, Mid, High
+gi_movement_thresholds ftgen 0, 0, 4, -2, 0, 0.2, 0.5, 1  ; Static, Moderate, Dynamic
 
 ; Definizione storia degli stati
 gi_state_history_size = 10  ; Quanti stati ricordare
