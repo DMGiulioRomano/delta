@@ -66,18 +66,15 @@ analyze-spatial: venv
 	mkdir -p docs/analysis/plots
 	$(VENV_PYTHON) docs/visualize_spatial_movement.py docs/analysis/harmonic_data.csv
 
-## Analizza la matrice di transizione e genera visualizzazioni
-analyze-transitions: venv
-	mkdir -p docs/analysis/plots
-	$(VENV_PYTHON) docs/visualize_transition_matrix.py
+## Run all analysis scripts to generate all plots
+analyze-all: analyze analyze-memory analyze-harmony analyze-spatial
 
-## Aggiunta alla lista di analisi complete
-analyze-all: analyze analyze-memory analyze-harmony analyze-spatial analyze-transitions
+tests-analyze:
+	$(VENV_PYTHON) tests/plot_interpolation.py tests/data/interpolation_curves.csv
 
 ## Render the composition to audio file
 render: clean
 	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=FILE.log
-
 
 ## Render the composition and run all analyses
 all: render analyze-all
