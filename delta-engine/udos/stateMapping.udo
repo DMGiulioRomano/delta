@@ -1,43 +1,49 @@
 opcode mapStateToParameter, ii, iS
     iStateIndex, SparamType xin
     
-    iMin = 0
-    iMax = 0
+    ; Assicuriamoci che iStateIndex sia nel range [0,2]
+    iNormalizedState = limit(iStateIndex, 0, 2) / 2.0  ; Normalizza a [0,1]
     
     if strcmp(SparamType, "density") == 0 then
-        ; Legge le soglie direttamente dalla tabella density_thresholds
-        iLowerBound tab_i iStateIndex, gi_density_thresholds
-        iUpperBound tab_i iStateIndex+1, gi_density_thresholds
+        ; Density: stato 0 = pochi eventi, stato 2 = molti eventi
+        ; Range: da 1 evento a circa 1/3 di NUMEVENTI
+        iMinEvents = 1
+        iMaxEvents = gi_NUMEVENTI / 3  ; Evita di saturare eccessivamente
         
-        ; Aggiunge un piccolo margine per evitare valori di confine
-        iMin = iLowerBound + 0.1
-        ; Limita il massimo a un valore ragionevole (999 è solo un limite superiore)
-        iMax = (iUpperBound > 100) ? 12 : iUpperBound - 0.1
+        ; Applicazione esponenziale per enfatizzare gli stati più densi
+        iProgress = iNormalizedState * iNormalizedState  ; Curva quadratica
+        iMin = iMinEvents
+        iMax = iMinEvents + (iMaxEvents - iMinEvents) * iProgress
         
     elseif strcmp(SparamType, "register") == 0 then
-        ; Legge le soglie dalla tabella register_thresholds
-        iLowerBound tab_i iStateIndex, gi_register_thresholds
-        iUpperBound tab_i iStateIndex+1, gi_register_thresholds
+        ; Register: usa l'intero range di ottave disponibili
+        ; Stato 0 = ottave basse, stato 2 = ottave alte
+        iLowestOctave = 0
+        iHighestOctave = $OTTAVE - 1
         
-        ; Converte i valori normalizzati (0-1) in valori di ottave (1-10)
-        iMin = 1 + iLowerBound * ($OTTAVE - 1)
-        iMax = 1 + iUpperBound * ($OTTAVE - 1)
+        ; Distribuzione lineare tra le ottave
+        iMin = iLowestOctave + (iHighestOctave - iLowestOctave) * iNormalizedState
+        iMax = iMin + max(1, $OTTAVE / 6)  ; Range di circa 1/6 delle ottave disponibili
         
     elseif strcmp(SparamType, "movement") == 0 then
-        ; Legge le soglie dalla tabella movement_thresholds
-        iLowerBound tab_i iStateIndex, gi_movement_thresholds
-        iUpperBound tab_i iStateIndex+1, gi_movement_thresholds
+        ; Movement: inversamente proporzionale ai valori ritmici
+        ; Stato 0 (statico) = ritmi alti, stato 2 (dinamico) = ritmi bassi
         
-        ; Inversione dei valori per il movimento (ricorda: valori ritmici bassi = più movimento)
-        iMoveLow = 1 - iUpperBound
-        iMoveHigh = 1 - iLowerBound
+        ; Range logaritmico da 1 a max 30 per i ritmi
+        iLowestRhythm = 1    ; Più movimento
+        iHighestRhythm = 30  ; Meno movimento
         
-        ; Scala i valori al range di ritmi appropriato (1-20)
-        iMin = 1 + iMoveLow * 19
-        iMax = 1 + iMoveHigh * 19
+        ; Inverte il normalizedState per la relazione inversa
+        iInvertedState = 1 - iNormalizedState
+        
+        ; Distribuzione logaritmica per enfatizzare i ritmi più bassi
+        iLogProgress = exp(iInvertedState * log(iHighestRhythm))
+        
+        iMin = max(iLowestRhythm, iLogProgress / 1.5)
+        iMax = min(iHighestRhythm, iLogProgress * 1.5)
     endif
     
-    ; Arrotonda i valori per maggiore chiarezza
+    ; Arrotonda i valori per chiarezza
     iMin = round(iMin)
     iMax = round(iMax)
     
