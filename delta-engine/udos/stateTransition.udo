@@ -74,6 +74,7 @@ opcode initTransitionMatrix, 0, 0
     od
 endop
 
+
 ; Seleziona il prossimo stato in base alle probabilità di transizione
 opcode selectNextState, iii, iii
     iCurrentDensity, iCurrentRegister, iCurrentMovement xin

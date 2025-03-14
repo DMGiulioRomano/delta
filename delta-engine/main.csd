@@ -39,13 +39,15 @@ gi_debug init 1
 #include "udos/pfield_freq.udo"
 #include "udos/calcDurationFactor.udo"
 #include "udos/determinState.udo"
-; -
 #include "udos/validator.udo"
+#include "udos/stateTransition.udo"
+; -
 #include "orc/eventoSonoro.orc"
 #include "orc/Comportamento.orc"
 #include "orc/GeneraComportamenti.orc"
 #include "orc/Analizzatore.orc"
 #include "orc/AnalisiFinale.orc"
+#include "orc/SaveTransitionMatrix.orc"
 
 zakinit 2,1
 
@@ -54,6 +56,7 @@ alwayson "Analizzatore"
 
 instr Generatore
     i_debug = gi_debug
+    initTransitionMatrix
     i_Res init 0
     i_Res GenPythagFreqs $FONDAMENTALE, $INTERVALLI, $OTTAVE, gi_Intonazione
     if i_Res == 1 then
@@ -87,6 +90,9 @@ endin
 f 1 0 [2^20] 10 1
 f 2 0 [2^10] 6 0 [2^9] 0.5 [2^9] 1
 ; Genera le frequenze pitagoriche
+
+;i "SaveTransitionMatrix" 0 1
+e
 
 i "Generatore" 0 480
 

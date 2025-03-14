@@ -150,3 +150,7 @@ gk_state_history_index init 0  ; Indice per il buffer circolare della storia deg
 gi_memory_state_density ftgen 0, 0, gi_memory_size, -2, 0    ; Stati densità nel tempo
 gi_memory_state_register ftgen 0, 0, gi_memory_size, -2, 0   ; Stati registro nel tempo
 gi_memory_state_movement ftgen 0, 0, gi_memory_size, -2, 0   ; Stati movimento nel tempo
+
+; Matrice di transizione per il sistema di stati
+; Dimensione: 27x27 (3 stati densità x 3 stati registro x 3 stati movimento)
+gi_transition_matrix ftgen 0, 0, 27*27, -2, 0  ; Inizializzata a zero

@@ -58,12 +58,7 @@ opcode generateRhythmsForState, i, i
     while iIdx < iTblSize do
         iRhythmVal random iMinVal, iMaxVal
         iRhythmVal = round(iRhythmVal)  ; Arrotonda al valore intero più vicino
-        
-        ; Assicura che non ci siano valori ritmici nulli o negativi
-        if iRhythmVal < 1 then
-            iRhythmVal = 1
-        endif
-        
+                
         tabw_i iRhythmVal, iIdx, iTableNum
         iIdx += 1
     od
