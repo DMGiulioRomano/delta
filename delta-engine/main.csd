@@ -38,7 +38,7 @@ gi_debug init 1
 #include "udos/pfield_at.udo"
 #include "udos/pfield_freq.udo"
 #include "udos/calcDurationFactor.udo"
-#include "udos/determinState.udo"
+#include "udos/determineState.udo"
 #include "udos/validator.udo"
 #include "udos/stateTransition.udo"
 ; -
@@ -92,7 +92,7 @@ f 2 0 [2^10] 6 0 [2^9] 0.5 [2^9] 1
 ; Genera le frequenze pitagoriche
 
 ;i "SaveTransitionMatrix" 0 1
-e
+;e
 
 i "Generatore" 0 480
 

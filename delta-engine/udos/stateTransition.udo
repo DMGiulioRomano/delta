@@ -112,11 +112,11 @@ opcode selectNextState, iii, iii
     xout iNextDensity, iNextRegister, iNextMovement
 endop
 
-opcode calculateTransitionDuration, i, iiiiiiif
+opcode calculateTransitionDuration, i, iiiiiiii
     ; Parametri di input: stato corrente, stato target, modo transizione, casualità
     iCurrentDensity, iCurrentRegister, iCurrentMovement, 
     iTargetDensity, iTargetRegister, iTargetMovement, 
-    iTransitionMode, fRandomFactor xin
+    iTransitionMode, iRandomFactor xin
     
     ; Conta quanti parametri sono diversi tra stato attuale e target
     iDifferentParams = 0
@@ -149,9 +149,9 @@ opcode calculateTransitionDuration, i, iiiiiiif
     iRawDuration = iBruskDuration + iTransitionMode * (iGradualDuration - iBruskDuration)
     
     ; Applica il fattore di casualità
-    ; fRandomFactor è un valore tra 0.0 e 1.0 che determina quanto sarà casuale la durata
-    if fRandomFactor > 0 then
-        iRandomAmount = random(-0.3, 0.5) * fRandomFactor
+    ; iRandomFactor è un valore tra 0.0 e 1.0 che determina quanto sarà casuale la durata
+    if iRandomFactor > 0 then
+        iRandomAmount = random(-0.3, 0.5) * iRandomFactor
         iDuration = iRawDuration * (1 + iRandomAmount)
     else
         iDuration = iRawDuration

@@ -61,7 +61,7 @@ instr GeneraComportamenti
         endif
     ; Contatore comportamenti
         i_which_comp+=1
-    od*/
-endin
+    od
+endin*/
 
 
