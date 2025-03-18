@@ -83,7 +83,9 @@ instr eventoSonoro
     ; Safety limiting
     ;aL = limit(aL, -$MAX_AMP, $MAX_AMP)
     ;aR = limit(aR, -$MAX_AMP, $MAX_AMP)
-
+    prints "joooo"
+    iRes logEventParams id_evento, id_comportamento, p2, p3, p4, ifreq1, ifreq2, iHR
+    print iRes
     zawm aMid, 1
     zawm aSide, 2
     outs aL, aR

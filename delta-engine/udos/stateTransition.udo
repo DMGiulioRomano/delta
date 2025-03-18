@@ -76,11 +76,10 @@ endop
 
 
 ; Seleziona il prossimo stato in base alle probabilità di transizione
-opcode selectNextState, iii, iii
-    iCurrentDensity, iCurrentRegister, iCurrentMovement xin
+opcode selectNextState, iii, 0
     
     ; Calcola l'indice di base nella matrice di transizione
-    iStateIdx = (iCurrentDensity * 9) + (iCurrentRegister * 3) + iCurrentMovement
+    iStateIdx = (gi_tc_source_density * 9) + (gi_tc_source_register * 3) + gi_tc_source_movement
     
     ; Genera un numero casuale
     iRand random 0, 1
@@ -112,21 +111,17 @@ opcode selectNextState, iii, iii
     xout iNextDensity, iNextRegister, iNextMovement
 endop
 
-opcode calculateTransitionDuration, i, iiiiiiii
-    ; Parametri di input: stato corrente, stato target, modo transizione, casualità
-    iCurrentDensity, iCurrentRegister, iCurrentMovement, 
-    iTargetDensity, iTargetRegister, iTargetMovement, 
-    iTransitionMode, iRandomFactor xin
+opcode calculateTransitionDuration, i, 0
     
     ; Conta quanti parametri sono diversi tra stato attuale e target
     iDifferentParams = 0
-    if iCurrentDensity != iTargetDensity then
+    if gi_tc_source_density != gi_tc_target_density then
         iDifferentParams += 1
     endif
-    if iCurrentRegister != iTargetRegister then
+    if gi_tc_source_register != gi_tc_target_register then
         iDifferentParams += 1
     endif
-    if iCurrentMovement != iTargetMovement then
+    if gi_tc_source_movement != gi_tc_target_movement then
         iDifferentParams += 1
     endif
     
@@ -146,12 +141,12 @@ opcode calculateTransitionDuration, i, iiiiiiii
     iBruskDuration = 1
     
     ; Interpola tra le due durate in base al modo di transizione
-    iRawDuration = iBruskDuration + iTransitionMode * (iGradualDuration - iBruskDuration)
+    iRawDuration = iBruskDuration + gi_tc_transition_mode * (iGradualDuration - iBruskDuration)
     
     ; Applica il fattore di casualità
-    ; iRandomFactor è un valore tra 0.0 e 1.0 che determina quanto sarà casuale la durata
-    if iRandomFactor > 0 then
-        iRandomAmount = random(-0.3, 0.5) * iRandomFactor
+    ; gi_tc_transition_randomness è un valore tra 0.0 e 1.0 che determina quanto sarà casuale la durata
+    if gi_tc_transition_randomness > 0 then
+        iRandomAmount = random(-0.3, 0.5) * gi_tc_transition_randomness
         iDuration = iRawDuration * (1 + iRandomAmount)
     else
         iDuration = iRawDuration

@@ -3,7 +3,6 @@ opcode calcFrequenza, i, iiiiii
         
     ; Calculate octave register
     i_Indice_Ottava = int(i_Ottava * i_Intervalli)
-    
     ; Calculate interval offset within the octave
     i_OffsetIntervallo = i_Indice_Ottava + int(((i_Registro * i_Intervalli) / i_Registri))
     

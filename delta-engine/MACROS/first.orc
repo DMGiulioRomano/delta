@@ -10,7 +10,7 @@
 gi_Index init 0
 ; Condizioni iniziali
 gi_init_cond init 10
-
+gi_compId init 0
 ; --------------------------------------------------------------------
 ; COSTANTI MATEMATICHE E AUDIO
 ; --------------------------------------------------------------------
@@ -154,3 +154,7 @@ gi_memory_state_movement ftgen 0, 0, gi_memory_size, -2, 0   ; Stati movimento n
 ; Matrice di transizione per il sistema di stati
 ; Dimensione: 27x27 (3 stati densità x 3 stati registro x 3 stati movimento)
 gi_transition_matrix ftgen 0, 0, 27*27, -2, 0  ; Inizializzata a zero
+
+
+; Add global variable for timekeeping
+gk_current_time init 0

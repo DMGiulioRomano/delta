@@ -68,3 +68,36 @@ opcode sumFTable, i, i
     od
     xout iSum
 endop
+
+; Opcode che trova il valore minimo non-zero in una tabella
+opcode minTableNonZero, i, i
+    iTableNum xin
+    
+    ; Ottieni la dimensione della tabella
+    iSize = ftlen(iTableNum)
+    
+    ; Inizializza con un valore molto grande
+    iMin = 1e10  ; Un valore molto grande come inizializzazione
+    iFoundNonZero = 0  ; Flag per verificare se abbiamo trovato almeno un valore non-zero
+    
+    ; Itera attraverso la tabella
+    indx = 0
+    while indx < iSize do
+        iVal = tab_i(indx, iTableNum)
+        if iVal != 0 && iVal < iMin then
+            iMin = iVal
+            iFoundNonZero = 1
+        endif
+        indx += 1
+    od
+    
+    ; Se non abbiamo trovato alcun valore non-zero, restituisci 0
+    if iFoundNonZero == 0 then
+        prints "nel cercare un valore minimo nella tabella dei ritmi"
+        prints "è stato riscontrato che tutti i valori sono 0"
+        prints "uscita forzata dal sistema - minTableNonZero"
+        exitnow
+    endif
+    
+    xout iMin
+endop

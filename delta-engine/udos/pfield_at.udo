@@ -7,6 +7,7 @@ opcode calcPfield2, i[], iiii[]
   ; Calcolo dimensione ottimale array
   iMaxRitmo maxArray iRitmi
   iMinRitmo = 1/iMaxRitmo
+  
   iMaxAttacchi = int((iDurata/(iDurataArmonica * iMinRitmo)) + 1)
   iOutArray[] init iMaxAttacchi
   iDurataRimanente = iDurata

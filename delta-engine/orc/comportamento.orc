@@ -21,6 +21,13 @@ instr Comportamento
    i_Registro = p8
    i_PosTab = p9
    i_IdComp = p10
+
+      ; Apri il file di log per questo comportamento
+   if gi_log_enabled == 1 then
+       openBehaviorLog(i_IdComp)
+       logBehaviorParams(i_IdComp, i_CAttacco, i_Durata, i_DurataArmonica, i_Ampiezza, i_Ottava, i_Registro, i_RitmiTab)
+   endif
+
    $DEBUG_Comp1
    gi_comp_temp_ritmi ftgen 0, 0, ftlen(i_RitmiTab)+100, -2, 0
    i_Ritmi[]        tab2array i_RitmiTab,0, ftlen(i_RitmiTab)-1 
@@ -42,9 +49,9 @@ instr Comportamento
          ;debug line
          $DEBUG_Comp4
          if i_Index == 0 then
-         i_Vecchio_Ritmo = 1
+            i_Vecchio_Ritmo = 1
          else
-         i_Vecchio_Ritmo tab_i i_Index-1, gi_comp_temp_ritmi 
+            i_Vecchio_Ritmo tab_i i_Index-1, gi_comp_temp_ritmi 
          endif
       else 
          i_Vecchio_Ritmo tab_i i_Index-1, gi_comp_temp_ritmi
@@ -58,9 +65,6 @@ instr Comportamento
       if i_Index == 0 then
          i_Pfield2 = i_CAttacco
       else
-      ;!!!
-      ; --- arrotondare solo nel print i valori! 
-      ;!!!
          iRitmoN = 1/i_Vecchio_Ritmo
          iLast_at tab_i i_Index-1, gi_eve_attacco 
          i_Pfield2 = i_DurataArmonica * iRitmoN + iLast_at
@@ -93,7 +97,7 @@ instr Comportamento
          ; Ottieni il valore corrente di sovrapposizione dall'Analizzatore
          i_current_overlap = i(gk_current_overlap)
          prints "Sovrapposizione: %d, Ritmo: %d, Fattore: %f, Durata: %f\n", 
-                i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_DurEvento
+               i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_DurEvento
       endif
 
       ; Debug opzionale
@@ -115,7 +119,7 @@ instr Comportamento
       $DEBUG_Comp6
       ; Schedule evento sonoro
       schedule "eventoSonoro", i_Pfield2, i_DurEvento, i_Amp, i_Freq1, tab_i(gi_Index,gi_eve_posizione), tab_i(gi_Index,gi_eve_hr), i_Freq2, 2, gi_Index, i_IdComp
-       
+      ;event "i", "eventoSonoro", i_Pfield2, i_DurEvento, i_Amp, i_Freq1, tab_i(gi_Index,gi_eve_posizione), tab_i(gi_Index,gi_eve_hr), i_Freq2, 2, gi_Index, i_IdComp
       ; Aggiorna indici 
       i_RitmoIndex += 1
       i_Index += 1
@@ -127,4 +131,6 @@ instr Comportamento
    ftsave Snd, 1, gi_comp_ATTACCO, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
    Scmd sprintf "python3.11 docs/plot.py %s", Snd
    i_tmp_res system_i 1, Scmd, 0
+   $DEBUG_CompEND
+   closeBehaviorLog
 endin

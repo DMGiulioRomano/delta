@@ -35,7 +35,7 @@ clean:
 
 ## Run Csound with the specified CSD file (default: main.csd)
 cs:
-	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=FILE.log
+	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=z-logs/FILE.log
 
 ## Set up Python virtual environment
 venv: $(VENV)/bin/activate

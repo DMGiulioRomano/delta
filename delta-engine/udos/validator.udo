@@ -32,14 +32,8 @@ opcode validateDuration, i, iii
     goto end
   endif
   
-  ; Trova il minimo del ritmo
-  iMinRhythm tab_i 0,i_Rhythm
-  i_Index = 1
-  while i_Index < ftlen(i_Rhythm) do
-    iMinRhythm = iMinRhythm < tab_i(i_Index,i_Rhythm) ? iMinRhythm : tab_i(i_Index,i_Rhythm)
-    i_Index += 1
-  od
-  
+  iMinRhythm minTableNonZero i_Rhythm
+
   ; Verifica la relazione tra durata armonica e ritmo
   iMinDuration = iHarmDur / iMinRhythm
   i_Res = i_Dur > iMinDuration ? 1 : iMinDuration
