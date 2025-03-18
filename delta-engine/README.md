@@ -133,3 +133,5 @@ Le visualizzazioni forniscono informazioni sulla struttura compositiva, i patter
   - `requirements.txt` - Dipendenze Python
   - `main.csd` - File Csound principale
   - `Makefile` - Comandi per la renderizzazione e l'analisi
+
+Dentro `docs/diagrams` sono presenti diagrammi di flusso in `mermaid` per una piu facile comprensione del sistema.
