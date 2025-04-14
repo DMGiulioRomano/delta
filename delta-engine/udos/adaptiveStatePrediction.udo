@@ -79,7 +79,6 @@ opcode predictNextState, iii, 0
         if (iFromState != iCurrentStateIdx) then
             iHistoryIdx += 1
         else
-            exitnow
             ; Calculate context similarity
             i_SimilarityScore = 0;calculateContextSimilarity(i_ContextBase)
                         
@@ -180,7 +179,7 @@ opcode recordTransition, 0, iiiii
     iFromStateIdx, iToStateIdx, iQuality, iDuration, iMode xin
     
     ; Find position in circular buffer
-    iRecordIdx = gi_asp_history_index * 7  ; Ogni record occupa 7 elementi
+    iRecordIdx = gi_asp_history_index * 4  ; Ogni record occupa 7 elementi
     
     ; Store transition data
     tabw_i iFromStateIdx, iRecordIdx, gi_asp_transition_history
