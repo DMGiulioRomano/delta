@@ -80,7 +80,7 @@ opcode predictNextState, iii, 0
             iHistoryIdx += 1
         else
             ; Calculate context similarity
-            i_SimilarityScore = 0;calculateContextSimilarity(i_ContextBase)
+            i_SimilarityScore = calculateContextSimilarity(i_ContextBase)
                         
             ; If context is similar enough, adjust probability based on quality
             if (i_SimilarityScore > 0.7) then
@@ -218,14 +218,41 @@ opcode updateTransitionMatrix, 0, iii
     ; Calculate adjustment based on quality
     ; High quality -> increase probability
     ; Low quality -> decrease probability
-    iAdjustment = (iQuality - 0.5) * gi_asp_learning_rate
-    
+    ; Calculate appropriate learning rate based on quality
+    iLearningFactor = gi_asp_learning_rate
+    if (iQuality > 0.8) then
+        ; For very successful transitions, learn more
+        iLearningFactor *= 1.5
+    elseif (iQuality < 0.4) then
+        ; For poor transitions, learn less
+        iLearningFactor *= 0.5
+    endif
+
+    ; Calculate quality-based adjustment (centered at 0.5)
+    iAdjustment = (iQuality - 0.5) * iLearningFactor  
+
     ; Apply adjustment with bounds checking
     iNewProb = iCurrentProb + iAdjustment
     iNewProb = limit(iNewProb, 0.01, 0.99)  ; Ensure we don't hit extremes
     
     tabw_i iNewProb, iFromStateIdx*27+iToStateIdx, gi_transition_matrix
-    
+
+    ; Record this learning event for validation
+    iCurrentTime times
+    Sfilename = "docs/analysis/learning_events.csv"
+
+    ; Check if the file exists and is writable
+    iFileExists file_exist Sfilename
+
+    if (iFileExists == 0) then
+        ; File doesn't exist - recreate with headers
+        fprints Sfilename, "time,from_state,to_state,quality,adjustment,new_prob\n"
+    endif
+
+    ; Now append the data
+    fprints Sfilename, "%.2f,%d,%d,%.4f,%.4f,%.4f\n", 
+        iCurrentTime, iFromStateIdx, iToStateIdx, iQuality, iAdjustment, iNewProb
+
     ; Renormalize row to ensure probabilities sum to 1
     iSum = 0
     iToIdx = 0

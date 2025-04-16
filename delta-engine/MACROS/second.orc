@@ -30,9 +30,22 @@ gi_tc_transition_randomness init 0.2  ; Randomness factor (0.0-1.0)
 gi_tc_past_states ftgen 0, 0, 24, -2, 0  ; Store last 8 states (density, register, movement triplets)
 gi_tc_past_states_index init 0           ; Current index in past states buffer
 
-; Transition quality metrics
-gi_tc_expected_state_table ftgen 0, 0, 100, -2, 0  ; Expected state values during transition
-gi_tc_actual_state_table ftgen 0, 0, 100, -2, 0    ; Actual state values during transition
+; Transition quality metrics - state tracking
+; Expected state progression tables (100 points resolution)
+gi_tc_expected_state_density ftgen 0, 0, 100, -2, 0   ; Replace gi_tc_expected_state_table
+gi_tc_expected_state_register ftgen 0, 0, 100, -2, 0  ; New table
+gi_tc_expected_state_movement ftgen 0, 0, 100, -2, 0  ; New table
+
+; Actual state recording tables (100 points resolution)
+gi_tc_actual_state_density ftgen 0, 0, 100, -2, 0     ; Replace gi_tc_actual_state_table
+gi_tc_actual_state_register ftgen 0, 0, 100, -2, 0    ; New table
+gi_tc_actual_state_movement ftgen 0, 0, 100, -2, 0    ; New table
+
+; Deviation tracking tables (100 points resolution)
+gi_tc_deviation_density ftgen 0, 0, 100, -2, 0        ; New table
+gi_tc_deviation_register ftgen 0, 0, 100, -2, 0       ; New table
+gi_tc_deviation_movement ftgen 0, 0, 100, -2, 0       ; New table
+
 gi_tc_transition_quality init 1.0                  ; Measure of transition effectiveness (0.0-1.0)
 
 ; Behavior scheduling control
@@ -45,3 +58,4 @@ gi_tc_stability_threshold init 0.7  ; Threshold for considering a state stable
 gi_tc_min_stable_time init 15       ; Minimum time in seconds to stay in a stable state
 gi_tc_last_stable_time init 0       ; Last time a stable state was reached
 
+gi_tc_last_adjustment_time init 0  ; Time elapsed since transition started when adjustment was made

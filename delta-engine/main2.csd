@@ -66,6 +66,7 @@ zakinit 2,1
 alwayson "Analizzatore"
 alwayson "TimeKeeper"
 alwayson "TransitionController"
+alwayson "TransitionAnalyzer"
 alwayson "LogSystemInit"   
 
 

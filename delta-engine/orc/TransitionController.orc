@@ -11,6 +11,10 @@ instr TransitionController
 
     ; Check if this is the initialization of the instrument
     if (gi_tc_transition_active == 0) then
+        iRes system_i 1, "mkdir -p docs/analysis", 0
+        ; Initialize CSV log file with headers
+        fprints "docs/analysis/learning_events.csv", "time,from_state,to_state,quality,adjustment,new_prob\n"
+
         ; Initialize controller state on first run
         initTransitionMatrix   ; Initialize state transition probability matrix
         
@@ -160,7 +164,81 @@ instr BehaviorGenerator
         
         turnoff
     endif
-    
+
+    ; Real-time transition adjustment
+    if (gi_tc_transition_active == 1) then
+        ; Only consider adjusting if we're in an active transition
+        
+        ; Get current progress percentage (0-99)
+        iProgressIndex = limit(int(i_progress * 100), 0, 99)
+        
+        ; Get current state from global variables (already populated by Analizzatore)
+        iCurrentDensityState = gi_tc_current_density  ; Use current tracked state
+        
+        ; Get expected state at this point in the transition
+        iExpectedDensity = tab_i(iProgressIndex, gi_tc_expected_state_density)
+        
+        ; Calculate deviation
+        iDeviation = abs(iCurrentDensityState - iExpectedDensity)
+        
+        ; Only make adjustments if:
+        ; 1. We've progressed at least 15% into the transition
+        ; 2. We have a significant deviation
+        ; 3. We haven't already made an adjustment recently
+        if (i_progress >= 0.15 && iDeviation >= 1 && i_elapsed_time >= gi_tc_last_adjustment_time + 5) then
+            
+            ; Determine adjustment direction
+            if (iCurrentDensityState < iExpectedDensity) then
+                ; We're not dense enough
+                iNewTargetDensity = min(2, gi_tc_target_density + 1)
+                
+                ; Only apply if this is actually a change
+                if (iNewTargetDensity != gi_tc_target_density) then
+                    gi_tc_target_density = iNewTargetDensity
+                    gi_tc_last_adjustment_time = i_elapsed_time
+                    
+                    if (gi_debug >= 1) then
+                        prints "TRANSITION ADJUSTMENT: Increasing target density to %d (at %.1f sec)\n", 
+                            gi_tc_target_density, i_elapsed_time
+                    endif
+                endif
+            elseif (iCurrentDensityState > iExpectedDensity) then
+                ; We're too dense
+                iNewTargetDensity = max(0, gi_tc_target_density - 1)
+                
+                ; Only apply if this is actually a change
+                if (iNewTargetDensity != gi_tc_target_density) then
+                    gi_tc_target_density = iNewTargetDensity
+                    gi_tc_last_adjustment_time = i_elapsed_time
+                    
+                    if (gi_debug >= 1) then
+                        prints "TRANSITION ADJUSTMENT: Decreasing target density to %d (at %.1f sec)\n", 
+                            gi_tc_target_density, i_elapsed_time
+                    endif
+                endif
+            endif
+            
+            ; After adjustment, regenerate expected state progression
+            if (gi_tc_last_adjustment_time == i_elapsed_time) then
+                ; Update expected state tables with new target
+                iIdx = 0
+                while (iIdx < 100) do
+                    iPoint = iIdx * 0.01  ; 0.00 to 0.99
+                    
+                    ; Only update remaining points (from current progress forward)
+                    if (iPoint >= i_progress) then
+                        ; Recalculate expected density with new target
+                        iExpDensity cubicInterpolate gi_tc_source_density, gi_tc_target_density, 
+                                                (iPoint - i_progress) / (1 - i_progress)
+                        tabw_i iExpDensity, iIdx, gi_tc_expected_state_density
+                    endif
+                    
+                    iIdx += 1
+                od
+            endif
+        endif
+    endif
+
     ; Check if it's time to generate a new behavior
     if (i_current_time >= gi_tc_next_behavior_time) then
         ; Generate interpolated parameters based on transition progress
