@@ -49,11 +49,11 @@ gi_debug init 3
 #include "udos/adaptiveStatePrediction.udo"
 #include "udos/transControllerUtils.udo"
 ; -
-#include "orc/debug_log.orc"  
 #include "orc/eventoSonoro.orc"
 #include "orc/Comportamento.orc"
 #include "orc/GeneraComportamenti.orc"
 #include "orc/TransitionController.orc"
+#include "orc/TransitionAnalyzer.orc"
 #include "orc/Analizzatore.orc"
 #include "orc/AnalisiFinale.orc"
 #include "orc/SaveTransitionMatrix.orc"
@@ -67,7 +67,6 @@ alwayson "Analizzatore"
 alwayson "TimeKeeper"
 alwayson "TransitionController"
 alwayson "TransitionAnalyzer"
-alwayson "LogSystemInit"   
 
 
 ; Time Keeper instrument to maintain global time reference

@@ -10,7 +10,7 @@ instr GeneraComportamenti
     i_pos_table = p11       ; Position values table
     i_which_comp = p12      ; Behavior ID
     ; Validate parameters (using your existing Validator code)
-    i_tmp_Res = Validator(i_durata, i_ritmi_table, i_dur_arm, i_amp, i_ottava, i_registro, i_pos_table, i_which_comp)
+    ;i_tmp_Res = Validator(i_durata, i_ritmi_table, i_dur_arm, i_amp, i_ottava, i_registro, i_pos_table, i_which_comp)
     ; Schedule the behavior with validated parameters
     schedule "Comportamento", i_attacco, i_durata, i_ritmi_table, i_dur_arm, i_amp, i_ottava, i_registro, i_pos_table, i_which_comp
 endin

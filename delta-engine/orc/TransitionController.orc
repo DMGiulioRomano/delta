@@ -138,7 +138,7 @@ instr BehaviorGenerator
         iTransitionQuality assessTransitionQuality 
         
         ; Record this transition for adaptive learning
-        recordTransition iSourceStateIdx, iTargetStateIdx, iTransitionQuality, i(gi_tc_transition_duration), i(gi_tc_transition_mode)
+        recordTransition iSourceStateIdx, iTargetStateIdx, iTransitionQuality
         
         ; Update controller state
         gi_tc_transition_active = 0

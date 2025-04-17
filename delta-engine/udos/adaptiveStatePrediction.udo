@@ -80,12 +80,12 @@ opcode predictNextState, iii, 0
             iHistoryIdx += 1
         else
             ; Calculate context similarity
-            i_SimilarityScore = calculateContextSimilarity(i_ContextBase)
-                        
+            ;i_similarity_score calculateContextSimilarity i_ContextBase
+            i_similarity_score = .5
             ; If context is similar enough, adjust probability based on quality
-            if (i_SimilarityScore > 0.7) then
+            if (i_similarity_score > 0.7) then
                 ; Multiply quality by similarity for weighted influence
-                iInfluence = iQuality * i_SimilarityScore * gi_asp_learning_rate
+                iInfluence = iQuality * i_similarity_score * gi_asp_learning_rate
                 
                 ; Positive reinforcement for this transition
                 iCurrentProb tab_i iToState, iStateProbabilities
@@ -169,14 +169,14 @@ opcode calculateContextSimilarity, i, i
     
     ; Convert to similarity (inverse distance, normalized to 0-1)
     iDistance = sqrt(iSumSquaredDiff)
-    i_Similarity = 1 / (1 + iDistance * 4)  ; Scale factor adjusts sensitivity
+    i_mysimilarity = 1 / (1 + iDistance * 4)  ; Scale factor adjusts sensitivity
     
-    xout i_Similarity
+    xout i_mysimilarity
 endop
 
 ; Record a completed transition with its quality assessment
-opcode recordTransition, 0, iiiii
-    iFromStateIdx, iToStateIdx, iQuality, iDuration, iMode xin
+opcode recordTransition, 0, iii
+    iFromStateIdx, iToStateIdx, iQuality xin
     
     ; Find position in circular buffer
     iRecordIdx = gi_asp_history_index * 4  ; Ogni record occupa 7 elementi
@@ -241,14 +241,15 @@ opcode updateTransitionMatrix, 0, iii
     iCurrentTime times
     Sfilename = "docs/analysis/learning_events.csv"
 
-    ; Check if the file exists and is writable
-    iFileExists file_exist Sfilename
+    ; Check if file exists using system command (Unix/Linux/macOS style)
+    ; Returns 1 if file exists, 0 if it doesn't
+    iFileExists = 1 - system_i(1, sprintf("test -e %s", Sfilename), 0)
 
     if (iFileExists == 0) then
         ; File doesn't exist - recreate with headers
         fprints Sfilename, "time,from_state,to_state,quality,adjustment,new_prob\n"
     endif
-
+    
     ; Now append the data
     fprints Sfilename, "%.2f,%d,%d,%.4f,%.4f,%.4f\n", 
         iCurrentTime, iFromStateIdx, iToStateIdx, iQuality, iAdjustment, iNewProb

@@ -1,6 +1,6 @@
 .PHONY = clean venv analyze analyze-memory analyze-all render help
 
-CSD ?= main
+CSD ?= main2
 CS = csound
 PYTHON = python3
 VENV = venv

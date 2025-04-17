@@ -267,7 +267,7 @@ opcode generateTransitionBehavior, 0, i
     iNextID += gi_tc_transition_active   ; Increment when transition is active
     iAt times
     ; Schedule the behavior generation with interpolated parameters
-    event_i "i", "GeneraComportamenti", iStartTime, 0.1, 
+    event_i "i", "GeneraComportamenti", iStartTime, 10, 
             iAt, iDuration, iRhythmsTable, iHarmonicDuration, 
             iAmplitude, iOctave, iRegister, iPositionsTable, gi_compId
     
