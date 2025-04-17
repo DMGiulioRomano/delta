@@ -1,0 +1,12 @@
+calcDurationFactor.udo
+  - [x]  analyzeCompositionMemory 
+determineState
+    determineCurrentState
+stateTransition
+    selectNextState
+adaptiveStatePrediction
+    predictNextState
+transControllerUtils
+    recordCurrentState
+stateMapping
+    mapStateToParameter

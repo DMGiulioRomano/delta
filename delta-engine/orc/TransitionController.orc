@@ -24,7 +24,7 @@ instr TransitionController
         endif
         
         ; Record the initial musical state
-        recordCurrentState
+        recordCurrentState 
         
         ; Start in a stable state - no active transition initially
         gi_tc_transition_active = 0

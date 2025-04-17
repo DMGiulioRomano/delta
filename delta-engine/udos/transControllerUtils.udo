@@ -3,12 +3,12 @@
 ; -----------------------------------------------------------------------
 opcode recordCurrentState, 0, 0
     ; Read current state from global variables populated by Analizzatore
-    iCurDensity = i(gk_current_overlap)
-    iCurRegister = i(gk_current_octave_spread)
-    iCurMovement = i(gk_current_spatial_movement)
+    i_current_overlap = i(gk_current_overlap)
+    i_current_octave_spread = i(gk_current_octave_spread)
+    i_current_spatial_movement = i(gk_current_spatial_movement)
     
     ; Determine the current state using the existing determineCurrentState opcode
-    iDensityState, iRegisterState, iMovementState determineCurrentState iCurDensity, iCurRegister, iCurMovement
+    iDensityState, iRegisterState, iMovementState determineCurrentState i_current_overlap, i_current_octave_spread, i_current_spatial_movement 
     
     ; Update controller's knowledge of current state
     gi_tc_current_density = iDensityState
@@ -50,7 +50,6 @@ opcode recordCurrentState, 0, 0
         tabw_i iDensityDev, iTimeIndex, gi_tc_deviation_density
         tabw_i iRegisterDev, iTimeIndex, gi_tc_deviation_register
         tabw_i iMovementDev, iTimeIndex, gi_tc_deviation_movement
-
     endif
 endop
 

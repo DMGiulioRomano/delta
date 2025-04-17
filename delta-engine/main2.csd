@@ -27,8 +27,8 @@ gi_debug init 3
 ; =============================
 
 ; Import MACROS
-#include "MACROS/first.orc"
-#include "MACROS/second.orc"
+;#include "MACROS/first.orc"
+;#include "MACROS/second.orc"
 #include "MACROS/debug.orc"
 
 ; Import UDOs
@@ -50,10 +50,10 @@ gi_debug init 3
 #include "udos/transControllerUtils.udo"
 ; -
 #include "orc/debug_log.orc"  
-#include "orc/TransitionController.orc"
 #include "orc/eventoSonoro.orc"
 #include "orc/Comportamento.orc"
 #include "orc/GeneraComportamenti.orc"
+#include "orc/TransitionController.orc"
 #include "orc/Analizzatore.orc"
 #include "orc/AnalisiFinale.orc"
 #include "orc/SaveTransitionMatrix.orc"

@@ -29,12 +29,15 @@ help:
 	@echo ""
 	@echo "For detailed documentation, see the README.md file"
 			
+create_log_dir:
+	mkdir -p ./z-logs
+
 ## Clean up generated files and temporary data
 clean:
 	rm -rf *.wav *.aif *.log *.sco *.txt *.table
 
 ## Run Csound with the specified CSD file (default: main.csd)
-cs:
+cs: create_log_dir
 	$(CS) $(CSD).csd -W -+id_scopyright=1 -+id_title=delta -+id_software=csound -+id_artist=GiulioRomanoDeMattia -d --logfile=z-logs/FILE.log
 
 ## Set up Python virtual environment

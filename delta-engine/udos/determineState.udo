@@ -49,13 +49,6 @@ opcode determineCurrentState, iii, iii
         
         iMovementIdx += 1
     od
-    movement_done:
-    
-    ; Optional debug output
-    if gi_debug >= 2 then
-        prints "State Analysis: Density=%d, Register=%d, Movement=%d\n", 
-               iDensityState, iRegisterState, iMovementState
-    endif
-    
+    movement_done:    
     xout iDensityState, iRegisterState, iMovementState
 endop
