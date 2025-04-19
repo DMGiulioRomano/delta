@@ -7,7 +7,7 @@ opcode generateInterpolatedRhythms, i, iiii
     
     ; Interpola intervalli min/max
     iInterpolatedMin = cubicInterpolate(iSourceMin, iTargetMin, iProgress)
-    iInterpolatedMax = exponentialInterpolate(iSourceMax, iTargetMax, iProgress)
+    iInterpolatedMax = cubicInterpolate(iSourceMax, iTargetMax, iProgress)
     
     ; Crea tabella ritmi
     iRhythmTable ftgen 0, 0, iTableSize+1, -2, 0

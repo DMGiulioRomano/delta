@@ -5,15 +5,19 @@ opcode mapStateToParameter, ii, iS
     iNormalizedState = limit(iStateIndex, 0, 2) / 2.0  ; Normalizza a [0,1]
     
     if strcmp(SparamType, "density") == 0 then
-        ; Density: stato 0 = pochi eventi, stato 2 = molti eventi
-        ; Range: da 1 evento a circa 1/3 di NUMEVENTI
-        iMinEvents = 1
-        iMaxEvents = gi_NUMEVENTI / 3  ; Evita di saturare eccessivamente
-        
-        ; Applicazione esponenziale per enfatizzare gli stati più densi
-        iProgress = iNormalizedState * iNormalizedState  ; Curva quadratica
-        iMin = iMinEvents
-        iMax = iMinEvents + (iMaxEvents - iMinEvents) * iProgress
+        ; State 0 (sparse): rhythms around 1-6 (creates more frequent events)
+        ; State 1 (medium): rhythms around 6-15
+        ; State 2 (dense): rhythms around 15-30 (creates fewer, more spaced events)        
+        if iStateIndex == 0 then
+            iMin = 1
+            iMax = 6
+        elseif iStateIndex == 1 then
+            iMin = 6
+            iMax = 15
+        else ; state 2
+            iMin = 15
+            iMax = 30
+        endif
         
     elseif strcmp(SparamType, "register") == 0 then
         ; Register: usa l'intero range di ottave disponibili
@@ -48,68 +52,4 @@ opcode mapStateToParameter, ii, iS
     iMax = round(iMax)
     
     xout iMin, iMax
-endop
-
-opcode generateRhythmsForState, i, i
-    iDensityState xin
-    
-    prints "Chiamata generateRhythmsForState con stato densità: %d\n", iDensityState
-    
-    ; Limita lo stato a valori validi (0-2)
-    iDensityState = limit(iDensityState, 0, 2)
-    
-    ; Dimensione della tabella con margine di sicurezza
-    iTblSize = 5  
-    iTableNum ftgen 0, 0, iTblSize+2, -2, 0  ; +2 per sicurezza
-    
-    ; Ottieni range di DENSITÀ, non di movimento
-    iMinEvents, iMaxEvents mapStateToParameter iDensityState, "density"
-    
-    ; Converti la densità in valori ritmici
-    ; Densità alta (stato 2) -> Ritmi bassi (1-4) per creare più eventi ravvicinati
-    ; Densità bassa (stato 0) -> Ritmi alti (12-20) per creare pochi eventi distanziati
-    
-    ; Calcolo inverso: stati di densità alti producono ritmi bassi
-    if (iDensityState == 0) then  ; Sparse
-        iMinRhythm = 1
-        iMaxRhythm = 5
-    elseif (iDensityState == 1) then  ; Medium
-        iMinRhythm = 5
-        iMaxRhythm = 12
-    else  ; Dense (stato 2)
-        iMinRhythm = 12
-        iMaxRhythm = 35
-    endif
-    
-    prints "Stato densità %d -> Range valori ritmici: Min=%d, Max=%d\n", 
-           iDensityState, iMinRhythm, iMaxRhythm
-    
-    ; Genera valori ritmici con controllo di validità
-    iIdx = 0
-    while iIdx < iTblSize do
-        ; Verifica che l'indice sia valido
-        if (iIdx >= 0 && iIdx < ftlen(iTableNum)) then
-            iRhythmVal random iMinRhythm, iMaxRhythm
-            iRhythmVal = round(iRhythmVal)  
-            
-            ; Assicura che sia positivo
-            iRhythmVal = max(1, iRhythmVal)
-            
-            ; Scrivi nella tabella
-            tabw_i iRhythmVal, iIdx, iTableNum
-            
-            if (iIdx == 0) then
-                prints "Primo valore ritmico generato: %d\n", iRhythmVal
-            endif
-        else
-            prints "ERRORE: Indice %d fuori dai limiti della tabella (%d)\n", 
-                  iIdx, ftlen(iTableNum)
-        endif
-        
-        iIdx += 1
-    od
-    
-    prints "Tabella ritmica generata con %d elementi\n", ftlen(iTableNum)
-    
-    xout iTableNum
 endop
