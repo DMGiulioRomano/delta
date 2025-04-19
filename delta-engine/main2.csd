@@ -35,9 +35,7 @@ gi_debug init 3
 #include "udos/utils.udo"
 #include "udos/GenPythagFreqs.udo"
 ; - inside COMPORTAMENTO
-#include "udos/pfield_amp.udo"
-#include "udos/pfield_at.udo"
-#include "udos/pfield_freq.udo"
+#include "udos/pfield_comp.udo"
 #include "udos/calcDurationFactor.udo"
 #include "udos/determineState.udo"
 #include "udos/validator.udo"

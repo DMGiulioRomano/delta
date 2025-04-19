@@ -182,14 +182,9 @@ endop
 
 ; Calculates timing between behaviors based on transition progress
 opcode interpolateBehaviorTiming, i, i
-    iProgress xin
-    
-    ; Get density states
-    iSourceDensity = gi_tc_source_density
-    iTargetDensity = gi_tc_target_density
-    
+    iProgress xin    
     ; Interpolate density value at current progress
-    iCurrentDensity interpolateParameter iSourceDensity, iTargetDensity, iProgress, 0.3
+    iCurrentDensity interpolateParameter gi_tc_source_density, gi_tc_target_density, iProgress, 0.3
     
     ; Map density state to behavior timing
     ; Higher density = more frequent behaviors

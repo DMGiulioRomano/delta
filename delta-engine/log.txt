@@ -1,18 +1,28 @@
-UnifiedCSD:  test_mapParameterToState.csd
+UnifiedCSD:  test_generateRhythmsForState.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
-instr TestMapStateToParameter uses instrument number 1
-Elapsed time at end of orchestra compile: real: 0.003s, CPU: 0.003s
+instr TestGenerateRhythmsForState uses instrument number 1
+Elapsed time at end of orchestra compile: real: 0.004s, CPU: 0.004s
 sorting score ...
 	... done
-Elapsed time at end of score sort: real: 0.003s, CPU: 0.003s
+Elapsed time at end of score sort: real: 0.004s, CPU: 0.004s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
 graphics suppressed, ascii substituted
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
+ftable 101:
+ftable 101:	100 points, scalemax 0.000
+ftable 102:
+ftable 102:	100 points, scalemax 0.000
+ftable 103:
+ftable 103:	100 points, scalemax 0.000
+ftable 104:
+ftable 104:	100 points, scalemax 0.000
+ftable 105:
+ftable 105:	100 points, scalemax 0.000
 orch now loaded
 audio buffered in 1024 sample-frame blocks
 PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
@@ -27,45 +37,58 @@ PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
 PortAudio: selected output device 'MacBook Pro Speakers'
 writing 2048 sample blks of 64-bit floats to dac
 SECTION 1:
-new alloc for instr TestMapStateToParameter:
+new alloc for instr TestGenerateRhythmsForState:
 
-=== Testing mapStateToParameter ===
+=== Testing generateRhythmsForState ===
 
-DENSITY PARAMETER MAPPING:
--------------------------
-State | Min | Max
----------------------
-  0   |   1 |   6
-  1   |   6 |  15
-  2   |  15 |  30
+RHYTHM GENERATION TEST RESULTS:
+------------------------------
+Case | Density | Movement | HarmDur | Generated Rhythms
+--------------------------------------------------
+ftable 106:
+ftable 106:	7 points, scalemax 0.000
+ 1   |   0     |    0     |   20    | 11 9 11 8 8 
+ftable 107:
+ftable 107:	7 points, scalemax 0.000
+ 2   |   0     |    1     |   20    | 8 8 9 9 8 
+ftable 108:
+ftable 108:	7 points, scalemax 0.000
+ 3   |   0     |    2     |   20    | 5 4 5 4 5 
+ftable 109:
+ftable 109:	7 points, scalemax 0.000
+ 4   |   1     |    0     |   10    | 15 12 12 11 13 
+ftable 110:
+ftable 110:	7 points, scalemax 0.000
+ 5   |   1     |    1     |   10    | 13 11 12 13 11 
+ftable 111:
+ftable 111:	7 points, scalemax 0.000
+ 6   |   1     |    2     |   10    | 6 6 5 6 5 
+ftable 112:
+ftable 112:	7 points, scalemax 0.000
+ 7   |   2     |    0     |   5    | 16 12 15 14 13 
+ftable 113:
+ftable 113:	7 points, scalemax 0.000
+ 8   |   2     |    1     |   5    | 13 10 11 10 13 
+ftable 114:
+ftable 114:	7 points, scalemax 0.000
+ 9   |   2     |    2     |   5    | 5 5 5 6 6 
 
-REGISTER PARAMETER MAPPING:
--------------------------
-State | Min | Max
----------------------
-  0   |   0 |   2
-  1   |   4 |   6
-  2   |   9 |  11
-
-MOVEMENT PARAMETER MAPPING:
--------------------------
-State | Min | Max
----------------------
-  0   |  20 |  30
-  1   |   4 |   8
-  2   |   1 |   2
-
-EDGE CASES:
--------------------------
-State -1 (density): Min=15, Max=30
-State 3 (register): Min=9, Max=11
-Invalid type: Min=0, Max=0
+DETAILED CALCULATION FOR SPECIFIC CASE:
+---------------------------------------
+Parameters: Density=1, Movement=1, HarmonicDuration=10
+generateRhythmsForState called with:
+  Density: 1.000000, Movement: 1.000000, HarmonicDuration: 10.000000, TableSize: 5
+ftable 115:
+ftable 115:	7 points, scalemax 0.000
+  Final rhythm range: 9.215430 - 13.823146
+  First rhythm value generated: 12.000000
+Final rhythm values: 12 11 13 11 11 
 B  0.000 ..  0.100 T  0.100 TT  0.100 M:  0.00000  0.00000
 Score finished in csoundPerform().
 inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
-Elapsed time at end of performance: real: 0.186s, CPU: 0.023s
+Elapsed time at end of performance: real: 0.182s, CPU: 0.024s
 closing device
 5 2048 sample blks of 64-bit floats written to dac
