@@ -30,20 +30,19 @@ gi_debug init 3
 ;#include "MACROS/first.orc"
 ;#include "MACROS/second.orc"
 #include "MACROS/debug.orc"
-
+#include "MACROS/init.orc"
 ; Import UDOs
 #include "udos/utils.udo"
 #include "udos/GenPythagFreqs.udo"
 ; - inside COMPORTAMENTO
 #include "udos/pfield_comp.udo"
 #include "udos/calcDurationFactor.udo"
-#include "udos/determineState.udo"
+#include "udos/determineCurrentState.udo"
 #include "udos/validator.udo"
 #include "udos/stateTransition.udo"
 #include "udos/interpolations.udo"
-#include "udos/stateMapping.udo"
+#include "udos/mapStateToParameter.udo"
 #include "udos/parameterInterpolation.udo"
-#include "udos/generateInterpolatedRhythms.udo"
 #include "udos/adaptiveStatePrediction.udo"
 #include "udos/transControllerUtils.udo"
 ; -

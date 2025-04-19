@@ -16,8 +16,8 @@ nchnls = 2
 gi_debug init 1
 gi_NUMEVENTI init 1000
 ; Include just the essential utilities
-#include "udos/utils.udo"
-#include "udos/stateMapping.udo"
+#include "../udos/utils.udo"
+#include "../udos/stateMapping.udo"
 
 instr TestMapStateToParameter
     prints "\n=== Testing mapStateToParameter ===\n\n"

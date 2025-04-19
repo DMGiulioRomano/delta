@@ -1,0 +1,6 @@
+UnifiedCSD:  test_analyzeCompositionMemory.csd
+Reading CSD failed (No such file or directory)... stopping
+end of score.		   overall amps:      0.0
+	   overall samples out of range:        0
+1 errors in performance
+Elapsed time at end of performance: real: 0.000s, CPU: 0.000s
