@@ -51,23 +51,65 @@ opcode mapStateToParameter, ii, iS
 endop
 
 opcode generateRhythmsForState, i, i
-    iTargetMovement xin
+    iDensityState xin
     
-    iTblSize = 5  ; Dimensione della tabella ritmica
-    iTableNum ftgen 0, 0, iTblSize, -2, 0
+    prints "Chiamata generateRhythmsForState con stato densità: %d\n", iDensityState
     
-    ; Ottiene i range di valori appropriati dalle soglie di movimento
-    iMinVal, iMaxVal mapStateToParameter iTargetMovement, "movement"
+    ; Limita lo stato a valori validi (0-2)
+    iDensityState = limit(iDensityState, 0, 2)
     
-    ; Genera valori ritmici appropriati
+    ; Dimensione della tabella con margine di sicurezza
+    iTblSize = 5  
+    iTableNum ftgen 0, 0, iTblSize+2, -2, 0  ; +2 per sicurezza
+    
+    ; Ottieni range di DENSITÀ, non di movimento
+    iMinEvents, iMaxEvents mapStateToParameter iDensityState, "density"
+    
+    ; Converti la densità in valori ritmici
+    ; Densità alta (stato 2) -> Ritmi bassi (1-4) per creare più eventi ravvicinati
+    ; Densità bassa (stato 0) -> Ritmi alti (12-20) per creare pochi eventi distanziati
+    
+    ; Calcolo inverso: stati di densità alti producono ritmi bassi
+    if (iDensityState == 0) then  ; Sparse
+        iMinRhythm = 1
+        iMaxRhythm = 5
+    elseif (iDensityState == 1) then  ; Medium
+        iMinRhythm = 5
+        iMaxRhythm = 12
+    else  ; Dense (stato 2)
+        iMinRhythm = 12
+        iMaxRhythm = 35
+    endif
+    
+    prints "Stato densità %d -> Range valori ritmici: Min=%d, Max=%d\n", 
+           iDensityState, iMinRhythm, iMaxRhythm
+    
+    ; Genera valori ritmici con controllo di validità
     iIdx = 0
     while iIdx < iTblSize do
-        iRhythmVal random iMinVal, iMaxVal
-        iRhythmVal = round(iRhythmVal)  ; Arrotonda al valore intero più vicino
-                
-        tabw_i iRhythmVal, iIdx, iTableNum
+        ; Verifica che l'indice sia valido
+        if (iIdx >= 0 && iIdx < ftlen(iTableNum)) then
+            iRhythmVal random iMinRhythm, iMaxRhythm
+            iRhythmVal = round(iRhythmVal)  
+            
+            ; Assicura che sia positivo
+            iRhythmVal = max(1, iRhythmVal)
+            
+            ; Scrivi nella tabella
+            tabw_i iRhythmVal, iIdx, iTableNum
+            
+            if (iIdx == 0) then
+                prints "Primo valore ritmico generato: %d\n", iRhythmVal
+            endif
+        else
+            prints "ERRORE: Indice %d fuori dai limiti della tabella (%d)\n", 
+                  iIdx, ftlen(iTableNum)
+        endif
+        
         iIdx += 1
     od
+    
+    prints "Tabella ritmica generata con %d elementi\n", ftlen(iTableNum)
     
     xout iTableNum
 endop

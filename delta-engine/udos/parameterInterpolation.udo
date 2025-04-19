@@ -29,86 +29,87 @@ opcode mapDensityToHarmonicDuration, i, i
     xout iDuration
 endop
 
-; Generate rhythm values with continuous state parameters
+; Fixed version of the complex generateRhythmsForState function
 opcode generateRhythmsForState, i, iiii
     iDensityState, iMovementState, iHarmonicDuration, iTableSize xin
     
-    ; Create rhythm table
-    iRhythmTable ftgen 0, 0, iTableSize+1, -2, 0
+    ; Debug output to trace input parameters
+    if gi_debug >= 3 then
+        prints "generateRhythmsForState called with:\n"
+        prints "  Density: %f, Movement: %f, HarmonicDuration: %f, TableSize: %d\n",
+               iDensityState, iMovementState, iHarmonicDuration, iTableSize
+    endif
+    
+    ; SAFETY: Sanitize input parameters
+    iDensityState = limit(iDensityState, 0, 2)
+    iMovementState = limit(iMovementState, 0, 2)
+    iHarmonicDuration = limit(iHarmonicDuration, 1, 60)  ; Reasonable range for harmonic duration
+    
+    ; Create rhythm table with extra safety margin
+    iRhythmTable ftgen 0, 0, iTableSize+2, -2, 0
     
     ; Calculate movement-based rhythm range continuously
-    ; Movement state 0 (static) → higher rhythm values (8-20)
-    ; Movement state 2 (dynamic) → lower rhythm values (1-4)
-    i_MovementNormalized = limit:i(iMovementState / 2, 0, 1)  ; Normalize to 0-1
+    i_MovementNormalized = limit:i(iMovementState / 2, 0, 1)
     i_temp pow i_MovementNormalized, 1.5
-    ; Exponential mapping for smoother transitions
-    iMovementFactor = 1 - i_temp ; Invert: 1 at movement=0, 0 at movement=2
+    iMovementFactor = 1 - i_temp
     
-    ; Calculate rhythm range based on movement factor
-    iMinRhythm = 1 + iMovementFactor * 7    ; Range: 1 to 8
-    iMaxRhythm = 4 + iMovementFactor * 16   ; Range: 4 to 20
+    ; Calculate rhythm range with ABSOLUTE LIMITS
+    iMinRhythm = 1 + iMovementFactor * 7
+    iMaxRhythm = 4 + iMovementFactor * 16
+    iMinRhythm = limit(iMinRhythm, 1, 10)      ; Never below 1, never above 10
+    iMaxRhythm = limit(iMaxRhythm, 5, 30)      ; Never below 5, never above 30
     
-    ; Calculate desired events per second based on density state continuously
-    i_fDensityNormalized = limit:i(iDensityState / 2, 0, 1)  ; Normalize to 0-1
+    ; Density calculations with safety bounds
+    i_fDensityNormalized = limit:i(iDensityState / 2, 0, 1)
+    iDensityFactor = limit(pow(i_fDensityNormalized, 1.2), 0, 1)
     
-    ; Exponential curve for more natural progression
-    iDensityFactor pow i_fDensityNormalized, 1.2  ; Non-linear scaling
-    
-    ; Map density factor to events per second: 0.3 at density=0, 2.5 at density=2
+    ; Safer calculation for events per second
     iEventsPerSecond = 0.3 + (iDensityFactor * 2.2)
+    iEventsPerSecond = limit(iEventsPerSecond, 0.1, 5)  ; Reasonable range
     
-    ; Calculate target average rhythm value to achieve desired density
+    ; Calculate target with absolute safety checks
     iTargetAvgRhythm = iHarmonicDuration * iEventsPerSecond
+    iTargetAvgRhythm = limit(iTargetAvgRhythm, 1, 50)  ; Never allow extreme values
     
-    ; Find the midpoint of our rhythm range based on movement
+    ; Calculate rhythm range midpoint
     iRhythmRangeMidpoint = (iMinRhythm + iMaxRhythm) / 2
     
-    ; Blend target rhythm with movement-based range (60% target, 40% movement constraints)
+    ; Blending with safety checks
     iBlendedTarget = (iTargetAvgRhythm * 0.6) + (iRhythmRangeMidpoint * 0.4)
+    iBlendedTarget = limit(iBlendedTarget, 1, 40)  ; Reasonable upper limit
     
-    ; Adjust rhythm range to center around blended target
+    ; Final range calculation with strict bounds
     i_fFinalMin = limit:i(iBlendedTarget * 0.8, iMinRhythm, iMaxRhythm)
     i_fFinalMax = limit:i(iBlendedTarget * 1.2, iMinRhythm, iMaxRhythm)
     
-    ; Add variation based on density (higher density = less variation)
-    iVariationFactor = 1 - (i_fDensityNormalized * 0.5)  ; 1.0 to 0.5
-    iRangeWidth = i_fFinalMax - i_fFinalMin
-    i_fFinalMin = iBlendedTarget - (iRangeWidth * iVariationFactor / 2)
-    i_fFinalMax = iBlendedTarget + (iRangeWidth * iVariationFactor / 2)
+    ; Additional safety checks on range
+    i_fFinalMin = limit(i_fFinalMin, 1, 25)
+    i_fFinalMax = limit(i_fFinalMax, i_fFinalMin + 1, 30)
     
-    ; Ensure range is valid
-    i_fFinalMin = max(1, i_fFinalMin)
-    i_fFinalMax = max(i_fFinalMin + 1, i_fFinalMax)
+    if gi_debug >= 3 then
+        prints "  Final rhythm range: %f - %f\n", i_fFinalMin, i_fFinalMax
+    endif
     
-    ; Fill rhythm table with values
+    ; Fill rhythm table with values - with index bounds checking
     iIdx = 0
     while iIdx < iTableSize do
-        iRhythmValue = random(i_fFinalMin, i_fFinalMax)
-        iRhythmValue = round(iRhythmValue)  ; Round to integer for rhythm
-        iRhythmValue = max(1, iRhythmValue) ; Ensure positive
-        
-        tabw_i iRhythmValue, iIdx, iRhythmTable
+        if iIdx < ftlen(iRhythmTable) then
+            iRhythmValue = random(i_fFinalMin, i_fFinalMax)
+            iRhythmValue = round(iRhythmValue)
+            iRhythmValue = limit(iRhythmValue, 1, 40)  ; Final safety cap
+            
+            tabw_i iRhythmValue, iIdx, iRhythmTable
+            
+            if gi_debug >= 3 && iIdx == 0 then
+                prints "  First rhythm value generated: %f\n", iRhythmValue
+            endif
+        else
+            prints "ERROR: Index %d exceeds table size %d in generateRhythmsForState\n", 
+                  iIdx, ftlen(iRhythmTable)
+        endif
         
         iIdx += 1
     od
-    
-    ; Debug output
-    if gi_debug >= 2 then
-        prints "Continuous Rhythm Generation:\n"
-        prints "  Density State: %d (normalized: %d)\n", iDensityState, i_fDensityNormalized
-        prints "  Movement State: %d (normalized: %d)\n", iMovementState, i_MovementNormalized
-        prints "  Harmonic Duration: %d\n", iHarmonicDuration
-        prints "  Desired Events/Sec: %d\n", iEventsPerSecond
-        prints "  Target Rhythm: %d\n", iTargetAvgRhythm
-        prints "  Final Range: %d-%d\n", i_fFinalMin, i_fFinalMax
-        
-        prints "  Generated Rhythms:\n"
-        iIdx = 0
-        while iIdx < iTableSize do
-            prints "    [%d]: %d\n", iIdx, tab_i(iIdx, iRhythmTable)
-            iIdx += 1
-        od
-    endif
     
     xout iRhythmTable
 endop

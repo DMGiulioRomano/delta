@@ -112,7 +112,8 @@ endin
 instr BehaviorGenerator
     i_tc_debug = gi_debug
     i_current_time times
-    
+    prints "BehaviorGenerator: time=%.2f, next_time=%.2f, active=%d\n", 
+       i_current_time, gi_tc_next_behavior_time, gi_tc_transition_active
     ; Check if transition is active
     if (gi_tc_transition_active == 0) then
         turnoff

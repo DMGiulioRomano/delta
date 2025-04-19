@@ -1,0 +1,202 @@
+UnifiedCSD:  test_generateInterpolatedRhythms.csd
+rtaudio: PortAudio module enabled ...
+using callback interface
+rtmidi: PortMIDI module enabled
+instr TestGenerateInterpolatedRhythms uses instrument number 1
+Elapsed time at end of orchestra compile: real: 0.005s, CPU: 0.005s
+sorting score ...
+	... done
+Elapsed time at end of score sort: real: 0.005s, CPU: 0.005s
+--Csound version 6.18 (double samples) Nov 24 2022
+[commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
+libsndfile-1.1.0
+graphics suppressed, ascii substituted
+sr = 44100.0, kr = 1378.125, ksmps = 32
+0dBFS level = 1.0, A4 tuning = 440.0
+orch now loaded
+audio buffered in 1024 sample-frame blocks
+PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
+   0: dac0 (BlackHole 2ch [Core Audio, 2 in, 2 out])
+   1: dac1 (BlackHole 64ch [Core Audio, 64 in, 64 out])
+   2: dac2 (MacBook Pro Speakers [Core Audio, 0 in, 2 out])
+   3: dac3 (ZoomAudioDevice [Core Audio, 2 in, 2 out])
+   4: dac4 (PonteOhYeah [Core Audio, 64 in, 64 out])
+   5: dac5 (Aggregate Device 2 [Core Audio, 2 in, 2 out])
+   6: dac6 (pontediMessina [Core Audio, 0 in, 2 out])
+   7: dac7 (Multi-Output Device [Core Audio, 0 in, 2 out])
+PortAudio: selected output device 'MacBook Pro Speakers'
+writing 2048 sample blks of 64-bit floats to dac
+SECTION 1:
+new alloc for instr TestGenerateInterpolatedRhythms:
+
+=== Test di generateInterpolatedRhythms ===
+
+
+CASO DI TEST 1: Da stato 0 a stato 1
+------------------------------------------------
+Progresso | Valori ritmici generati
+------------------------------------------------
+ftable 101:
+ftable 101:	6 points, scalemax 0.000
+   0.00   | 1 1 1 1 1 
+ftable 102:
+ftable 102:	6 points, scalemax 0.000
+   0.25   | 7 8 12 12 8 
+ftable 103:
+ftable 103:	6 points, scalemax 0.000
+   0.50   | 30 20 31 2 32 
+ftable 104:
+ftable 104:	6 points, scalemax 0.000
+   0.75   | 55 20 22 3 41 
+ftable 105:
+ftable 105:	6 points, scalemax 0.000
+   1.00   | 78 34 51 68 37 
+Chiamata generateRhythmsForState con stato densità: 0
+ftable 106:
+ftable 106:	7 points, scalemax 0.000
+Stato densità 0 -> Range valori ritmici: Min=1, Max=5
+Primo valore ritmico generato: 4
+Tabella ritmica generata con 7 elementi
+Chiamata generateRhythmsForState con stato densità: 1
+ftable 107:
+ftable 107:	7 points, scalemax 0.000
+Stato densità 1 -> Range valori ritmici: Min=5, Max=12
+Primo valore ritmico generato: 12
+Tabella ritmica generata con 7 elementi
+
+Ritmi non interpolati:
+Sorgente (stato 0): 4 4 1 4 3 
+Target (stato 1):   12 6 11 10 8 
+
+
+CASO DI TEST 2: Da stato 0 a stato 2
+------------------------------------------------
+Progresso | Valori ritmici generati
+------------------------------------------------
+ftable 108:
+ftable 108:	6 points, scalemax 0.000
+   0.00   | 1 1 1 1 1 
+ftable 109:
+ftable 109:	6 points, scalemax 0.000
+   0.25   | 21 1 7 36 38 
+ftable 110:
+ftable 110:	6 points, scalemax 0.000
+   0.50   | 107 61 155 81 83 
+ftable 111:
+ftable 111:	6 points, scalemax 0.000
+   0.75   | 256 197 28 238 163 
+ftable 112:
+ftable 112:	6 points, scalemax 0.000
+   1.00   | 259 267 314 77 317 
+Chiamata generateRhythmsForState con stato densità: 0
+ftable 113:
+ftable 113:	7 points, scalemax 0.000
+Stato densità 0 -> Range valori ritmici: Min=1, Max=5
+Primo valore ritmico generato: 4
+Tabella ritmica generata con 7 elementi
+Chiamata generateRhythmsForState con stato densità: 2
+ftable 114:
+ftable 114:	7 points, scalemax 0.000
+Stato densità 2 -> Range valori ritmici: Min=12, Max=35
+Primo valore ritmico generato: 21
+Tabella ritmica generata con 7 elementi
+
+Ritmi non interpolati:
+Sorgente (stato 0): 4 4 3 3 5 
+Target (stato 2):   21 24 29 24 34 
+
+
+CASO DI TEST 3: Da stato 1 a stato 2
+------------------------------------------------
+Progresso | Valori ritmici generati
+------------------------------------------------
+ftable 115:
+ftable 115:	6 points, scalemax 0.000
+   0.00   | 24 2 71 11 29 
+ftable 116:
+ftable 116:	6 points, scalemax 0.000
+   0.25   | 33 26 53 48 118 
+ftable 117:
+ftable 117:	6 points, scalemax 0.000
+   0.50   | 110 159 180 113 24 
+ftable 118:
+ftable 118:	6 points, scalemax 0.000
+   0.75   | 220 33 37 248 272 
+ftable 119:
+ftable 119:	6 points, scalemax 0.000
+   1.00   | 104 9 182 237 188 
+Chiamata generateRhythmsForState con stato densità: 1
+ftable 120:
+ftable 120:	7 points, scalemax 0.000
+Stato densità 1 -> Range valori ritmici: Min=5, Max=12
+Primo valore ritmico generato: 6
+Tabella ritmica generata con 7 elementi
+Chiamata generateRhythmsForState con stato densità: 2
+ftable 121:
+ftable 121:	7 points, scalemax 0.000
+Stato densità 2 -> Range valori ritmici: Min=12, Max=35
+Primo valore ritmico generato: 20
+Tabella ritmica generata con 7 elementi
+
+Ritmi non interpolati:
+Sorgente (stato 1): 6 7 12 8 6 
+Target (stato 2):   20 28 14 27 12 
+
+
+CASO DI TEST 4: Da stato 2 a stato 0
+------------------------------------------------
+Progresso | Valori ritmici generati
+------------------------------------------------
+ftable 122:
+ftable 122:	6 points, scalemax 0.000
+   0.00   | 15 19 161 332 68 
+ftable 123:
+ftable 123:	6 points, scalemax 0.000
+   0.25   | 172 88 102 243 235 
+ftable 124:
+ftable 124:	6 points, scalemax 0.000
+   0.50   | 4 61 98 156 51 
+ftable 125:
+ftable 125:	6 points, scalemax 0.000
+   0.75   | 13 5 40 45 47 
+ftable 126:
+ftable 126:	6 points, scalemax 0.000
+   1.00   | 1 1 1 1 1 
+Chiamata generateRhythmsForState con stato densità: 2
+ftable 127:
+ftable 127:	7 points, scalemax 0.000
+Stato densità 2 -> Range valori ritmici: Min=12, Max=35
+Primo valore ritmico generato: 17
+Tabella ritmica generata con 7 elementi
+Chiamata generateRhythmsForState con stato densità: 0
+ftable 128:
+ftable 128:	7 points, scalemax 0.000
+Stato densità 0 -> Range valori ritmici: Min=1, Max=5
+Primo valore ritmico generato: 4
+Tabella ritmica generata con 7 elementi
+
+Ritmi non interpolati:
+Sorgente (stato 2): 17 17 29 29 18 
+Target (stato 0):   4 1 1 3 3 
+
+
+CASI ESTREMI
+------------------------------------------------
+ftable 129:
+ftable 129:	6 points, scalemax 0.000
+Stato 0 → Stato 2 (progresso 0.5): 97 30 63 63 117 
+ftable 130:
+ftable 130:	6 points, scalemax 0.000
+Stato 2 → Stato 0 (progresso 0.5): 35 98 62 41 131 
+ftable 131:
+ftable 131:	6 points, scalemax 0.000
+Stato -1 → Stato 3 (progresso 0.5): 152 61 5 22 130 
+B  0.000 ..  0.100 T  0.100 TT  0.100 M:  0.00000  0.00000
+Score finished in csoundPerform().
+inactive allocs returned to freespace
+end of score.		   overall amps:  0.00000  0.00000
+	   overall samples out of range:        0        0
+0 errors in performance
+Elapsed time at end of performance: real: 0.188s, CPU: 0.026s
+closing device
+5 2048 sample blks of 64-bit floats written to dac

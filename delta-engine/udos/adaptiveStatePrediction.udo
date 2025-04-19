@@ -16,6 +16,29 @@ gi_asp_context_features ftgen 0, 0, 10, -2, 0        ; Various musical context f
 ; STATE PREDICTION AND LEARNING SYSTEM
 ; -----------------------------------------------------------------------
 
+; Compare two context vectors and return similarity score (0-1)
+opcode calculateContextSimilarity, i, i
+    i_ContextBase1 xin
+    ; Calculate Euclidean distance between context features
+    iSumSquaredDiff = 0
+    iFeatureIdx = 0
+    
+    while (iFeatureIdx < 4) do
+        iFeature1 tab_i (i_ContextBase1+iFeatureIdx), gi_asp_transition_history
+        iFeature2 tab_i iFeatureIdx, gi_asp_context_features
+        iDiff = iFeature1 - iFeature2
+        iSumSquaredDiff += iDiff * iDiff
+        
+        iFeatureIdx += 1
+    od
+    
+    ; Convert to similarity (inverse distance, normalized to 0-1)
+    iDistance = sqrt(iSumSquaredDiff)
+    i_mysimilarity = 1 / (1 + iDistance * 4)  ; Scale factor adjusts sensitivity
+    
+    xout i_mysimilarity
+endop
+
 ; Predicts the next state based on current state and musical context
 opcode predictNextState, iii, 0
     
@@ -68,7 +91,7 @@ opcode predictNextState, iii, 0
     
     while (iHistoryIdx < iCount) do
         ; Extract history entry
-        iEntryIdx = iHistoryIdx * 4
+        iEntryIdx = iHistoryIdx * 7
         iFromState tab_i iEntryIdx, gi_asp_transition_history
         iToState tab_i iEntryIdx+1, gi_asp_transition_history
         iQuality tab_i iEntryIdx+2, gi_asp_transition_history
@@ -80,8 +103,7 @@ opcode predictNextState, iii, 0
             iHistoryIdx += 1
         else
             ; Calculate context similarity
-            ;i_similarity_score calculateContextSimilarity i_ContextBase
-            i_similarity_score = .5
+i_similarity_score calculateContextSimilarity i_ContextBase
             ; If context is similar enough, adjust probability based on quality
             if (i_similarity_score > 0.7) then
                 ; Multiply quality by similarity for weighted influence
@@ -151,35 +173,12 @@ opcode predictNextState, iii, 0
     xout iNextDensity, iNextRegister, iNextMovement
 endop
 
-; Compare two context vectors and return similarity score (0-1)
-opcode calculateContextSimilarity, i, i
-    i_ContextBase1 xin
-    ; Calculate Euclidean distance between context features
-    iSumSquaredDiff = 0
-    iFeatureIdx = 0
-    
-    while (iFeatureIdx < 4) do
-        iFeature1 tab_i (i_ContextBase1+iFeatureIdx), gi_asp_transition_history
-        iFeature2 tab_i iFeatureIdx, gi_asp_context_features
-        iDiff = iFeature1 - iFeature2
-        iSumSquaredDiff += iDiff * iDiff
-        
-        iFeatureIdx += 1
-    od
-    
-    ; Convert to similarity (inverse distance, normalized to 0-1)
-    iDistance = sqrt(iSumSquaredDiff)
-    i_mysimilarity = 1 / (1 + iDistance * 4)  ; Scale factor adjusts sensitivity
-    
-    xout i_mysimilarity
-endop
-
 ; Record a completed transition with its quality assessment
 opcode recordTransition, 0, iii
     iFromStateIdx, iToStateIdx, iQuality xin
     
     ; Find position in circular buffer
-    iRecordIdx = gi_asp_history_index * 4  ; Ogni record occupa 7 elementi
+    iRecordIdx = gi_asp_history_index * 7  ; Ogni record occupa 4 elementi
     
     ; Store transition data
     tabw_i iFromStateIdx, iRecordIdx, gi_asp_transition_history

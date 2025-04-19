@@ -2,8 +2,8 @@ opcode generateInterpolatedRhythms, i, iiii
     iSourceMovement, iTargetMovement, iProgress, iTableSize xin
     
     ; Ottieni intervalli di ritmi per gli stati di movimento sorgente e target
-    iSourceMin, iSourceMax mapStateToParameter iSourceMovement, "movement"
-    iTargetMin, iTargetMax mapStateToParameter iTargetMovement, "movement"
+    iSourceMin, iSourceMax mapStateToParameter iSourceMovement, "density"
+    iTargetMin, iTargetMax mapStateToParameter iTargetMovement, "density"
     
     ; Interpola intervalli min/max
     iInterpolatedMin = cubicInterpolate(iSourceMin, iTargetMin, iProgress)
