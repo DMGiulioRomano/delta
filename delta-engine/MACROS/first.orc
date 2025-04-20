@@ -85,7 +85,6 @@ gi_analysis_buffer_size = 100000  ; Dimensione buffer per rendering offline
 gi_analysis_active_events ftgen 0, 0, gi_analysis_buffer_size, -2, 0  ; Eventi attivi
 gi_analysis_timepoints ftgen 0, 0, gi_analysis_buffer_size, -2, 0     ; Tempi di analisi
 gk_analysis_index init 0          ; Indice corrente nel buffer
-gk_current_overlap init 1         ; Livello di sovrapposizione attuale
 
 ; --------------------------------------------------------------------
 ; MEMORIA COMPOSITIVA
@@ -123,10 +122,11 @@ gi_memory_spatial_movement ftgen 0, 0, gi_memory_size, -2, 0   ; Movimento spazi
 gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0
 
 ; Variabili globali per accesso immediato ai valori correnti
-gk_current_harmonic_density init 0    ; Densità armonica corrente
-gk_current_octave_spread init 0       ; Dispersione ottave corrente
-gk_current_spectral_centroid init 0   ; Centroide spettrale corrente
-gk_current_spatial_movement init 0    ; Movimento spaziale corrente
+gi_current_overlap init 0         ; Livello di sovrapposizione attuale
+gi_current_harmonic_density init 0    ; Densità armonica corrente
+gi_current_octave_spread init 0       ; Dispersione ottave corrente
+gi_current_spectral_centroid init 0   ; Centroide spettrale corrente
+gi_current_spatial_movement init 0    ; Movimento spaziale corrente
 
 ; --------------------------------------------------------------------
 ; SISTEMA DI CLASSIFICAZIONE DEGLI STATI

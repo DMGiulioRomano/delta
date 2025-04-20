@@ -1,151 +1,34 @@
-UnifiedCSD:  test_recordCurrentState.csd
+UnifiedCSD:  test_adaptLearningRate.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
-instr TimeKeeper uses instrument number 1
-instr TestTransition uses instrument number 2
-instr TestTransition75 uses instrument number 3
-instr TestNormal uses instrument number 4
-instr TestBufferWrap uses instrument number 5
-instr TestExtremeValues uses instrument number 6
-Elapsed time at end of orchestra compile: real: 0.004s, CPU: 0.004s
-sorting score ...
-	... done
-Elapsed time at end of score sort: real: 0.004s, CPU: 0.004s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
-displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
-ftable 101:
-ftable 102:
-ftable 103:
-ftable 104:
-ftable 105:
-ftable 106:
-ftable 107:
-ftable 108:
-ftable 109:
-ftable 110:
-ftable 111:
-ftable 112:
-ftable 113:
-ftable 114:
-ftable 115:
-ftable 116:
-orch now loaded
+ftable 101:	700 points, scalemax 0.000
+ftable 102:	729 points, scalemax 0.000
+ftable 103:	10 points, scalemax 0.000
 audio buffered in 1024 sample-frame blocks
-PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
-   0: dac0 (BlackHole 2ch [Core Audio, 2 in, 2 out])
-   1: dac1 (BlackHole 64ch [Core Audio, 64 in, 64 out])
-   2: dac2 (MacBook Pro Speakers [Core Audio, 0 in, 2 out])
-   3: dac3 (ZoomAudioDevice [Core Audio, 2 in, 2 out])
-   4: dac4 (PonteOhYeah [Core Audio, 64 in, 64 out])
-   5: dac5 (Aggregate Device 2 [Core Audio, 2 in, 2 out])
-   6: dac6 (pontediMessina [Core Audio, 0 in, 2 out])
-   7: dac7 (Multi-Output Device [Core Audio, 0 in, 2 out])
-PortAudio: selected output device 'MacBook Pro Speakers'
-writing 2048 sample blks of 64-bit floats to dac
+not writing to sound disk
 SECTION 1:
-new alloc for instr TimeKeeper:
-B  0.000 ..  0.100 T  0.100 TT  0.100 M:  0.00000  0.00000
-new alloc for instr TestNormal:
-=== TESTING NORMAL STATE RECORDING (FIXED VERSION) ===
-Initial state values before recording:
-  Density: 0, Register: 0, Movement: 0
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [5.00, 0.50, 0.60] -> State [0, 1, 2]
-recordCurrentState: Current musical parameters [5.00, 0.50, 0.60] -> State [0, 1, 2]
-After recording with values: Overlap=5, Spread=0.5, Movement=0.6
-  Density: 0, Register: 1, Movement: 2
-Past states buffer at index 0 contains: [0, 1, 2]
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [1.00, 0.80, 0.10] -> State [0, 2, 0]
-recordCurrentState: Current musical parameters [1.00, 0.80, 0.10] -> State [0, 2, 0]
-After recording with values: Overlap=1, Spread=0.8, Movement=0.1
-  Density: 0, Register: 2, Movement: 0
-Past states buffer at index 1 contains: [0, 2, 0]
-B  0.100 ..  1.000 T  1.000 TT  1.000 M:  0.00000  0.00000
-new alloc for instr TestTransition:
 
-=== TESTING TRANSITION STATE RECORDING (FIXED VERSION) ===
-Transition active from [0,0,0] to [2,1,2] over 10.0 seconds
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [2.00, 0.20, 0.30] -> State [0, 0, 1]
-recordCurrentState: Current musical parameters [2.00, 0.20, 0.30] -> State [0, 0, 1]
-Transition tracking: time=1.00, start=1.00, duration=10.00
-Elapsed time: 0.00, Progress: 0.000
-Using time index: 0 for progress 0.000
-Recorded state [0,0,1] at progress 0.00 (index 0)
-Expected: [0.00,0.00,0.00], Deviation: [0.00,0.00,1.00]
-new overlap : 2, new spread: 0, new movement: 0B  1.000 ..  8.500 T  8.500 TT  8.500 M:  0.00000  0.00000
-new alloc for instr TestTransition75:
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [6.00, 0.60, 0.60] -> State [0, 1, 2]
-recordCurrentState: Current musical parameters [6.00, 0.60, 0.60] -> State [0, 1, 2]
-Transition tracking: time=8.50, start=1.00, duration=10.00
-Elapsed time: 7.50, Progress: 0.750
-Using time index: 75 for progress 0.750
-Recorded state [0,1,2] at progress 0.75 (index 75)
-Expected: [1.52,0.76,1.52], Deviation: [1.52,0.24,0.48]
-At 75% progress (index 75):
-  Expected states: [1.5, 0.8, 1.5]
-  Actual states: [0, 1, 2]
-  Deviations: [2, 0, 0]
-B  8.500 ..  9.500 T  9.500 TT  9.500 M:  0.00000  0.00000
-new alloc for instr TestBufferWrap:
+=== Testing adaptLearningRate ===
+Initial learning rate: 0.100
 
-=== TESTING BUFFER WRAP-AROUND (FIXED VERSION) ===
-Initial past states index: 7
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [3.00, 0.40, 0.30] -> State [0, 1, 1]
-recordCurrentState: Current musical parameters [3.00, 0.40, 0.30] -> State [0, 1, 1]
-After first recording, index = 0
-Values at index 7: [0, 1, 1]
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [8.00, 0.80, 0.60] -> State [0, 2, 2]
-recordCurrentState: Current musical parameters [8.00, 0.80, 0.60] -> State [0, 2, 2]
-After second recording, index = 1
-Values at index 0: [0, 2, 2]
-B  9.500 ..  9.800 T  9.800 TT  9.800 M:  0.00000  0.00000
-new alloc for instr TestExtremeValues:
+Calling adaptLearningRate with target quality of 0.75 (our test data has 0.9):
+Adjusted learning rate: 0.10 → 0.11 (quality=0.00 vs target=0.75)
+New learning rate: 0.110
+Expected: learning rate should decrease slightly since our transitions have higher quality than target
 
-=== TESTING EXTREME VALUES (FIXED VERSION) ===
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [2000.00, 5.00, 10.00] -> State [2, 2, 2]
-recordCurrentState: Current musical parameters [2000.00, 5.00, 10.00] -> State [2, 2, 2]
-After recording with extreme high values:
-  Overlap=2000, Spread=5.0, Movement=10.0
-  States: [2, 2, 2]
-Density thresholds: [0.000000, 10.000000, 30.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-determineCurrentState: Input [-10.00, -2.00, -1.00] -> State [0, 0, 0]
-recordCurrentState: Current musical parameters [-10.00, -2.00, -1.00] -> State [0, 0, 0]
-After recording with negative values:
-  Overlap=-10, Spread=-2.0, Movement=-1.0
-  States: [0, 0, 0]
-B  9.800 .. 10.000 T 10.000 TT 10.000 M:  0.00000  0.00000
+Resetting learning rate to 0.1 and testing with target quality of 0.95:
+Adjusted learning rate: 0.10 → 0.11 (quality=0.00 vs target=0.95)
+New learning rate: 0.110
+Expected: learning rate should increase slightly since our transitions have lower quality than target
+
+=== Test completed ===
 Score finished in csoundPerform().
-inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
-Elapsed time at end of performance: real: 10.060s, CPU: 0.096s
-closing device
-431 2048 sample blks of 64-bit floats written to dac

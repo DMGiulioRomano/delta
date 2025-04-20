@@ -1,4 +1,4 @@
-UnifiedCSD:  test_analyzeCompositionMemory.csd
+UnifiedCSD:  test_adaptLearningRate.csd
 Reading CSD failed (No such file or directory)... stopping
 end of score.		   overall amps:      0.0
 	   overall samples out of range:        0
