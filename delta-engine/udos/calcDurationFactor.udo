@@ -20,7 +20,7 @@ opcode analyzeCompositionMemory, iiii, ii
     ; Analizza il range temporale
     iIdx = iStartIdx
     while iIdx < iEndIdx do
-        iOverlap table iIdx, gi_memory_overlap
+        iOverlap tab_i iIdx, gi_memory_overlap
         
         if iOverlap > 0 then
             iSumOverlap += iOverlap
@@ -41,7 +41,7 @@ endop
 
 ; Opcode per suggerire parametri di durata basati sulla memoria compositiva
 opcode suggestDurationFactor, i, iii
-    iStartTime, iEndTime, iRitmoCorrente  xin
+    iStartTime, iEndTime, iRitmoCorrente xin
     
     ; Analizza la memoria compositiva nel range specificato
     iAvgOverlap, iMaxOverlap, iDensity, iSampleCount = analyzeCompositionMemory(iStartTime, iEndTime)
@@ -53,15 +53,26 @@ opcode suggestDurationFactor, i, iii
     endif
     
     ; Altrimenti, suggerisci un fattore basato sull'analisi
-    iMaxReference = 8  ; Livello di riferimento per la sovrapposizione massima
-    iAvgReference = 3  ; Livello di riferimento per la sovrapposizione media
+    ; Valori di riferimento calibrati per il sistema
+    iMaxReference = 20  ; Livello di riferimento per la sovrapposizione massima
+    iAvgReference = 15  ; Livello di riferimento per la sovrapposizione media
     
     ; Calcola un fattore basato sia sul massimo che sulla media
-    iFactorFromMax = 1.0 + (iMaxReference - iMaxOverlap) * 0.1
-    iFactorFromAvg = 1.0 + (iAvgReference - iAvgOverlap) * 0.2
+    ; Coefficienti AUMENTATI per rendere l'algoritmo più reattivo
+    iFactorFromMax = 1.0 + (iMaxReference - iMaxOverlap) * 0.1   ; Raddoppiato da 0.05
+    iFactorFromAvg = 1.0 + (iAvgReference - iAvgOverlap) * 0.2   ; Raddoppiato da 0.1
+    
+    ; Limita i fattori per evitare valori estremi
+    iFactorFromMax = max(1.0, iFactorFromMax)
+    iFactorFromAvg = max(1.0, iFactorFromAvg)
     
     ; Combina i fattori dando più peso alla media
     iSuggestedFactor = (iFactorFromMax + iFactorFromAvg * 2) / 3
+    
+    ; Applica una soglia minima: se il fattore è troppo vicino a 1.0, lascialo a 1.0
+    if iSuggestedFactor < 1.05 then
+        iSuggestedFactor = 1.0
+    endif
     
     ; Limita il fattore all'intervallo desiderato (1.0 - valore del ritmo)
     iSuggestedFactor = limit(iSuggestedFactor, 1.0, iRitmoCorrente)
@@ -90,8 +101,8 @@ opcode analyzeHarmonicMemory, iiii, ii
     ; Analizza il range temporale
     iIdx = iStartIdx
     while iIdx <= iEndIdx do
-        iHarmonicDensity table iIdx, gi_memory_harmonic_density
-        iOctaveSpread table iIdx, gi_memory_octave_spread
+        iHarmonicDensity tab_i iIdx, gi_memory_harmonic_density
+        iOctaveSpread tab_i iIdx, gi_memory_octave_spread
         
         iSumHarmonicDensity += iHarmonicDensity
         iSumOctaveSpread += iOctaveSpread

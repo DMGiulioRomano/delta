@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
- -d
+-m0 -d
 </CsOptions>
 <CsInstruments>
 sr = 96000
@@ -9,22 +9,22 @@ nchnls = 2
 0dbfs = 1
 
 
-
-; Costanti globali
+; Costanti globali necessarie per gli UDO inclusi
 gi_memory_resolution = 1          ; Risoluzione in secondi
 gi_memory_size = 100              ; Dimensione delle tabelle di memoria
 
-; Tabelle per la memoria compositiva
-gi_memory_overlap ftgen 1, 0, gi_memory_size+1, -2, 0       ; Eventi sovrapposti
-gi_memory_harmonic_density ftgen 2, 0, gi_memory_size+1, -2, 0  ; Densità armonica
-gi_memory_octave_spread ftgen 3, 0, gi_memory_size+1, -2, 0     ; Dispersione ottave
-gi_memory_spectral_centroid ftgen 4, 0, gi_memory_size+1, -2, 0 ; Centroide spettrale
-gi_memory_spatial_movement ftgen 5, 0, gi_memory_size+1, -2, 0  ; Movimento spaziale
+; Tabelle per la memoria compositiva - create con i nomi globali appropriati
+gi_memory_overlap ftgen 0, 0, gi_memory_size, -2, 0       ; Eventi sovrapposti
+gi_memory_harmonic_density ftgen 0, 0, gi_memory_size, -2, 0  ; Densità armonica
+gi_memory_octave_spread ftgen 0, 0, gi_memory_size, -2, 0     ; Dispersione ottave
+gi_memory_spectral_centroid ftgen 0, 0, gi_memory_size, -2, 0 ; Centroide spettrale
+gi_memory_spatial_movement ftgen 0, 0, gi_memory_size, -2, 0  ; Movimento spaziale
 
-; Tabella per registrare eventi generati (per visualizzazione)
-gi_event_start_times ftgen 10, 0, 1000, -2, 0    ; Tempi di inizio degli eventi
-gi_event_durations ftgen 11, 0, 1000, -2, 0      ; Durate degli eventi
+; Tabelle per registrare eventi generati (per visualizzazione)
+gi_event_start_times ftgen 0, 0, 1000, -2, 0    ; Tempi di inizio degli eventi
+gi_event_durations ftgen 0, 0, 1000, -2, 0      ; Durate degli eventi
 gi_event_count init 0                           ; Contatore degli eventi generati
+#include "../udos/calcDurationFactor.udo"
 
 ; Simula la funzione di calcolo della durata dell'evento come nel Comportamento.orc
 opcode calculateEventDuration, i, iii
@@ -36,29 +36,27 @@ opcode calculateEventDuration, i, iii
     xout iDurEvento
 endop
 
-#include "../udos/calcDurationFactor.udo"
-
 ; Strumento per configurare scenari di test
 instr ConfigScenario
     iScenario = p4   ; Parametro: numero dello scenario di test
     
-    ; Reset delle tabelle
+    ; Reset delle tabelle e variabili
     indx = 0
     while indx < gi_memory_size do
-        tabw 0, indx, 1  ; Usa indice 1 esplicito
+        tabw_i 0, indx, gi_memory_overlap
         indx += 1
     od
     
-    ; Reset del contatore di eventi
     gi_event_count = 0
     
+    ; Popolamento della tabella di memoria in base allo scenario
     if iScenario == 1 then
         ; SCENARIO 1: Densità bassa e costante (3-10 eventi)
         prints "\n=== SCENARIO 1: Densità bassa e costante (3-10 eventi) ===\n"
         indx = 10
         while indx < 40 do
             iVal = random(3, 10)
-            tabw iVal, indx, 1  ; Usa indice 1 esplicito
+            tabw_i iVal, indx, gi_memory_overlap
             indx += 1
         od
     elseif iScenario == 2 then
@@ -67,7 +65,7 @@ instr ConfigScenario
         indx = 10
         while indx < 40 do
             iVal = random(10, 20)
-            tabw iVal, indx, 1  ; Usa indice 1 esplicito
+            tabw_i iVal, indx, gi_memory_overlap
             indx += 1
         od
     elseif iScenario == 3 then
@@ -76,7 +74,7 @@ instr ConfigScenario
         indx = 10
         while indx < 40 do
             iVal = random(20, 30)
-            tabw iVal, indx, 1  ; Usa indice 1 esplicito
+            tabw_i iVal, indx, gi_memory_overlap
             indx += 1
         od
     elseif iScenario == 4 then
@@ -85,7 +83,7 @@ instr ConfigScenario
         indx = 10
         while indx < 40 do
             iVal = 3 + (indx - 10) * 0.9  ; Cresce linearmente da 3 a ~30
-            tabw iVal, indx, 1  ; Usa indice 1 esplicito
+            tabw_i iVal, indx, gi_memory_overlap
             indx += 1
         od
     elseif iScenario == 5 then
@@ -94,12 +92,21 @@ instr ConfigScenario
         indx = 10
         while indx < 40 do
             iVal = 30 - (indx - 10) * 0.9  ; Decresce linearmente da 30 a ~3
-            tabw iVal, indx, 1  ; Usa indice 1 esplicito
+            tabw_i iVal, indx, gi_memory_overlap
             indx += 1
         od
     endif
     
-    ; Attiva il test
+    ; Verifica direttamente i valori scritti
+    prints "\nVerifica valori scritti in tabella memoria_overlap:\n"
+    iIdx = 10
+    while iIdx < 15 do
+        iVal tab_i iIdx, gi_memory_overlap
+        prints "Valore all'indice %d: %.2f\n", iIdx, iVal
+        iIdx += 1
+    od
+    
+    ; Esegui il test
     event_i "i", "TestDurationFactor", 0, 0.1, iScenario
 endin
 
@@ -112,33 +119,25 @@ instr TestDurationFactor
     iStartTime = 35            ; Tempo corrente simulato
     iLookbackTime = 5          ; Inizio della finestra di analisi
     
-    ; Debug: verifica valori nella tabella
-    prints "\nVerifica valori tabella (primi 5 valori):\n"
-    iDbg = 10
-    while iDbg < 15 do
-        iVal tablei iDbg, 1
-        prints "Indice %d: %.2f\n", iDbg, iVal
-        iDbg += 1
-    od
-    
     ; Parametri per generazione di eventi
     iSequenceLength = 20       ; Quanti eventi generare
-    iBaseTime = 5              ; Tempo di inizio della sequenza (ridotto per visualizzare gli eventi)
-
-    ; Stampa analisi generale della memoria
-    iAvgOverlap, iMaxOverlap, iDensity, iCount = analyzeCompositionMemory(iLookbackTime, iStartTime)
+    iBaseTime = 5              ; Tempo di inizio della sequenza
     
+    ; Stampa i valori della memoria compositiva
     prints "\nMemoria compositiva (eventi sovrapposti):\n"
     prints "Tempo    Valore\n"
     prints "--------------\n"
     indx = 5
     while indx < 40 do
-        iVal tablei indx, 1  ; Usa tablei e indice 1 esplicito
+        iVal tab_i indx, gi_memory_overlap
         if iVal > 0 then
             prints "%d sec    %.2f\n", indx, iVal
         endif
         indx += 1
     od
+    
+    ; Stampa analisi generale della memoria
+    iAvgOverlap, iMaxOverlap, iDensity, iCount = analyzeCompositionMemory(iLookbackTime, iStartTime)
     
     prints "\nAnalisi del range temporale %d-%d sec:\n", iLookbackTime, iStartTime
     prints "  Media sovrapposizione: %.2f eventi\n", iAvgOverlap
@@ -190,9 +189,12 @@ instr TestDurationFactor
         
         ; Simula una sequenza di attacchi con intervalli basati su ritmo e durata armonica
         while iTimeIdx < iSequenceLength do
+            ; Calcola l'indice nell'array degli eventi
+            iEventIdx = gi_event_count
+            
             ; Memorizza l'evento generato
-            tabw iTime, gi_event_count, gi_event_start_times
-            tabw iDurEvento, gi_event_count, gi_event_durations
+            tabw_i iTime, iEventIdx, gi_event_start_times
+            tabw_i iDurEvento, iEventIdx, gi_event_durations
             
             ; Incrementa contatore
             gi_event_count += 1
@@ -226,15 +228,16 @@ instr TestDurationFactor
         iCharIdx = 0
         while iCharIdx < iGraphWidth - 6 do
             ; Converti indice carattere in tempo
-            iTimePoint = (iCharIdx / (iGraphWidth - 6)) * iScale + iBaseTime
+            iTimePoint = (iCharIdx / (iGraphWidth - 6)) * iScale
             
             ; Verifica se in questo punto c'è un evento attivo
             iHasActiveEvent = 0
             iEventIdx = iStartOffset
             iEndIdx = iStartOffset + iSequenceLength
+            
             while iEventIdx < iEndIdx && iEventIdx < gi_event_count do
-                iEventStart = tablei(iEventIdx, 10)  ; Usa indici espliciti (10, 11)
-                iEventDur = tablei(iEventIdx, 11)
+                iEventStart = tab_i(iEventIdx, gi_event_start_times)
+                iEventDur = tab_i(iEventIdx, gi_event_durations)
                 iEventEnd = iEventStart + iEventDur
                 
                 if iTimePoint >= iEventStart && iTimePoint < iEventEnd then
@@ -265,14 +268,14 @@ instr TestDurationFactor
     
     ; Se non è l'ultimo scenario, avvia il prossimo
     if iScenario < 5 then
-        event_i "i", "ConfigScenario", 0.1, 0.1, iScenario + 1
+        event_i "i", "ConfigScenario", 0.1, 1, iScenario + 1
     endif
 endin
 
 </CsInstruments>
 <CsScore>
 ; Avvia il primo scenario
-i "ConfigScenario" 0 3 1
+i "ConfigScenario" 0 2 1
 e
 </CsScore>
 </CsoundSynthesizer>

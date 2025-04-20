@@ -1,0 +1,372 @@
+UnifiedCSD:  test_suggestDurationFactor.csd
+rtaudio: PortAudio module enabled ...
+using callback interface
+rtmidi: PortMIDI module enabled
+--Csound version 6.18 (double samples) Nov 24 2022
+[commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
+libsndfile-1.1.0
+sr = 96000.0, kr = 96000.000, ksmps = 1
+0dBFS level = 1.0, A4 tuning = 440.0
+audio buffered in 1024 sample-frame blocks
+writing 4096-byte blks of shorts to test.aif (AIFF)
+SECTION 1:
+
+=== SCENARIO 1: Densità bassa e costante (3-10 eventi) ===
+
+Verifica valori scritti in tabella memoria_overlap:
+Valore all'indice 10: 9.18
+Valore all'indice 11: 5.04
+Valore all'indice 12: 9.48
+Valore all'indice 13: 3.80
+Valore all'indice 14: 3.04
+
+Memoria compositiva (eventi sovrapposti):
+Tempo    Valore
+--------------
+10 sec    9.18
+11 sec    5.04
+12 sec    9.48
+13 sec    3.80
+14 sec    3.04
+15 sec    6.53
+16 sec    7.30
+17 sec    9.07
+18 sec    9.28
+19 sec    6.93
+20 sec    7.91
+21 sec    6.19
+22 sec    7.99
+23 sec    3.09
+24 sec    8.31
+25 sec    8.31
+26 sec    4.86
+27 sec    5.12
+28 sec    3.20
+29 sec    6.93
+30 sec    9.49
+31 sec    5.81
+32 sec    7.26
+33 sec    8.61
+34 sec    6.05
+35 sec    7.78
+36 sec    9.12
+37 sec    3.83
+38 sec    8.76
+39 sec    6.12
+
+Analisi del range temporale 5-35 sec:
+  Media sovrapposizione: 6.75 eventi
+  Max sovrapposizione: 9.49 eventi
+  Densità temporale: 83.33%
+  Campioni analizzati: 30
+
+Simulazione generazione eventi con ritmi diversi:
+Ritmo    Fattore    Durata Evento    Note
+--------------------------------------------
+3        2.450      8.168           Durata aumentata (2.45x), sovrapposizione da 1.0 a 2.5 eventi
+8        2.450      3.063           Durata aumentata (2.45x), sovrapposizione da 1.0 a 2.5 eventi
+15       2.450      1.634           Durata aumentata (2.45x), sovrapposizione da 1.0 a 2.5 eventi
+25       2.450      0.980           Durata aumentata (2.45x), sovrapposizione da 1.0 a 2.5 eventi
+40       2.450      0.613           Durata aumentata (2.45x), sovrapposizione da 1.0 a 2.5 eventi
+
+Rappresentazione grafica degli eventi (primi 10 sec):
+Tempo: 0         1         2         3         4         5         6         7         8         9        10
+      |---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|-->
+R=3 :                                                ###############################################
+R=8 :                                                ###############################################
+R=15:                                                ###############################################
+R=25:                                                ###############################################
+R=40:                                                ###############################################
+
+Legenda: # = evento attivo, spazio = silenzio
+===============================================
+
+
+=== SCENARIO 2: Densità media (10-20 eventi) ===
+
+Verifica valori scritti in tabella memoria_overlap:
+Valore all'indice 10: 19.66
+Valore all'indice 11: 12.06
+Valore all'indice 12: 19.19
+Valore all'indice 13: 17.35
+Valore all'indice 14: 14.18
+
+Memoria compositiva (eventi sovrapposti):
+Tempo    Valore
+--------------
+10 sec    19.66
+11 sec    12.06
+12 sec    19.19
+13 sec    17.35
+14 sec    14.18
+15 sec    17.37
+16 sec    11.25
+17 sec    13.19
+18 sec    12.54
+19 sec    18.92
+20 sec    14.14
+21 sec    10.03
+22 sec    11.30
+23 sec    17.26
+24 sec    17.66
+25 sec    16.40
+26 sec    13.63
+27 sec    19.26
+28 sec    14.83
+29 sec    14.93
+30 sec    18.98
+31 sec    16.92
+32 sec    10.96
+33 sec    18.38
+34 sec    15.73
+35 sec    17.78
+36 sec    18.02
+37 sec    19.43
+38 sec    12.30
+39 sec    19.51
+
+Analisi del range temporale 5-35 sec:
+  Media sovrapposizione: 15.45 eventi
+  Max sovrapposizione: 19.66 eventi
+  Densità temporale: 83.33%
+  Campioni analizzati: 30
+
+Simulazione generazione eventi con ritmi diversi:
+Ritmo    Fattore    Durata Evento    Note
+--------------------------------------------
+3        1.000      3.333           Durata standard, mantiene sovrapposizione di 1.0 eventi
+8        1.000      1.250           Durata standard, mantiene sovrapposizione di 1.0 eventi
+15       1.000      0.667           Durata standard, mantiene sovrapposizione di 1.0 eventi
+25       1.000      0.400           Durata standard, mantiene sovrapposizione di 1.0 eventi
+40       1.000      0.250           Durata standard, mantiene sovrapposizione di 1.0 eventi
+
+Rappresentazione grafica degli eventi (primi 10 sec):
+Tempo: 0         1         2         3         4         5         6         7         8         9        10
+      |---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|-->
+R=3 :                                                ###############################################
+R=8 :                                                ###############################################
+R=15:                                                ###############################################
+R=25:                                                ###############################################
+R=40:                                                ###############################################
+
+Legenda: # = evento attivo, spazio = silenzio
+===============================================
+
+
+=== SCENARIO 3: Densità alta (20-30 eventi) ===
+
+Verifica valori scritti in tabella memoria_overlap:
+Valore all'indice 10: 26.59
+Valore all'indice 11: 28.23
+Valore all'indice 12: 25.29
+Valore all'indice 13: 23.82
+Valore all'indice 14: 29.61
+
+Memoria compositiva (eventi sovrapposti):
+Tempo    Valore
+--------------
+10 sec    26.59
+11 sec    28.23
+12 sec    25.29
+13 sec    23.82
+14 sec    29.61
+15 sec    24.01
+16 sec    25.13
+17 sec    27.43
+18 sec    25.29
+19 sec    29.75
+20 sec    22.83
+21 sec    20.13
+22 sec    28.38
+23 sec    21.21
+24 sec    23.33
+25 sec    22.71
+26 sec    22.13
+27 sec    24.39
+28 sec    23.96
+29 sec    29.79
+30 sec    25.27
+31 sec    27.64
+32 sec    28.63
+33 sec    25.41
+34 sec    21.12
+35 sec    27.42
+36 sec    21.09
+37 sec    21.21
+38 sec    28.35
+39 sec    29.18
+
+Analisi del range temporale 5-35 sec:
+  Media sovrapposizione: 25.28 eventi
+  Max sovrapposizione: 29.79 eventi
+  Densità temporale: 83.33%
+  Campioni analizzati: 30
+
+Simulazione generazione eventi con ritmi diversi:
+Ritmo    Fattore    Durata Evento    Note
+--------------------------------------------
+3        1.000      3.333           Durata standard, mantiene sovrapposizione di 1.0 eventi
+8        1.000      1.250           Durata standard, mantiene sovrapposizione di 1.0 eventi
+15       1.000      0.667           Durata standard, mantiene sovrapposizione di 1.0 eventi
+25       1.000      0.400           Durata standard, mantiene sovrapposizione di 1.0 eventi
+40       1.000      0.250           Durata standard, mantiene sovrapposizione di 1.0 eventi
+
+Rappresentazione grafica degli eventi (primi 10 sec):
+Tempo: 0         1         2         3         4         5         6         7         8         9        10
+      |---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|-->
+R=3 :                                                ###############################################
+R=8 :                                                ###############################################
+R=15:                                                ###############################################
+R=25:                                                ###############################################
+R=40:                                                ###############################################
+
+Legenda: # = evento attivo, spazio = silenzio
+===============================================
+
+
+=== SCENARIO 4: Crescendo (densità crescente) ===
+
+Verifica valori scritti in tabella memoria_overlap:
+Valore all'indice 10: 3.00
+Valore all'indice 11: 3.90
+Valore all'indice 12: 4.80
+Valore all'indice 13: 5.70
+Valore all'indice 14: 6.60
+
+Memoria compositiva (eventi sovrapposti):
+Tempo    Valore
+--------------
+10 sec    3.00
+11 sec    3.90
+12 sec    4.80
+13 sec    5.70
+14 sec    6.60
+15 sec    7.50
+16 sec    8.40
+17 sec    9.30
+18 sec    10.20
+19 sec    11.10
+20 sec    12.00
+21 sec    12.90
+22 sec    13.80
+23 sec    14.70
+24 sec    15.60
+25 sec    16.50
+26 sec    17.40
+27 sec    18.30
+28 sec    19.20
+29 sec    20.10
+30 sec    21.00
+31 sec    21.90
+32 sec    22.80
+33 sec    23.70
+34 sec    24.60
+35 sec    25.50
+36 sec    26.40
+37 sec    27.30
+38 sec    28.20
+39 sec    29.10
+
+Analisi del range temporale 5-35 sec:
+  Media sovrapposizione: 13.80 eventi
+  Max sovrapposizione: 24.60 eventi
+  Densità temporale: 83.33%
+  Campioni analizzati: 30
+
+Simulazione generazione eventi con ritmi diversi:
+Ritmo    Fattore    Durata Evento    Note
+--------------------------------------------
+3        1.160      3.867           Durata aumentata (1.16x), sovrapposizione da 1.0 a 1.2 eventi
+8        1.160      1.450           Durata aumentata (1.16x), sovrapposizione da 1.0 a 1.2 eventi
+15       1.160      0.773           Durata aumentata (1.16x), sovrapposizione da 1.0 a 1.2 eventi
+25       1.160      0.464           Durata aumentata (1.16x), sovrapposizione da 1.0 a 1.2 eventi
+40       1.160      0.290           Durata aumentata (1.16x), sovrapposizione da 1.0 a 1.2 eventi
+
+Rappresentazione grafica degli eventi (primi 10 sec):
+Tempo: 0         1         2         3         4         5         6         7         8         9        10
+      |---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|-->
+R=3 :                                                ###############################################
+R=8 :                                                ###############################################
+R=15:                                                ###############################################
+R=25:                                                ###############################################
+R=40:                                                ###############################################
+
+Legenda: # = evento attivo, spazio = silenzio
+===============================================
+
+
+=== SCENARIO 5: Decrescendo (densità decrescente) ===
+
+Verifica valori scritti in tabella memoria_overlap:
+Valore all'indice 10: 30.00
+Valore all'indice 11: 29.10
+Valore all'indice 12: 28.20
+Valore all'indice 13: 27.30
+Valore all'indice 14: 26.40
+
+Memoria compositiva (eventi sovrapposti):
+Tempo    Valore
+--------------
+10 sec    30.00
+11 sec    29.10
+12 sec    28.20
+13 sec    27.30
+14 sec    26.40
+15 sec    25.50
+16 sec    24.60
+17 sec    23.70
+18 sec    22.80
+19 sec    21.90
+20 sec    21.00
+21 sec    20.10
+22 sec    19.20
+23 sec    18.30
+24 sec    17.40
+25 sec    16.50
+26 sec    15.60
+27 sec    14.70
+28 sec    13.80
+29 sec    12.90
+30 sec    12.00
+31 sec    11.10
+32 sec    10.20
+33 sec    9.30
+34 sec    8.40
+35 sec    7.50
+36 sec    6.60
+37 sec    5.70
+38 sec    4.80
+39 sec    3.90
+
+Analisi del range temporale 5-35 sec:
+  Media sovrapposizione: 19.20 eventi
+  Max sovrapposizione: 30.00 eventi
+  Densità temporale: 83.33%
+  Campioni analizzati: 30
+
+Simulazione generazione eventi con ritmi diversi:
+Ritmo    Fattore    Durata Evento    Note
+--------------------------------------------
+3        1.000      3.333           Durata standard, mantiene sovrapposizione di 1.0 eventi
+8        1.000      1.250           Durata standard, mantiene sovrapposizione di 1.0 eventi
+15       1.000      0.667           Durata standard, mantiene sovrapposizione di 1.0 eventi
+25       1.000      0.400           Durata standard, mantiene sovrapposizione di 1.0 eventi
+40       1.000      0.250           Durata standard, mantiene sovrapposizione di 1.0 eventi
+
+Rappresentazione grafica degli eventi (primi 10 sec):
+Tempo: 0         1         2         3         4         5         6         7         8         9        10
+      |---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|-->
+R=3 :                                                ###############################################
+R=8 :                                                ###############################################
+R=15:                                                ###############################################
+R=25:                                                ###############################################
+R=40:                                                ###############################################
+
+Legenda: # = evento attivo, spazio = silenzio
+===============================================
+
+Score finished in csoundPerform().
+end of score.		   overall amps:  0.00000  0.00000
+	   overall samples out of range:        0        0
+0 errors in performance
+2048 4096 sample blks of shorts written to test.aif (AIFF)
