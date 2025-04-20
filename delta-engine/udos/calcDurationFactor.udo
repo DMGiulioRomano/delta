@@ -1,6 +1,6 @@
 
 ; Opcode per analizzare la memoria compositiva in un range temporale
-opcode analyzeCompositionMemory, iiii, ii
+opcode analyzeMemoryXoverlappDensity, iiii, ii
     iStartTime, iEndTime xin
     
     ; Calcola indici nella tabella di memoria
@@ -44,7 +44,7 @@ opcode suggestDurationFactor, i, iii
     iStartTime, iEndTime, iRitmoCorrente xin
     
     ; Analizza la memoria compositiva nel range specificato
-    iAvgOverlap, iMaxOverlap, iDensity, iSampleCount = analyzeCompositionMemory(iStartTime, iEndTime)
+    iAvgOverlap, iMaxOverlap, iDensity, iSampleCount = analyzeMemoryXoverlappDensity(iStartTime, iEndTime)
     
     ; Se non abbiamo abbastanza dati o il range è vuoto, usa valori predefiniti
     if iSampleCount < 2 || iDensity < 0.05 then

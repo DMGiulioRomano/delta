@@ -297,7 +297,7 @@ instr TestAnalyzeMemory
     endif
     
     ; Call the function to test
-    iAvgOverlap, iMaxOverlap, iDensity, iCount = analyzeCompositionMemory(iStartTime, iEndTime)
+    iAvgOverlap, iMaxOverlap, iDensity, iCount = analyzeMemoryXoverlappDensity(iStartTime, iEndTime)
     
     ; Print test results header
     prints "\n=== TEST CASE %d ===\n", iTestCase
