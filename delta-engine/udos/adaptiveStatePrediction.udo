@@ -764,7 +764,7 @@ opcode adaptLearningRate, 0, ii
     od
     
     iAvgQuality = (iRecentCount > 0) ? iTotalQuality / iRecentCount : 0
-    
+
     ; Determine if learning rate needs adjustment
     iQualityDifference = iAvgQuality - iTargetQuality
     
