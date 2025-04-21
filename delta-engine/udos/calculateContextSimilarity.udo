@@ -16,7 +16,7 @@ opcode calculateContextSimilarity, i, io
     i_DebugLevel = (i_DebugLevel == 0) ? gi_debug : i_DebugLevel
     
     ; Feature importance weights
-    iWeightOverlap = 1.2    ; Overlap (event density) is important
+    iWeightOverlap = 1.8    ; Overlap (event density) is important
     iWeightSpread = 0.8     ; Spread is less critical
     iWeightCentroid = 1.0   ; Spectral centroid has medium importance
     iWeightMovement = 1.5   ; Spatial movement is very important for transitions
@@ -41,7 +41,15 @@ opcode calculateContextSimilarity, i, io
     while (iFeatureIdx < 4) do
         iFeature1 tab_i (i_ContextBase1+iFeatureIdx), gi_asp_transition_history
         iFeature2 tab_i iFeatureIdx, gi_asp_context_features
-        iDiff = iFeature1 - iFeature2
+        iDiff = 0
+        if (iFeatureIdx == 0) then  ; Solo per la feature di sovrapposizione (indice 0)
+            ; Trasformazione non lineare (radice quadrata) per amplificare piccole differenze
+            iFeature1Transformed = sqrt(iFeature1) * 2  ; Moltiplichiamo per 2 per riportare in un range simile
+            iFeature2Transformed = sqrt(iFeature2) * 2
+            iDiff = iFeature1Transformed - iFeature2Transformed
+        else
+            iDiff = iFeature1 - iFeature2
+        endif
         
         ; Apply feature weight
         iWeight = iWeights[iFeatureIdx]
@@ -63,7 +71,7 @@ opcode calculateContextSimilarity, i, io
     ; Apply sigmoid function for more nuanced similarity mapping
     ; This creates a more gradual transition from "similar" to "dissimilar"
     ; with a steeper slope in the middle range
-    iSensitivity = 6  ; Controls steepness of sigmoid (higher = sharper distinction)
+    iSensitivity = 8  ; Controls steepness of sigmoid (higher = sharper distinction)
     iSigmoidArg = iSensitivity * (iDistance - 0.5)
     iSigmoid = 1 / (1 + exp(iSigmoidArg))
     

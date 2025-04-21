@@ -135,7 +135,7 @@ gi_current_spatial_movement init 0    ; Movimento spaziale corrente
 ; "Analizzatore" e "GeneraComportamenti". Le tabelle di soglie definiscono i confini
 ; tra diversi stati musicali, mentre le tabelle di storia memorizzano l'evoluzione degli stati.
 ;
-gi_density_thresholds ftgen 0, 0, 4, -2, 0, 3, 7, 1000    ; Sparse, Medium, Dense
+gi_density_thresholds ftgen 0, 0, 4, -2, 0, 30, 100, 300    ; Sparse, Medium, Dense
 gi_register_thresholds ftgen 0, 0, 4, -2, 0, 0.3, 0.7, 1.001 ; Low, Mid, High
 gi_movement_thresholds ftgen 0, 0, 4, -2, 0, 0.2, 0.5, 1.001 ; Static, Moderate, Dynamic
 
@@ -227,3 +227,4 @@ gi_asp_history_index init 0                         ; Current index in history b
 gi_asp_transition_count init 0                      ; Total number of transitions recorded
 gi_asp_learning_rate init 0.1                       ; Rate at which system adapts (0.0-1.0)
 
+gi_asp_max_overlap init 300

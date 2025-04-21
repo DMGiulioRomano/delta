@@ -12,6 +12,27 @@ nchnls = 2
 
 ; Create transition matrix with 27×27 elements (3 states for each of 3 dimensions)
 gi_transition_matrix ftgen 0, 0, 27*27, -2, 0
+gi_density_thresholds ftgen 0, 0, 4, -2, 0, 30, 100, 300    ; Sparse, Medium, Dense
+gi_register_thresholds ftgen 0, 0, 4, -2, 0, 0.3, 0.7, 1.001 ; Low, Mid, High
+gi_movement_thresholds ftgen 0, 0, 4, -2, 0, 0.2, 0.5, 1.001 ; Static, Moderate, Dynamic
+; Source state parameters (starting point)
+gi_tc_source_density init 0
+gi_tc_source_register init 0
+gi_tc_source_movement init 0
+; Target state parameters (destination)
+gi_tc_target_density init 0
+gi_tc_target_register init 0
+gi_tc_target_movement init 0
+
+; Current interpolated state parameters
+gi_tc_current_density init 0
+gi_tc_current_register init 0 
+gi_tc_current_movement init 0
+
+; Transition type parameters
+gi_tc_transition_mode init 1      ; 0.0=sudden, 1.0=gradual
+gi_tc_transition_randomness init 0.2  ; Randomness factor (0.0-1.0)
+
 
 ; Include the stateTransition.udo file
 #include "../udos/stateTransition.udo"

@@ -33,41 +33,60 @@ instr TestSimilarity
     
     ; Test Case 1: Identical contexts
     iTestBase1 = 0 
-    tabw_i 0.5, iTestBase1, gi_asp_transition_history     ; overlap
+    tabw_i 0.02, iTestBase1, gi_asp_transition_history     ; overlap
     tabw_i 0.6, iTestBase1+1, gi_asp_transition_history   ; spread
     tabw_i 0.7, iTestBase1+2, gi_asp_transition_history   ; centroid
     tabw_i 0.4, iTestBase1+3, gi_asp_transition_history   ; movement
     
     ; Test Case 2: Similar but not identical
     iTestBase2 = 10
-    tabw_i 0.55, iTestBase2, gi_asp_transition_history    ; slightly different
+    tabw_i 0.03, iTestBase2, gi_asp_transition_history    ; slightly different
     tabw_i 0.65, iTestBase2+1, gi_asp_transition_history  ; slightly different
     tabw_i 0.7, iTestBase2+2, gi_asp_transition_history   ; identical
     tabw_i 0.45, iTestBase2+3, gi_asp_transition_history  ; slightly different
     
     ; Test Case 3: Somewhat different
     iTestBase3 = 20
-    tabw_i 0.7, iTestBase3, gi_asp_transition_history     ; moderately different
+    tabw_i 0.08, iTestBase3, gi_asp_transition_history     ; moderately different
     tabw_i 0.4, iTestBase3+1, gi_asp_transition_history   ; moderately different
     tabw_i 0.8, iTestBase3+2, gi_asp_transition_history   ; moderately different
     tabw_i 0.3, iTestBase3+3, gi_asp_transition_history   ; moderately different
     
     ; Test Case 4: Very different
     iTestBase4 = 30
-    tabw_i 0.1, iTestBase4, gi_asp_transition_history     ; very different
+    tabw_i 0.01, iTestBase4, gi_asp_transition_history     ; very different
     tabw_i 0.9, iTestBase4+1, gi_asp_transition_history   ; very different
     tabw_i 0.2, iTestBase4+2, gi_asp_transition_history   ; very different
     tabw_i 0.8, iTestBase4+3, gi_asp_transition_history   ; very different
     
     ; Test Case 5: One critical feature exactly same, others different
     iTestBase5 = 40
-    tabw_i 0.1, iTestBase5, gi_asp_transition_history     ; very different
+    tabw_i 0.17, iTestBase5, gi_asp_transition_history     ; very different
     tabw_i 0.9, iTestBase5+1, gi_asp_transition_history   ; very different
     tabw_i 0.7, iTestBase5+2, gi_asp_transition_history   ; identical (centroid)
     tabw_i 0.8, iTestBase5+3, gi_asp_transition_history   ; very different
+
+       ; Test Case 6: Valori realistici per bassa sovrapposizione su scala 300
+       iTestBase6 = 50
+       tabw_i 0.03, iTestBase6, gi_asp_transition_history     ; ~10 eventi su scala 300
+       tabw_i 0.6, iTestBase6+1, gi_asp_transition_history    ; spread
+       tabw_i 0.7, iTestBase6+2, gi_asp_transition_history    ; centroid
+       tabw_i 0.4, iTestBase6+3, gi_asp_transition_history    ; movement
+       ; Test Case 7: Valori realistici per media sovrapposizione su scala 300
+       iTestBase7 = 60
+       tabw_i 0.10, iTestBase7, gi_asp_transition_history     ; ~30 eventi su scala 300
+       tabw_i 0.6, iTestBase7+1, gi_asp_transition_history    ; spread
+       tabw_i 0.7, iTestBase7+2, gi_asp_transition_history    ; centroid
+       tabw_i 0.4, iTestBase7+3, gi_asp_transition_history    ; movement
+       ; Test Case 8: Alta sovrapposizione su scala 300
+       iTestBase8 = 70
+       tabw_i 0.25, iTestBase8, gi_asp_transition_history     ; ~75 eventi su scala 300
+       tabw_i 0.6, iTestBase8+1, gi_asp_transition_history    ; spread
+       tabw_i 0.7, iTestBase8+2, gi_asp_transition_history    ; centroid
+       tabw_i 0.4, iTestBase8+3, gi_asp_transition_history    ; movement
     
     ; Set current context
-    tabw_i 0.5, 0, gi_asp_context_features  ; overlap
+    tabw_i 0.02, 0, gi_asp_context_features  ; overlap
     tabw_i 0.6, 1, gi_asp_context_features  ; spread
     tabw_i 0.7, 2, gi_asp_context_features  ; centroid
     tabw_i 0.4, 3, gi_asp_context_features  ; movement
@@ -87,13 +106,18 @@ instr TestSimilarity
     iSim3 calculateContextSimilarity iTestBase3
     iSim4 calculateContextSimilarity iTestBase4
     iSim5 calculateContextSimilarity iTestBase5
+    iSim6 calculateContextSimilarity iTestBase6
+    iSim7 calculateContextSimilarity iTestBase7
+    iSim8 calculateContextSimilarity iTestBase8
     
     prints "Test Case 1 (Identical): %.4f\n", iSim1
     prints "Test Case 2 (Slightly Different): %.4f\n", iSim2
     prints "Test Case 3 (Moderately Different): %.4f\n", iSim3
     prints "Test Case 4 (Very Different): %.4f\n", iSim4
     prints "Test Case 5 (One Feature Match): %.4f\n", iSim5
-    
+    prints "Test Case 6 (Bassa sovrapposizione ~10 eventi): %.4f\n", iSim6
+    prints "Test Case 7 (Media sovrapposizione ~30 eventi): %.4f\n", iSim7
+    prints "Test Case 8 (Alta sovrapposizione ~75 eventi): %.4f\n", iSim8
     ; Run detailed similarity test
     prints "\nDetailed similarity test:\n"
     prints "-------------------------\n"
@@ -101,6 +125,9 @@ instr TestSimilarity
     iResult1[], iOverall1 calculateContextSimilarityDetailed iTestBase1
     iResult2[], iOverall2 calculateContextSimilarityDetailed iTestBase2
     iResult5[], iOverall5 calculateContextSimilarityDetailed iTestBase5
+    iResult6[], iOverall6 calculateContextSimilarityDetailed iTestBase6
+    iResult7[], iOverall7 calculateContextSimilarityDetailed iTestBase7
+    iResult8[], iOverall8 calculateContextSimilarityDetailed iTestBase8
     
     prints "Test Case 1 (Identical):\n"
     prints "  Overall: %.4f\n", iResult1[0]
@@ -116,7 +143,21 @@ instr TestSimilarity
     prints "  Overall: %.4f\n", iResult5[0]
     prints "  Feature similarities: [%.4f, %.4f, %.4f, %.4f]\n",
            iResult5[1], iResult5[2], iResult5[3], iResult5[4]
+
+    prints "\nTest Case 6 (Bassa sovrapposizione ~10 eventi):\n"
+    prints "  Overall: %.4f\n", iResult6[0]
+    prints "  Feature similarities: [%.4f, %.4f, %.4f, %.4f]\n",
+       iResult6[1], iResult6[2], iResult6[3], iResult6[4]
     
+    prints "\nTest Case 7 (Media sovrapposizione ~30 eventi):\n"
+    prints "  Overall: %.4f\n", iResult7[0]
+    prints "  Feature similarities: [%.4f, %.4f, %.4f, %.4f]\n",
+       iResult7[1], iResult7[2], iResult7[3], iResult7[4]
+
+    prints "\nTest Case 8 (Alta sovrapposizione ~75 eventi):\n"
+    prints "  Overall: %.4f\n", iResult8[0]
+    prints "  Feature similarities: [%.4f, %.4f, %.4f, %.4f]\n",
+       iResult8[1], iResult8[2], iResult8[3], iResult8[4]
     ; Test different debug levels
     prints "\nTesting with different debug levels:\n"
     prints "-----------------------------------\n"

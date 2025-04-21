@@ -1,175 +1,39 @@
-UnifiedCSD:  test_adaptLearningRate.csd
+UnifiedCSD:  test_initTransitionMatrix.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
+instr TestInitMatrix uses instrument number 1
+Elapsed time at end of orchestra compile: real: 0.003s, CPU: 0.003s
+sorting score ...
+	... done
+Elapsed time at end of score sort: real: 0.003s, CPU: 0.003s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
+displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
-ftable 101:	4 points, scalemax 1000.000
-   _
-
-
-
-
-
-
-
-
-
-____
-ftable 102:	4 points, scalemax 1.001
-   _
-
-
-
-  '
-
-
-
- '
-
-____
-ftable 103:	4 points, scalemax 1.001
-   _
-
-
-
-
-
-  '
-
-
- '
-____
-ftable 104:	100 points, scalemax 0.000
-ftable 105:	100 points, scalemax 0.000
-ftable 106:	100 points, scalemax 0.000
-ftable 107:	100 points, scalemax 0.000
-ftable 108:	100 points, scalemax 0.000
-ftable 109:	100 points, scalemax 0.000
-ftable 110:	100 points, scalemax 0.000
-ftable 111:	100 points, scalemax 0.000
-ftable 112:	100 points, scalemax 0.000
-ftable 113:	700 points, scalemax 0.000
-ftable 114:	729 points, scalemax 0.000
-ftable 115:	10 points, scalemax 0.000
-ftable 116:	24 points, scalemax 0.000
+ftable 101:
+ftable 102:
+ftable 103:
+ftable 104:
+orch now loaded
 audio buffered in 1024 sample-frame blocks
 not writing to sound disk
 SECTION 1:
-
-=== Testing adaptLearningRate ===
-Initial learning rate: 0.100
-
-DEBUG: Verifica di alcune transizioni memorizzate:
-DEBUG: Transition 0 at position 29 has quality 0.90
-DEBUG: Transition 1 at position 28 has quality 0.90
-DEBUG: Transition 2 at position 27 has quality 0.90
-DEBUG: Transition 3 at position 26 has quality 0.90
-DEBUG: Transition 4 at position 25 has quality 0.90
-
-Calling adaptLearningRate with target quality of 0.75 (recent quality=0.9):
-
-DEBUG adaptLearningRate internals:
-Looking at 15 recent transitions (out of 30 total)
-  Examining transition at idx=0, actual_pos=29, quality=0.90
-  Examining transition at idx=1, actual_pos=28, quality=0.90
-  Examining transition at idx=2, actual_pos=27, quality=0.90
-  Examining transition at idx=3, actual_pos=26, quality=0.90
-  Examining transition at idx=4, actual_pos=25, quality=0.90
-  Examining transition at idx=5, actual_pos=24, quality=0.90
-  Examining transition at idx=6, actual_pos=23, quality=0.90
-  Examining transition at idx=7, actual_pos=22, quality=0.90
-  Examining transition at idx=8, actual_pos=21, quality=0.90
-  Examining transition at idx=9, actual_pos=20, quality=0.90
-  Examining transition at idx=10, actual_pos=19, quality=0.90
-  Examining transition at idx=11, actual_pos=18, quality=0.90
-  Examining transition at idx=12, actual_pos=17, quality=0.90
-  Examining transition at idx=13, actual_pos=16, quality=0.90
-  Examining transition at idx=14, actual_pos=15, quality=0.90
-Total Quality: 13.50, Count: 15, Average: 0.90
-
-Adjusted learning rate: 0.10 → 0.09 (quality=0.90 vs target=0.75)
-New learning rate: 0.090
-Expected: learning rate should decrease since recent transitions have higher quality than target
-
-Resetting learning rate to 0.1 and testing with target quality of 0.95:
-
-DEBUG adaptLearningRate internals:
-Looking at 15 recent transitions (out of 30 total)
-  Examining transition at idx=0, actual_pos=29, quality=0.90
-  Examining transition at idx=1, actual_pos=28, quality=0.90
-  Examining transition at idx=2, actual_pos=27, quality=0.90
-  Examining transition at idx=3, actual_pos=26, quality=0.90
-  Examining transition at idx=4, actual_pos=25, quality=0.90
-  Examining transition at idx=5, actual_pos=24, quality=0.90
-  Examining transition at idx=6, actual_pos=23, quality=0.90
-  Examining transition at idx=7, actual_pos=22, quality=0.90
-  Examining transition at idx=8, actual_pos=21, quality=0.90
-  Examining transition at idx=9, actual_pos=20, quality=0.90
-  Examining transition at idx=10, actual_pos=19, quality=0.90
-  Examining transition at idx=11, actual_pos=18, quality=0.90
-  Examining transition at idx=12, actual_pos=17, quality=0.90
-  Examining transition at idx=13, actual_pos=16, quality=0.90
-  Examining transition at idx=14, actual_pos=15, quality=0.90
-Total Quality: 13.50, Count: 15, Average: 0.90
-
-Learning rate stable at 0.10 (quality=0.90 vs target=0.95)
-New learning rate: 0.100
-Expected: learning rate should increase since recent transitions have lower quality than target
-
-=== Test completed ===
-
-=== Testing recordCurrentState and adaptLearningRate integration ===
-Calling recordCurrentState with overlap=5, spread=0.6, movement=0.3
-Density thresholds: [0.000000, 3.000000, 7.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-recordCurrentState: Current musical parameters [5.00, 0.60, 0.30] -> State [1, 1, 1]
-
-DEBUG: Verifica delle transizioni memorizzate (prime e ultime 3):
-DEBUG: Recent transition 0 at position 29 has quality 0.90
-DEBUG: Recent transition 1 at position 28 has quality 0.90
-DEBUG: Recent transition 2 at position 27 has quality 0.90
-DEBUG: Older transition 27 at position 2 has quality 0.50
-DEBUG: Older transition 28 at position 1 has quality 0.50
-DEBUG: Older transition 29 at position 0 has quality 0.50
-
-Calling adaptLearningRate with target=0.7 (media qualità circa 0.7-0.8):
-
-DEBUG adaptLearningRate internals:
-Looking at 15 recent transitions (out of 30 total)
-  Examining transition at idx=0, actual_pos=29, quality=0.90
-  Examining transition at idx=1, actual_pos=28, quality=0.90
-  Examining transition at idx=2, actual_pos=27, quality=0.90
-  Examining transition at idx=3, actual_pos=26, quality=0.90
-  Examining transition at idx=4, actual_pos=25, quality=0.90
-  Examining transition at idx=5, actual_pos=24, quality=0.90
-  Examining transition at idx=6, actual_pos=23, quality=0.90
-  Examining transition at idx=7, actual_pos=22, quality=0.90
-  Examining transition at idx=8, actual_pos=21, quality=0.90
-  Examining transition at idx=9, actual_pos=20, quality=0.90
-  Examining transition at idx=10, actual_pos=19, quality=0.70
-  Examining transition at idx=11, actual_pos=18, quality=0.70
-  Examining transition at idx=12, actual_pos=17, quality=0.70
-  Examining transition at idx=13, actual_pos=16, quality=0.70
-  Examining transition at idx=14, actual_pos=15, quality=0.70
-Total Quality: 12.50, Count: 15, Average: 0.83
-
-Adjusted learning rate: 0.10 → 0.09 (quality=0.83 vs target=0.70)
-
-Calling recordCurrentState with changed parameters (overlap=2, spread=0.3, movement=0.8)
-Density thresholds: [0.000000, 3.000000, 7.000000, 1000.000000]
-Register thresholds: [0.000000, 0.300000, 0.700000, 1.001000]
-Movement thresholds: [0.000000, 0.200000, 0.500000, 1.001000]
-recordCurrentState: Current musical parameters [2.00, 0.30, 0.80] -> State [0, 1, 2]
-
-Integration test completed
-Final state: density=0, register=1, movement=2
-Learning rate: 0.090
+new alloc for instr TestInitMatrix:
+Testing initTransitionMatrix...
+Probability of staying in state (0,0,0): 0.074
+Probability of state (0,0,0) → (0,0,1): 0.056
+Probability of state (0,0,0) → (1,1,0): 0.019
+Probability of state (0,0,0) → (2,2,2): 0.019
+Sum of probabilities for state (0,0,0): 1.000000
+Sum of probabilities for state (1,1,0): 1.000000
+B  0.000 ..  0.100 T  0.100 TT  0.100 M:  0.00000  0.00000
 Score finished in csoundPerform().
+inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
+Elapsed time at end of performance: real: 0.004s, CPU: 0.003s
+no sound written to disk
