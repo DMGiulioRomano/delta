@@ -1,39 +1,91 @@
-UnifiedCSD:  test_initTransitionMatrix.csd
+UnifiedCSD:  test_predictNextState.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
-instr TestInitMatrix uses instrument number 1
-Elapsed time at end of orchestra compile: real: 0.003s, CPU: 0.003s
+Elapsed time at end of orchestra compile: real: 0.007s, CPU: 0.007s
 sorting score ...
 	... done
-Elapsed time at end of score sort: real: 0.003s, CPU: 0.003s
+Elapsed time at end of score sort: real: 0.007s, CPU: 0.007s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
 displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
+WARNING: Seeding from current time 3051425103
+
 ftable 101:
 ftable 102:
 ftable 103:
-ftable 104:
 orch now loaded
 audio buffered in 1024 sample-frame blocks
 not writing to sound disk
 SECTION 1:
-new alloc for instr TestInitMatrix:
-Testing initTransitionMatrix...
-Probability of staying in state (0,0,0): 0.074
-Probability of state (0,0,0) → (0,0,1): 0.056
-Probability of state (0,0,0) → (1,1,0): 0.019
-Probability of state (0,0,0) → (2,2,2): 0.019
-Sum of probabilities for state (0,0,0): 1.000000
-Sum of probabilities for state (1,1,0): 1.000000
+new alloc for instr 1:
+
+======= TEST DI predictNextState =======
+
+Inizializzazione della matrice di transizione...
+Matrice di transizione inizializzata.
+
+Popolamento della storia delle transizioni...
+Buffer di storia popolato con 15 transizioni.
+Stato corrente: [1,0,1] (indice 10)
+
+TEST 1: Predizione basata su storia e similarità di contesto
+---------------------------------------------------------
+ftable 104:
+ftable 105:
+
+Analyzing historical transitions for state 10 and current context:
+  Transition 5: similarity=0.3883, quality=0.84, influence=0.0126 on state 13
+  Transition 10: similarity=0.9455, quality=0.90, influence=0.0805 on state 13
+
+Statistics: Found 2 matching transitions, 2 influential (100.0%), 1 high similarity
+
+Top state candidates after normalization:
+  Candidate 1: State [1,0,1] (idx 10): probability = 0.0737
+  Candidate 2: State [1,1,1] (idx 13): probability = 0.0605
+  Candidate 3: State [0,0,1] (idx 1): probability = 0.0553
+  Candidate 4: State [1,0,0] (idx 9): probability = 0.0553
+  Candidate 5: State [1,0,2] (idx 11): probability = 0.0553
+Selected next state [1,0,2] with probability 0.0553
+
+Stato predetto: [1,0,2]
+
+TEST 2: Predizione con dati storici insufficienti
+-----------------------------------------------
+Not enough historical data (5 transitions), using standard transition matrix
+
+Stato predetto (con pochi dati): [0,0,0]
+
+TEST 3: Predizione con diverso contesto musicale
+-----------------------------------------------
+ftable 106:
+ftable 107:
+
+Analyzing historical transitions for state 10 and current context:
+  Transition 5: similarity=0.5273, quality=0.84, influence=0.0233 on state 13
+  Transition 10: similarity=0.8471, quality=0.90, influence=0.0646 on state 13
+
+Statistics: Found 2 matching transitions, 2 influential (100.0%), 1 high similarity
+
+Top state candidates after normalization:
+  Candidate 1: State [1,0,1] (idx 10): probability = 0.0737
+  Candidate 2: State [1,1,1] (idx 13): probability = 0.0602
+  Candidate 3: State [0,0,1] (idx 1): probability = 0.0553
+  Candidate 4: State [1,0,0] (idx 9): probability = 0.0553
+  Candidate 5: State [1,0,2] (idx 11): probability = 0.0553
+Selected next state [1,1,1] with probability 0.0602
+
+Stato predetto (con contesto diverso): [1,1,1]
+
+======= TEST COMPLETATO =======
 B  0.000 ..  0.100 T  0.100 TT  0.100 M:  0.00000  0.00000
 Score finished in csoundPerform().
 inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
-Elapsed time at end of performance: real: 0.004s, CPU: 0.003s
+Elapsed time at end of performance: real: 0.008s, CPU: 0.008s
 no sound written to disk
