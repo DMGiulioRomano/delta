@@ -1,142 +1,48 @@
-UnifiedCSD:  test_updateTransitionMatrix.csd
+UnifiedCSD:  test_detectPatternsAndAdapt.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
-instr InitMatrix uses instrument number 1
-instr TestUpdate uses instrument number 2
-instr PrintMatrix uses instrument number 3
-instr CheckLogFile uses instrument number 4
-Elapsed time at end of orchestra compile: real: 0.004s, CPU: 0.004s
-sorting score ...
-	... done
-Elapsed time at end of score sort: real: 0.004s, CPU: 0.004s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
-displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
-ftable 101:
-orch now loaded
+ftable 101:	729 points, scalemax 0.000
+ftable 102:	700 points, scalemax 0.000
 audio buffered in 1024 sample-frame blocks
-PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
-   0: dac0 (BlackHole 2ch [Core Audio, 2 in, 2 out])
-   1: dac1 (BlackHole 64ch [Core Audio, 64 in, 64 out])
-   2: dac2 (MacBook Pro Speakers [Core Audio, 0 in, 2 out])
-   3: dac3 (ZoomAudioDevice [Core Audio, 2 in, 2 out])
-   4: dac4 (PonteOhYeah [Core Audio, 64 in, 64 out])
-   5: dac5 (Aggregate Device 2 [Core Audio, 2 in, 2 out])
-   6: dac6 (pontediMessina [Core Audio, 0 in, 2 out])
-   7: dac7 (Multi-Output Device [Core Audio, 0 in, 2 out])
-PortAudio: selected output device 'MacBook Pro Speakers'
-writing 2048 sample blks of 64-bit floats to dac
+writing 4096-byte blks of shorts to test.aif (AIFF)
 SECTION 1:
-new alloc for instr InitMatrix:
-Matrice inizializzata con valori uniformi
-B  0.000 ..  1.000 T  1.000 TT  1.000 M:  0.00000  0.00000
-new alloc for instr TestUpdate:
 
-Test di aggiornamento: [0,0,0] a [1,0,0] con qualità 0.90
-Probabilità attuale: 0.0366
-Matrice di transizione aggiornata: [0,0,0] a [1,0,0], prob: 0.0366 → 0.0966
-Nuova probabilità: 0.0911
-Differenza: 0.0545
-B  1.000 ..  2.000 T  2.000 TT  2.000 M:  0.00000  0.00000
+=== TEST 1: Pattern Alternato [5,7,5,7,5,7] ===
+Probabilità prima della rilevazione: 0.3418
+Transizioni lette in ordine cronologico: [7, 5, 7, 5, 7, 0, 7, 7, 7, 7]
+Detected repeating pattern of length 2 in transitions
+Adding randomness to transition matrix to break pattern
+Trovato stato corrente 7 in posizione 0, seguito da 5
+Riducendo probabilità 7->5 da 0.3418 a 0.2392
+Somma probabilità prima norm: 0.8975
+Probabilità dopo la rilevazione: 0.2666
+TEST SUPERATO: Pattern rilevato, probabilità ridotta
 
-Test di aggiornamento: [0,0,0] a [1,0,0] con qualità 0.80
-Probabilità attuale: 0.0911
-Matrice di transizione aggiornata: [0,0,0] a [1,0,0], prob: 0.0911 → 0.1211
-Nuova probabilità: 0.1176
-Differenza: 0.0265
-B  2.000 ..  3.000 T  3.000 TT  3.000 M:  0.00000  0.00000
-new alloc for instr PrintMatrix:
+=== TEST 2: Sequenza Senza Pattern ===
+Probabilità iniziale verso stato 10: 0.0370
+Transizioni lette in ordine cronologico: [8, 12, 15, 3, 9, 22, 14, 6, 11, 17]
+Probabilità dopo tentativo di rilevazione: 0.0370
+TEST SUPERATO: Nessun pattern rilevato, matrice invariata
 
-Matrice di Transizione Parziale (righe 0 a 2):
-----------------------------------------------
-Stato [0,0,0] (0) transizioni:
-  Transizioni più probabili: [1,0,0]=0.118 [0,0,0]=0.045 [0,0,1]=0.033 [0,0,2]=0.033 [0,1,0]=0.033 
-Stato [0,0,1] (1) transizioni:
-  Transizioni più probabili: [0,0,1]=0.049 [0,0,0]=0.037 [0,0,2]=0.037 [0,1,0]=0.037 [0,1,1]=0.037 
-Stato [0,0,2] (2) transizioni:
-  Transizioni più probabili: [0,0,2]=0.049 [0,0,0]=0.037 [0,0,1]=0.037 [0,1,0]=0.037 [0,1,1]=0.037 
-----------------------------------------------
-B  3.000 ..  4.000 T  4.000 TT  4.000 M:  0.00000  0.00000
-
-Test di aggiornamento: [0,0,0] a [0,1,0] con qualità 0.50
-Probabilità attuale: 0.0335
-Matrice di transizione aggiornata: [0,0,0] a [0,1,0], prob: 0.0335 → 0.0335
-Nuova probabilità: 0.0335
-Differenza: 0.0000
-B  4.000 ..  5.000 T  5.000 TT  5.000 M:  0.00000  0.00000
-
-Matrice di Transizione Parziale (righe 0 a 2):
-----------------------------------------------
-Stato [0,0,0] (0) transizioni:
-  Transizioni più probabili: [1,0,0]=0.118 [0,0,0]=0.045 [0,0,1]=0.033 [0,0,2]=0.033 [0,1,0]=0.033 
-Stato [0,0,1] (1) transizioni:
-  Transizioni più probabili: [0,0,1]=0.049 [0,0,0]=0.037 [0,0,2]=0.037 [0,1,0]=0.037 [0,1,1]=0.037 
-Stato [0,0,2] (2) transizioni:
-  Transizioni più probabili: [0,0,2]=0.049 [0,0,0]=0.037 [0,0,1]=0.037 [0,1,0]=0.037 [0,1,1]=0.037 
-----------------------------------------------
-B  5.000 ..  6.000 T  6.000 TT  6.000 M:  0.00000  0.00000
-
-Test di aggiornamento: [0,0,0] a [0,0,1] con qualità 0.20
-Probabilità attuale: 0.0335
-Matrice di transizione aggiornata: [0,0,0] a [0,0,1], prob: 0.0335 → 0.0185
-Nuova probabilità: 0.0188
-Differenza: -0.0147
-B  6.000 ..  7.000 T  7.000 TT  7.000 M:  0.00000  0.00000
-
-Matrice di Transizione Parziale (righe 0 a 2):
-----------------------------------------------
-Stato [0,0,0] (0) transizioni:
-  Transizioni più probabili: [1,0,0]=0.119 [0,0,0]=0.046 [0,0,2]=0.034 [0,1,0]=0.034 [0,1,1]=0.034 
-Stato [0,0,1] (1) transizioni:
-  Transizioni più probabili: [0,0,1]=0.049 [0,0,0]=0.037 [0,0,2]=0.037 [0,1,0]=0.037 [0,1,1]=0.037 
-Stato [0,0,2] (2) transizioni:
-  Transizioni più probabili: [0,0,2]=0.049 [0,0,0]=0.037 [0,0,1]=0.037 [0,1,0]=0.037 [0,1,1]=0.037 
-----------------------------------------------
-B  7.000 ..  8.000 T  8.000 TT  8.000 M:  0.00000  0.00000
-
-Test di aggiornamento: [1,1,1] a [2,2,2] con qualità 0.90
-Probabilità attuale: 0.0366
-Matrice di transizione aggiornata: [1,1,1] a [2,2,2], prob: 0.0366 → 0.0966
-Nuova probabilità: 0.0911
-Differenza: 0.0545
-B  8.000 ..  9.000 T  9.000 TT  9.000 M:  0.00000  0.00000
-
-Matrice di Transizione Parziale (righe 13 a 15):
-----------------------------------------------
-Stato [1,1,1] (13) transizioni:
-  Transizioni più probabili: [2,2,2]=0.091 [1,1,1]=0.047 [0,0,0]=0.034 [0,0,1]=0.034 [0,0,2]=0.034 
-Stato [1,1,2] (14) transizioni:
-  Transizioni più probabili: [1,1,2]=0.049 [0,0,0]=0.037 [0,0,1]=0.037 [0,0,2]=0.037 [0,1,0]=0.037 
-Stato [1,2,0] (15) transizioni:
-  Transizioni più probabili: [1,2,0]=0.049 [0,0,0]=0.037 [0,0,1]=0.037 [0,0,2]=0.037 [0,1,0]=0.037 
-----------------------------------------------
-B  9.000 .. 10.000 T 10.000 TT 10.000 M:  0.00000  0.00000
-INIT ERROR in instr 2 (opcode tab_i) line 164: tab_i off end: table number: 101
-
- from file test_updateTransitionMatrix.csd (1),iCurrentProb	tab_i	#i9	gi_transition_matrix	0	
-	  B 10.000 - note deleted.  i2 (TestUpdate) had 0 init errors
-B 10.000 .. 11.000 T 11.000 TT 11.000 M:  0.00000  0.00000
-
-Test di aggiornamento: [0,0,0] a [3,0,0] con qualità 0.80
-Probabilità attuale: 0.0366
-ERRORE: Indici di stato non validi in updateTransitionMatrix (0,27)
-Nuova probabilità: 0.0366
-Differenza: 0.0000
-B 11.000 .. 12.000 T 12.000 TT 12.000 M:  0.00000  0.00000
-new alloc for instr CheckLogFile:
-
-Verifica file di log...
-File CSV creato correttamente: docs/analysis/learning_events.csv
-B 12.000 .. 12.100 T 12.100 TT 12.100 M:  0.00000  0.00000
+=== TEST 3: Transizioni Insufficienti ===
+Probabilità iniziale verso stato 1: 0.3418
+Transizioni lette in ordine cronologico: [1, 1, 1, 1, 1, 1, 1, 1]
+Detected repeating pattern of length 2 in transitions
+Adding randomness to transition matrix to break pattern
+Trovato stato corrente 1 in posizione 0, seguito da 1
+Trovato stato corrente 1 in posizione 1, seguito da 1
+Riducendo probabilità 1->1 da 0.3418 a 0.2392
+Somma probabilità prima norm: 0.8975
+Probabilità dopo tentativo di rilevazione: 0.2666
+TEST FALLITO: Matrice modificata nonostante dati insufficienti
 Score finished in csoundPerform().
-inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
-1 errors in performance
-Elapsed time at end of performance: real: 12.217s, CPU: 0.112s
-closing device
-522 2048 sample blks of 64-bit floats written to dac
+0 errors in performance
+2048 4096 sample blks of shorts written to test.aif (AIFF)
