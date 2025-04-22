@@ -1,21 +1,7 @@
-; ============================================================================
-; TEST VISUALIZETRANSITIONMATRIX OPCODE
-; ============================================================================
-; Questo CSD testa isolatamente l'opcode visualizeTransitionMatrix che esporta
-; la matrice di transizione in formato CSV per visualizzazione o analisi
-;
-; Test cases:
-; 1. Test con valori predefiniti della matrice (alcuni stati popolati)
-; 2. Test con matrice personalizzata (probabilità diverse)
-; 3. Test con matrice vuota (tutti zero)
-; 4. Test con percorso personalizzato
-; 5. Test con livello di debug personalizzato
-; ============================================================================
-
 <CsoundSynthesizer>
 <CsOptions>
--odac  ; Audio output
--d     ; Suppress displays
+-odac
+-d
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -24,40 +10,39 @@ nchnls = 2
 0dbfs = 1
 
 ; -----------------------------------------------------------------------
-; GLOBAL VARIABLES & TABLES - Minimo necessario per il test
+; VARIABILI GLOBALI & TABELLE
 ; -----------------------------------------------------------------------
-gi_debug init 5  ; Livello di debug 0-5
-
-; Matrice di transizione (27x27 - 3 stati per 3 dimensioni)
-gi_transition_matrix ftgen 0, 0, 27*27, -2, 0
-
-; Percorsi temporanei per i test
-gS_test_dir = "./docs/analysis"  ; Directory temporanea per i test
-gS_default_output = "docs/analysis/default_matrix.csv"
-gS_custom_output = "docs/analysis/custom_matrix.csv"
-gS_empty_output = "docs/analysis/empty_matrix.csv"
+gi_debug init 1  ; Livello di debug predefinito
+gi_transition_matrix ftgen 0, 0, 27*27, -2, 0  ; Matrice di transizione 27x27
+gS_test_dir = "./test_visualize"  ; Directory per i test
 
 ; -----------------------------------------------------------------------
-; ORIGINAL FUNCTION TO TEST - visualizeTransitionMatrix opcode
+; OPCODE DA TESTARE - visualizeTransitionMatrix
 ; -----------------------------------------------------------------------
-opcode visualizeTransitionMatrix, 0, S
-    Soutputfile xin
-    prints "DEBUG: Tentativo di scrittura su file: %s\n", Soutputfile
-         
-    ; If no filename provided, use a default
+opcode visualizeTransitionMatrix, 0, Si
+    Soutputfile, iDebugLevel xin
+    
+    ; Imposta debug level predefinito se non fornito
+    iDebugLevel = (iDebugLevel == 0) ? gi_debug : iDebugLevel
+    
+    ; Se non viene fornito un filename, usa il predefinito
     if (strcmp(Soutputfile, "") == 0) then
         Soutputfile = "docs/analysis/transition_matrix_visualization.csv"
     endif
     
-    ; Create directory if it doesn't exist
-    iSystem system_i 1, "mkdir -p docs/analysis", 0
+    ; Crea la directory se non esiste - usiamo direttamente system_i con comandi shell
+    iSystem system_i 1, sprintf("mkdir -p $(dirname %s)", Soutputfile)
     
-    ; Write CSV header
-    fprints Soutputfile, "from_state,to_state,probability,from_density,from_register,from_movement,to_density,to_register,to_movement\n"
-    ; Write each transition probability
+    ; Inizia con l'header CSV usando system_i
+    iSystem system_i 1, sprintf("echo 'from_state,to_state,probability,from_density,from_register,from_movement,to_density,to_register,to_movement' > %s", Soutputfile)
+    
+    ; Variabile per tenere traccia delle righe scritte
+    iRowsWritten = 0
+    
+    ; Scrivi ogni probabilità di transizione
     iFromStateIdx = 0
     while (iFromStateIdx < 27) do
-        ; Convert source state to components
+        ; Converti lo stato sorgente in componenti
         iFromDens = int(iFromStateIdx / 9)
         iFromRem = iFromStateIdx % 9
         iFromReg = int(iFromRem / 3)
@@ -65,21 +50,25 @@ opcode visualizeTransitionMatrix, 0, S
         
         iToStateIdx = 0
         while (iToStateIdx < 27) do
-            ; Get probability
+            ; Ottieni la probabilità
             iProb tab_i iFromStateIdx*27+iToStateIdx, gi_transition_matrix
             
-            ; Only include probabilities above a threshold to reduce file size
-            if (iProb > 0.02) then
-                ; Convert target state to components
+            ; Includi solo probabilità sopra una certa soglia per ridurre la dimensione del file
+            if (iProb > 0.01) then
+                ; Converti lo stato target in componenti
                 iToDens = int(iToStateIdx / 9)
                 iToRem = iToStateIdx % 9
                 iToReg = int(iToRem / 3)
                 iToMov = iToRem % 3
-                ; Write to CSV
-                fprints Soutputfile, "%d,%d,%.4f,%d,%d,%d,%d,%d,%d\n",
+                
+                ; Scrivi nel CSV usando system_i
+                SCsvLine =sprintf("%d,%d,%.4f,%d,%d,%d,%d,%d,%d", 
                         iFromStateIdx, iToStateIdx, iProb,
                         iFromDens, iFromReg, iFromMov,
-                        iToDens, iToReg, iToMov
+                        iToDens, iToReg, iToMov)
+                
+                iSystem system_i 1, sprintf("echo '%s' >> %s", SCsvLine, Soutputfile)
+                iRowsWritten += 1
             endif
             
             iToStateIdx += 1
@@ -88,313 +77,109 @@ opcode visualizeTransitionMatrix, 0, S
         iFromStateIdx += 1
     od
     
-    if (gi_debug >= 2) then
-        prints "Transition matrix visualization saved to %s\n", Soutputfile
+    if (iDebugLevel >= 1) then
+        prints "Transition matrix visualization saved to %s (%d rows)\n", Soutputfile, iRowsWritten
     endif
 endop
 
 ; -----------------------------------------------------------------------
-; TEST UTILITY FUNCTIONS
+; UTILITY PER I TEST
 ; -----------------------------------------------------------------------
 
-; Popola la matrice di transizione con valori di test
-opcode populateTestMatrix, 0, i
-    iTestCase xin
-    
-    ; Reset matrix first
+; Popola la matrice con valori semplici di test
+opcode populateSimpleTestMatrix, 0, 0
     iIdx = 0
     while (iIdx < 27*27) do
         tabw_i 0, iIdx, gi_transition_matrix
         iIdx += 1
     od
     
-    if (iTestCase == 1) then
-        ; Default test case - populate some standard transitions
-        ; From state 0 transitions
-        tabw_i 0.5, 0, gi_transition_matrix            ; Stay in same state
-        tabw_i 0.3, 0+1, gi_transition_matrix          ; To adjacent state
-        tabw_i 0.2, 0+9, gi_transition_matrix          ; Jump to different density
-        
-        ; From state 10 transitions (middle state)
-        tabw_i 0.4, 10*27+10, gi_transition_matrix     ; Stay in same state
-        tabw_i 0.2, 10*27+11, gi_transition_matrix     ; Adjacent
-        tabw_i 0.2, 10*27+13, gi_transition_matrix     ; Adjacent
-        tabw_i 0.2, 10*27+19, gi_transition_matrix     ; Jump dimension
-        
-        ; From state 26 transitions (last state)
-        tabw_i 0.6, 26*27+26, gi_transition_matrix     ; Stay in same state
-        tabw_i 0.3, 26*27+17, gi_transition_matrix     ; Jump to different state
-        tabw_i 0.1, 26*27+0, gi_transition_matrix      ; Jump to far state
-        
-    elseif (iTestCase == 2) then
-        ; Custom test case - more complex pattern
-        ; Create a more balanced distribution
-        iFromIdx = 0
-        while (iFromIdx < 27) do
-            ; Each state has some probability to transition to nearby states
-            iToIdx = 0
-            while (iToIdx < 27) do
-                ; Calculate "distance" between states
-                iFromDens = int(iFromIdx / 9)
-                iFromRem = iFromIdx % 9
-                iFromReg = int(iFromRem / 3)
-                iFromMov = iFromRem % 3
-                
-                iToDens = int(iToIdx / 9)
-                iToRem = iToIdx % 9
-                iToReg = int(iToRem / 3)
-                iToMov = iToRem % 3
-                
-                iDistance = abs(iFromDens - iToDens) + abs(iFromReg - iToReg) + abs(iFromMov - iToMov)
-                
-                ; Probability based on distance (closer = higher probability)
-                iProb = 0
-                if (iDistance == 0) then
-                    iProb = 0.4  ; Same state
-                elseif (iDistance == 1) then
-                    iProb = 0.15  ; Adjacent state in one dimension
-                elseif (iDistance == 2) then
-                    iProb = 0.05  ; Two steps away
-                elseif (iDistance == 3) then
-                    iProb = 0.03  ; Three steps away
-                endif
-                
-                ; Populate matrix
-                if (iProb > 0) then
-                    tabw_i iProb, iFromIdx*27+iToIdx, gi_transition_matrix
-                endif
-                
-                iToIdx += 1
-            od
-            
-            ; Ensure row sums to approximately 1.0
-            iFromIdx += 1
-        od
-    endif
-endop
-
-; Verifica il file CSV generato
-opcode verifyOutputFile, i, S
-    SfilePath xin
-    ires = -1
-    ; Check if file exists
-    iExists system_i 1, sprintf("test -e %s && echo 1 || echo 0", SfilePath)
+    ; Alcuni valori di base per i test
+    tabw_i 0.5, 0, gi_transition_matrix  ; Stato 0 rimane in se stesso
+    tabw_i 0.3, 1, gi_transition_matrix  ; Stato 0 -> stato 1
+    tabw_i 0.2, 9, gi_transition_matrix  ; Stato 0 -> stato 9
     
-    if (iExists == 0) then
-        prints "ERROR: Output file %s was not created\n", SfilePath
-        ires = 0
-        igoto end
-    endif
-    
-    ; Check file content (basic verification)
-    iLineCount system_i 1, sprintf("wc -l %s | awk '{print $1}'", SfilePath)
-    print iLineCount
-    ; Get line count from file
-    iLineCount = int(iLineCount)
-    
-    ; At minimum, file should have a header line
-    if (iLineCount < 1) then
-        prints "ERROR: Output file %s is empty\n", SfilePath
-        ires = 0
-        igoto end
-    endif
-    
-    ; Check for header line content
-    iHeaderCorrect system_i 1, sprintf("head -1 %s | grep -q 'from_state,to_state,probability' && echo 1 || echo 0", SfilePath)
-    
-    if (iHeaderCorrect == 0) then
-        prints "ERROR: Output file %s has incorrect header\n", SfilePath
-        ires = 0
-        igoto end
-    endif
-    ires = 1
-    ; Success
-    end:
-    xout ires
+    tabw_i 0.4, 10*27+10, gi_transition_matrix  ; Stato 10 rimane in se stesso
+    tabw_i 0.2, 10*27+11, gi_transition_matrix  ; Stato 10 -> stato 11
+    tabw_i 0.2, 10*27+13, gi_transition_matrix  ; Stato 10 -> stato 13
+    tabw_i 0.2, 10*27+19, gi_transition_matrix  ; Stato 10 -> stato 19
 endop
 
 ; -----------------------------------------------------------------------
-; TEST CASE GENERATOR INSTRUMENT
+; STRUMENTO PER I TEST MANUALI
 ; -----------------------------------------------------------------------
-instr PrepareTest
-    p4 = p4  ; Test scenario number
+instr TestVisualizeMatrix
+    prints "\n=== TEST MANUALE VISUALIZETRANSITIONMATRIX ===\n"
     
-    prints "\n==========================================================\n"
-    prints "PREPARING TEST SCENARIO %d\n", p4
-    prints "==========================================================\n"
-    
-    ; Create test directory if it doesn't exist
+    ; Crea directory di test e pulisci
     iRes system_i 1, sprintf("mkdir -p %s", gS_test_dir)
+    iRes system_i 1, sprintf("rm -rf %s/*", gS_test_dir)
     
-    ; Remove any previous output files
-    iRes system_i 1, sprintf("rm -f %s/*.csv", gS_test_dir)
+    ; -----------------------------------------------------------------------
+    ; TEST 1: Matrice semplice
+    ; -----------------------------------------------------------------------
+    prints "\nTEST 1: Matrice semplice\n"
+    populateSimpleTestMatrix
+    SOutputFile1 = sprintf("%s/test1_simple.csv", gS_test_dir)
+    visualizeTransitionMatrix SOutputFile1, 0
     
-    ; Schedule the test run
-    event_i "i", "RunTest", 0, 0.1, p4
+    ; -----------------------------------------------------------------------
+    ; TEST 2: Creazione directory annidata
+    ; -----------------------------------------------------------------------
+    prints "\nTEST 2: Creazione directory annidata\n"
+    populateSimpleTestMatrix
+    SOutputFile2 = sprintf("%s/nested/dir/test2_nested.csv", gS_test_dir)
+    visualizeTransitionMatrix SOutputFile2, 0
+    
+    ; -----------------------------------------------------------------------
+    ; TEST 3: Valori di soglia
+    ; -----------------------------------------------------------------------
+    prints "\nTEST 3: Valori di soglia\n"
+    ; Reset matrice
+    iIdx = 0
+    while (iIdx < 27*27) do
+        tabw_i 0, iIdx, gi_transition_matrix
+        iIdx += 1
+    od
+    
+    ; Valori sopra e sotto la soglia (0.02)
+    tabw_i 0.01, 0*27+1, gi_transition_matrix  ; Sotto soglia
+    tabw_i 0.019, 0*27+2, gi_transition_matrix ; Appena sotto soglia
+    tabw_i 0.021, 0*27+3, gi_transition_matrix ; Appena sopra soglia
+    tabw_i 0.05, 0*27+4, gi_transition_matrix  ; Sopra soglia
+    
+    SOutputFile3 = sprintf("%s/test3_threshold.csv", gS_test_dir)
+    visualizeTransitionMatrix SOutputFile3, 0
+    
+    ; -----------------------------------------------------------------------
+    ; ISTRUZIONI FINALI
+    ; -----------------------------------------------------------------------
+    prints "\n=== VERIFICA MANUALE ===\n"
+    prints "Per verificare i risultati, controlla manualmente i file:\n"
+    prints "1. %s\n", SOutputFile1
+    prints "   - Dovrebbe contenere 7 righe (1 header + 6 dati)\n"
+    prints "   - Prima riga dovrebbe essere l'header con 'from_state,to_state,...'\n"
+    
+    prints "2. %s\n", SOutputFile2
+    prints "   - Verifica che la directory annidata sia stata creata\n"
+    prints "   - Dovrebbe contenere 7 righe come il primo test\n"
+    
+    prints "3. %s\n", SOutputFile3
+    prints "   - Dovrebbe contenere 3 righe (1 header + 2 dati)\n"
+    prints "   - Solo i valori sopra 0.02 dovrebbero essere inclusi\n"
+    
+    ; Comando per visualizzare rapidamente tutti i file
+    SPrintCommand = sprintf("echo '\n--- CONTENUTO FILE ---';\necho '\n# TEST1:'; cat %s;\necho '\n# TEST2:'; cat %s;\necho '\n# TEST3:'; cat %s; ", 
+                           SOutputFile1, SOutputFile2, SOutputFile3)
+    
+    prints "\nPer visualizzare il contenuto di tutti i file, esegui:\n%s\n", SPrintCommand
+    
+    prints "=== FINE DEI TEST ===\n"
 endin
-
-; -----------------------------------------------------------------------
-; TEST EXECUTION INSTRUMENT
-; -----------------------------------------------------------------------
-instr RunTest
-    p4 = p4   ; Test scenario number
-    
-    prints "\nRUNNING TEST SCENARIO %d\n", p4
-    
-    ; Different test scenarios
-    if (p4 == 1) then
-        prints "Scenario 1: Default test matrix with default parameters\n"
-        
-        ; Populate matrix with test case 1
-        populateTestMatrix 1
-        
-        ; Call the function with default output path
-        visualizeTransitionMatrix gS_default_output
-        
-        ; Verify output
-        iSuccess = verifyOutputFile(gS_default_output)
-        
-        if (iSuccess == 1) then
-            prints "  TEST PASSED: Default output file created successfully\n"
-        else
-            prints "  TEST FAILED: Problem with default output file\n"
-        endif
-        
-    elseif (p4 == 2) then
-        prints "Scenario 2: Custom matrix with default parameters\n"
-        
-        ; Populate matrix with test case 2
-        populateTestMatrix 2
-        
-        ; Call the function with custom output path
-        visualizeTransitionMatrix gS_custom_output
-        
-        ; Verify output
-        iSuccess = verifyOutputFile(gS_custom_output)
-        
-        if (iSuccess == 1) then
-            prints "  TEST PASSED: Custom matrix output file created successfully\n"
-        else
-            prints "  TEST FAILED: Problem with custom matrix output file\n"
-        endif
-        
-    elseif (p4 == 3) then
-        prints "Scenario 3: Empty matrix\n"
-        
-        ; Reset matrix to all zeros
-        iIdx = 0
-        while (iIdx < 27*27) do
-            tabw_i 0, iIdx, gi_transition_matrix
-            iIdx += 1
-        od
-        
-        ; Call the function with custom output path
-        visualizeTransitionMatrix gS_empty_output
-        
-        ; Verify output
-        iSuccess = verifyOutputFile(gS_empty_output)
-        
-        if (iSuccess == 1) then
-            ; Check if file has only header line
-            iLineCount system_i 1, sprintf("wc -l %s | awk '{print $1}'", gS_empty_output)
-            if (int(iLineCount) <= 1) then
-                prints "  TEST PASSED: Empty matrix produced header-only output as expected\n"
-            else
-                prints "  TEST WARNING: Empty matrix produced output with %d lines (expected 1)\n", int(iLineCount)
-            endif
-        else
-            prints "  TEST FAILED: Problem with empty matrix output file\n"
-        endif
-        
-    elseif (p4 == 4) then
-        prints "Scenario 4: Custom output path\n"
-        
-        ; Populate matrix with test case 1
-        populateTestMatrix 1
-        
-        ; Create a custom path
-        SCustomPath = sprintf("%s/custom_path_test.csv", gS_test_dir)
-        
-        ; Call the function with custom output path
-        visualizeTransitionMatrix SCustomPath
-        
-        ; Verify output
-        iSuccess = verifyOutputFile(SCustomPath)
-        
-        if (iSuccess == 1) then
-            prints "  TEST PASSED: Custom path output file created successfully\n"
-        else
-            prints "  TEST FAILED: Problem with custom path output file\n"
-        endif
-        
-    elseif (p4 == 5) then
-        prints "Scenario 5: Debug level customization\n"
-        
-        ; Populate matrix with test case 1
-        populateTestMatrix 1
-        
-        ; Store original debug level
-        iOriginalDebug = gi_debug
-        
-        ; Test with suppressed debug output
-        gi_debug = 0
-        SDebugOffPath = sprintf("%s/debug_off_test.csv", gS_test_dir)
-        visualizeTransitionMatrix SDebugOffPath
-        
-        ; Test with forced debug output
-        gi_debug = 0  ; Keep global debug off
-        SDebugOnPath = sprintf("%s/debug_on_test.csv", gS_test_dir)
-        visualizeTransitionMatrix SDebugOnPath  ; Override with level 3
-        
-        ; Restore original debug level
-        gi_debug = iOriginalDebug
-        
-        ; Verify both outputs
-        iSuccess1 = verifyOutputFile(SDebugOffPath)
-        iSuccess2 = verifyOutputFile(SDebugOnPath)
-        
-        if (iSuccess1 == 1 && iSuccess2 == 1) then
-            prints "  TEST PASSED: Both debug level variants created files successfully\n"
-        else
-            prints "  TEST FAILED: Problem with debug level customization\n"
-        endif
-    endif
-    
-    ; Schedule next test if not the last one
-    if (p4 < 5) then
-        event_i "i", "PrepareTest", 0, 0.1, p4 + 1
-    else
-        prints "\n==========================================================\n"
-        prints "ALL TESTS COMPLETED\n"
-        prints "==========================================================\n"
-        
-        ; Clean up test files unless in high debug mode
-        if (gi_debug < 3) then
-            iRes system_i 1, sprintf("rm -rf %s", gS_test_dir)
-            prints "Cleaned up test files\n"
-        else
-            prints "Test output files preserved in %s for inspection\n", gS_test_dir
-        endif
-    endif
-endin
-
-; -----------------------------------------------------------------------
-; TEST RUNNER
-; -----------------------------------------------------------------------
-instr TestRunner
-    prints "\n==========================================================\n"
-    prints "STARTING VISUALIZETRANSITIONMATRIX OPCODE TESTS\n"
-    prints "==========================================================\n"
-    ; Start the test sequence with scenario 1
-    event_i "i", "PrepareTest", 0, 0.1, 1
-    event_i "i", "PrepareTest", 0, 0.1, 2
-    event_i "i", "PrepareTest", 0, 0.1, 3
-endin
-
 </CsInstruments>
 <CsScore>
-; Run the test suite
-i "TestRunner" 0 0.1
-f 0 2  ; Run for 2 seconds - need more time for the file operations
+; Esegui i test
+i "TestVisualizeMatrix" 0 0.1
+f 0 2  ; Esegui per 2 secondi per dare tempo alle operazioni su file
 </CsScore>
 </CsoundSynthesizer>

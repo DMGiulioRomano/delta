@@ -260,7 +260,7 @@ instr EnhancedSaveTransitionMatrix
 ;    iRes system_i 1, SPythonCmd, 0
     
     prints "\nTransition matrices saved to:\n  %s\n  %s\n  %s\n", SMatrixFile, SMetadataFile, S2DMatrixFile
-    
+    visualizeTransitionMatrix sprintf("docs/analysis/transitions/transition_matrix_visualization_%s.csv", STimeStamp)
     ; Always turn off after execution
     turnoff
 endin

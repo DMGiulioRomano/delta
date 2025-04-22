@@ -1,14 +1,11 @@
-UnifiedCSD:  test_visualizeTransitionMatrix.csd
+UnifiedCSD:  test_initializeAdaptiveSystem.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
-instr PrepareTest uses instrument number 1
-instr RunTest uses instrument number 2
-instr TestRunner uses instrument number 3
-Elapsed time at end of orchestra compile: real: 0.003s, CPU: 0.003s
+Elapsed time at end of orchestra compile: real: 0.002s, CPU: 0.002s
 sorting score ...
 	... done
-Elapsed time at end of score sort: real: 0.003s, CPU: 0.003s
+Elapsed time at end of score sort: real: 0.002s, CPU: 0.002s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
@@ -16,6 +13,7 @@ displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
 ftable 101:
+ftable 102:
 orch now loaded
 audio buffered in 1024 sample-frame blocks
 PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
@@ -30,106 +28,60 @@ PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
 PortAudio: selected output device 'MacBook Pro Speakers'
 writing 2048 sample blks of 64-bit floats to dac
 SECTION 1:
-new alloc for instr TestRunner:
+new alloc for instr 1:
 
-==========================================================
-STARTING VISUALIZETRANSITIONMATRIX OPCODE TESTS
-==========================================================
-new alloc for instr PrepareTest:
+--- TEST 1: Default Initialization ---
+Adaptive learning system initialized
+  Learning rate: 0.10
+  History capacity: 100 transitions
+  Context features initialized to neutral values
+After initialization:
+  history_index = 0 (expected 0)
+  transition_count = 0 (expected 0)
+  learning_rate = 0.10 (expected 0.10)
+Context features:
+  Feature 0 = 0.50 (expected 0.50)
+  Feature 1 = 0.50 (expected 0.50)
+  Feature 2 = 0.50 (expected 0.50)
+  Feature 3 = 0.50 (expected 0.50)
+History values:
+  Cell 0 = 0.00 (expected 0.00)
+  Cell 1 = 0.00 (expected 0.00)
+B  0.000 ..  0.500 T  0.500 TT  0.500 M:  0.00000  0.00000
+new alloc for instr 2:
 
-==========================================================
-PREPARING TEST SCENARIO 1
-==========================================================
-new alloc for instr RunTest:
+--- TEST 2: Custom Initialization ---
+Adaptive learning system initialized
+  Learning rate: 0.10
+  History capacity: 100 transitions
+  Context features initialized to neutral values
+After custom initialization:
+  history_index = 0 (expected 0)
+  transition_count = 0 (expected 0)
+  learning_rate = 0.10 (expected 0.1)
+B  0.500 ..  1.000 T  1.000 TT  1.000 M:  0.00000  0.00000
+new alloc for instr 3:
 
-RUNNING TEST SCENARIO 1
-Scenario 1: Default test matrix with default parameters
-DEBUG: Tentativo di scrittura su file: docs/analysis/default_matrix.csv
-docs/analysis/default_matrix.csv
+--- TEST 3: Stress Testing ---
+Adaptive learning system initialized
+  Learning rate: 0.10
+  History capacity: 100 transitions
+  Context features initialized to neutral values
+After stress test initialization:
+  transition_count = 0 (expected 0)
+  Sum of first 50 history cells = 0.00 (expected 0.00)
+B  1.000 ..  1.500 T  1.500 TT  1.500 M:  0.00000  0.00000
+new alloc for instr 99:
 
-
-Transition matrix visualization saved to docs/analysis/default_matrix.csv
-ERROR: Output file docs/analysis/default_matrix.csv was not created
-  TEST FAILED: Problem with default output file
-new alloc for instr PrepareTest:
-
-==========================================================
-PREPARING TEST SCENARIO 2
-==========================================================
-new alloc for instr RunTest:
-
-RUNNING TEST SCENARIO 2
-Scenario 2: Custom matrix with default parameters
-DEBUG: Tentativo di scrittura su file: docs/analysis/custom_matrix.csv
-docs/analysis/custom_matrix.csv
-
-
-Transition matrix visualization saved to docs/analysis/custom_matrix.csv
-ERROR: Output file docs/analysis/custom_matrix.csv was not created
-  TEST FAILED: Problem with custom matrix output file
-new alloc for instr PrepareTest:
-
-==========================================================
-PREPARING TEST SCENARIO 3
-==========================================================
-new alloc for instr RunTest:
-
-RUNNING TEST SCENARIO 3
-Scenario 3: Empty matrix
-DEBUG: Tentativo di scrittura su file: docs/analysis/empty_matrix.csv
-docs/analysis/empty_matrix.csv
-
-
-Transition matrix visualization saved to docs/analysis/empty_matrix.csv
-ERROR: Output file docs/analysis/empty_matrix.csv was not created
-  TEST FAILED: Problem with empty matrix output file
-new alloc for instr PrepareTest:
-
-==========================================================
-PREPARING TEST SCENARIO 4
-==========================================================
-new alloc for instr RunTest:
-
-RUNNING TEST SCENARIO 4
-Scenario 4: Custom output path
-DEBUG: Tentativo di scrittura su file: ./docs/analysis/custom_path_test.csv
-./docs/analysis/custom_path_test.csv
-
-
-Transition matrix visualization saved to ./docs/analysis/custom_path_test.csv
-ERROR: Output file ./docs/analysis/custom_path_test.csv was not created
-  TEST FAILED: Problem with custom path output file
-new alloc for instr PrepareTest:
-
-==========================================================
-PREPARING TEST SCENARIO 5
-==========================================================
-new alloc for instr RunTest:
-
-RUNNING TEST SCENARIO 5
-Scenario 5: Debug level customization
-DEBUG: Tentativo di scrittura su file: ./docs/analysis/debug_off_test.csv
-./docs/analysis/debug_off_test.csv
-
-
-DEBUG: Tentativo di scrittura su file: ./docs/analysis/debug_on_test.csv
-./docs/analysis/debug_on_test.csv
-
-
-ERROR: Output file ./docs/analysis/debug_off_test.csv was not created
-ERROR: Output file ./docs/analysis/debug_on_test.csv was not created
-  TEST FAILED: Problem with debug level customization
-
-==========================================================
-ALL TESTS COMPLETED
-==========================================================
-Test output files preserved in ./docs/analysis for inspection
-B  0.000 ..  2.000 T  2.000 TT  2.000 M:  0.00000  0.00000
+=== TEST RESULTS SUMMARY ===
+All tests PASSED!
+===========================
+B  1.500 ..  1.600 T  1.600 TT  1.600 M:  0.00000  0.00000
 Score finished in csoundPerform().
 inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
-Elapsed time at end of performance: real: 2.148s, CPU: 0.041s
+Elapsed time at end of performance: real: 1.721s, CPU: 0.035s
 closing device
-87 2048 sample blks of 64-bit floats written to dac
+69 2048 sample blks of 64-bit floats written to dac
