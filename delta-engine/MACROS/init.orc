@@ -222,7 +222,7 @@ gi_tc_last_stable_time init 0       ; Last time a stable state was reached
 gi_tc_last_adjustment_time init 0  ; Time elapsed since transition started when adjustment was made
 
 gi_asp_transition_history ftgen 0, 0, 100*7, -2, 0
-gi_asp_context_features ftgen 0, 0, 10, -2, 0
+gi_asp_context_features ftgen 0, 0, 5, -2, 0    ; 4 caratteristiche di contesto musicale (densità, armonia, centroide,movimento) +1 per lasciare spazio alla tabella
 gi_asp_history_index init 0                         ; Current index in history buffer
 gi_asp_transition_count init 0                      ; Total number of transitions recorded
 gi_asp_learning_rate init 0.1                       ; Rate at which system adapts (0.0-1.0)

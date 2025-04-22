@@ -1,91 +1,135 @@
-UnifiedCSD:  test_predictNextState.csd
+UnifiedCSD:  test_visualizeTransitionMatrix.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
-Elapsed time at end of orchestra compile: real: 0.007s, CPU: 0.007s
+instr PrepareTest uses instrument number 1
+instr RunTest uses instrument number 2
+instr TestRunner uses instrument number 3
+Elapsed time at end of orchestra compile: real: 0.003s, CPU: 0.003s
 sorting score ...
 	... done
-Elapsed time at end of score sort: real: 0.007s, CPU: 0.007s
+Elapsed time at end of score sort: real: 0.003s, CPU: 0.003s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
 displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
-WARNING: Seeding from current time 3051425103
-
 ftable 101:
-ftable 102:
-ftable 103:
 orch now loaded
 audio buffered in 1024 sample-frame blocks
-not writing to sound disk
+PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
+   0: dac0 (BlackHole 2ch [Core Audio, 2 in, 2 out])
+   1: dac1 (BlackHole 64ch [Core Audio, 64 in, 64 out])
+   2: dac2 (MacBook Pro Speakers [Core Audio, 0 in, 2 out])
+   3: dac3 (ZoomAudioDevice [Core Audio, 2 in, 2 out])
+   4: dac4 (PonteOhYeah [Core Audio, 64 in, 64 out])
+   5: dac5 (Aggregate Device 2 [Core Audio, 2 in, 2 out])
+   6: dac6 (pontediMessina [Core Audio, 0 in, 2 out])
+   7: dac7 (Multi-Output Device [Core Audio, 0 in, 2 out])
+PortAudio: selected output device 'MacBook Pro Speakers'
+writing 2048 sample blks of 64-bit floats to dac
 SECTION 1:
-new alloc for instr 1:
+new alloc for instr TestRunner:
 
-======= TEST DI predictNextState =======
+==========================================================
+STARTING VISUALIZETRANSITIONMATRIX OPCODE TESTS
+==========================================================
+new alloc for instr PrepareTest:
 
-Inizializzazione della matrice di transizione...
-Matrice di transizione inizializzata.
+==========================================================
+PREPARING TEST SCENARIO 1
+==========================================================
+new alloc for instr RunTest:
 
-Popolamento della storia delle transizioni...
-Buffer di storia popolato con 15 transizioni.
-Stato corrente: [1,0,1] (indice 10)
+RUNNING TEST SCENARIO 1
+Scenario 1: Default test matrix with default parameters
+DEBUG: Tentativo di scrittura su file: docs/analysis/default_matrix.csv
+docs/analysis/default_matrix.csv
 
-TEST 1: Predizione basata su storia e similarità di contesto
----------------------------------------------------------
-ftable 104:
-ftable 105:
 
-Analyzing historical transitions for state 10 and current context:
-  Transition 5: similarity=0.3883, quality=0.84, influence=0.0126 on state 13
-  Transition 10: similarity=0.9455, quality=0.90, influence=0.0805 on state 13
+Transition matrix visualization saved to docs/analysis/default_matrix.csv
+ERROR: Output file docs/analysis/default_matrix.csv was not created
+  TEST FAILED: Problem with default output file
+new alloc for instr PrepareTest:
 
-Statistics: Found 2 matching transitions, 2 influential (100.0%), 1 high similarity
+==========================================================
+PREPARING TEST SCENARIO 2
+==========================================================
+new alloc for instr RunTest:
 
-Top state candidates after normalization:
-  Candidate 1: State [1,0,1] (idx 10): probability = 0.0737
-  Candidate 2: State [1,1,1] (idx 13): probability = 0.0605
-  Candidate 3: State [0,0,1] (idx 1): probability = 0.0553
-  Candidate 4: State [1,0,0] (idx 9): probability = 0.0553
-  Candidate 5: State [1,0,2] (idx 11): probability = 0.0553
-Selected next state [1,0,2] with probability 0.0553
+RUNNING TEST SCENARIO 2
+Scenario 2: Custom matrix with default parameters
+DEBUG: Tentativo di scrittura su file: docs/analysis/custom_matrix.csv
+docs/analysis/custom_matrix.csv
 
-Stato predetto: [1,0,2]
 
-TEST 2: Predizione con dati storici insufficienti
------------------------------------------------
-Not enough historical data (5 transitions), using standard transition matrix
+Transition matrix visualization saved to docs/analysis/custom_matrix.csv
+ERROR: Output file docs/analysis/custom_matrix.csv was not created
+  TEST FAILED: Problem with custom matrix output file
+new alloc for instr PrepareTest:
 
-Stato predetto (con pochi dati): [0,0,0]
+==========================================================
+PREPARING TEST SCENARIO 3
+==========================================================
+new alloc for instr RunTest:
 
-TEST 3: Predizione con diverso contesto musicale
------------------------------------------------
-ftable 106:
-ftable 107:
+RUNNING TEST SCENARIO 3
+Scenario 3: Empty matrix
+DEBUG: Tentativo di scrittura su file: docs/analysis/empty_matrix.csv
+docs/analysis/empty_matrix.csv
 
-Analyzing historical transitions for state 10 and current context:
-  Transition 5: similarity=0.5273, quality=0.84, influence=0.0233 on state 13
-  Transition 10: similarity=0.8471, quality=0.90, influence=0.0646 on state 13
 
-Statistics: Found 2 matching transitions, 2 influential (100.0%), 1 high similarity
+Transition matrix visualization saved to docs/analysis/empty_matrix.csv
+ERROR: Output file docs/analysis/empty_matrix.csv was not created
+  TEST FAILED: Problem with empty matrix output file
+new alloc for instr PrepareTest:
 
-Top state candidates after normalization:
-  Candidate 1: State [1,0,1] (idx 10): probability = 0.0737
-  Candidate 2: State [1,1,1] (idx 13): probability = 0.0602
-  Candidate 3: State [0,0,1] (idx 1): probability = 0.0553
-  Candidate 4: State [1,0,0] (idx 9): probability = 0.0553
-  Candidate 5: State [1,0,2] (idx 11): probability = 0.0553
-Selected next state [1,1,1] with probability 0.0602
+==========================================================
+PREPARING TEST SCENARIO 4
+==========================================================
+new alloc for instr RunTest:
 
-Stato predetto (con contesto diverso): [1,1,1]
+RUNNING TEST SCENARIO 4
+Scenario 4: Custom output path
+DEBUG: Tentativo di scrittura su file: ./docs/analysis/custom_path_test.csv
+./docs/analysis/custom_path_test.csv
 
-======= TEST COMPLETATO =======
-B  0.000 ..  0.100 T  0.100 TT  0.100 M:  0.00000  0.00000
+
+Transition matrix visualization saved to ./docs/analysis/custom_path_test.csv
+ERROR: Output file ./docs/analysis/custom_path_test.csv was not created
+  TEST FAILED: Problem with custom path output file
+new alloc for instr PrepareTest:
+
+==========================================================
+PREPARING TEST SCENARIO 5
+==========================================================
+new alloc for instr RunTest:
+
+RUNNING TEST SCENARIO 5
+Scenario 5: Debug level customization
+DEBUG: Tentativo di scrittura su file: ./docs/analysis/debug_off_test.csv
+./docs/analysis/debug_off_test.csv
+
+
+DEBUG: Tentativo di scrittura su file: ./docs/analysis/debug_on_test.csv
+./docs/analysis/debug_on_test.csv
+
+
+ERROR: Output file ./docs/analysis/debug_off_test.csv was not created
+ERROR: Output file ./docs/analysis/debug_on_test.csv was not created
+  TEST FAILED: Problem with debug level customization
+
+==========================================================
+ALL TESTS COMPLETED
+==========================================================
+Test output files preserved in ./docs/analysis for inspection
+B  0.000 ..  2.000 T  2.000 TT  2.000 M:  0.00000  0.00000
 Score finished in csoundPerform().
 inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
-Elapsed time at end of performance: real: 0.008s, CPU: 0.008s
-no sound written to disk
+Elapsed time at end of performance: real: 2.148s, CPU: 0.041s
+closing device
+87 2048 sample blks of 64-bit floats written to dac

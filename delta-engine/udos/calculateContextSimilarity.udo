@@ -9,7 +9,7 @@
 ; ===========================================================================
 
 ; Compare two context vectors and return similarity score (0-1)
-opcode calculateContextSimilarity, i, io
+opcode calculateContextSimilarity, i, ii
     i_ContextBase1, i_DebugLevel xin
     
     ; Default debug level if not provided
