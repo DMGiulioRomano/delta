@@ -17,7 +17,9 @@ instr TransitionController
 
         ; Initialize controller state on first run
         initTransitionMatrix   ; Initialize state transition probability matrix
-        
+        ; Initialize adaptive learning system
+        initializeAdaptiveSystem   
+
         ; Initialize adaptive learning system
         if (gi_debug >= 1) then
             prints "Initializing adaptive learning system for transitions\n"
