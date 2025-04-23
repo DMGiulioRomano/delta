@@ -27,7 +27,7 @@ opcode mapStateToParameter, ii, iS
         
         ; Distribuzione lineare tra le ottave
         iMin = iLowestOctave + (iHighestOctave - iLowestOctave) * iNormalizedState
-        iMax = iMin + max(1, $OTTAVE / 6)  ; Range di circa 1/6 delle ottave disponibili
+        iMax = iMin + max(1, $OTTAVE / 3)  ; Range di circa 1/6 delle ottave disponibili
         
     elseif strcmp(SparamType, "movement") == 0 then
         ; Movement: inversamente proporzionale ai valori ritmici
