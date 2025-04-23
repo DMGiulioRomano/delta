@@ -1,28 +1,3 @@
-;==============================================================================
-; ADAPTIVE STATE PREDICTION SYSTEM - IMPROVED VERSION
-;==============================================================================
-; A system for learning from past transitions to improve future musical decisions
-; Includes improved similarity calculations and robust prediction algorithms
-;==============================================================================
-
-; Global variables for adaptive learning system (should be defined in main code)
-; gi_asp_transition_history - Store transitions (from_state, to_state, quality, context features)
-; gi_asp_history_index - Current index in history buffer
-; gi_asp_transition_count - Total number of transitions recorded
-; gi_asp_learning_rate - Rate at which system adapts (0.0-1.0)
-; gi_asp_context_features - Current musical context features
-
-;------------------------------------------------------------------------------
-; STATE PREDICTION SYSTEM
-;------------------------------------------------------------------------------
-
-
-;------------------------------------------------------------------------------
-; TRANSITION RECORDING AND LEARNING
-;------------------------------------------------------------------------------
-
-
-; Record a completed transition with its quality assessment
 opcode recordTransition, 0, iiii
     iFromStateIdx, iToStateIdx, iQuality, iDebugLevel xin
     
@@ -55,7 +30,7 @@ opcode recordTransition, 0, iiii
         gi_asp_transition_count += 1
         
         ; Update the transition matrix based on this experience
-        updateTransitionMatrix(iFromStateIdx, iToStateIdx, iQuality,iDebugLevel)
+        updateTransitionMatrix(iFromStateIdx, iToStateIdx, iQuality, iDebugLevel)
         
         if (iDebugLevel >= 1) then
             iFromDens = int(iFromStateIdx / 9)
@@ -63,7 +38,7 @@ opcode recordTransition, 0, iiii
             iFromReg = int(iFromRem / 3)
             iFromMov = iFromRem % 3
             
-            iTodens = int(iToStateIdx / 9)
+            iToDens = int(iToStateIdx / 9)
             iToRem = iToStateIdx % 9
             iToReg = int(iToRem / 3)
             iToMov = iToRem % 3
@@ -71,7 +46,7 @@ opcode recordTransition, 0, iiii
             prints "Recorded transition #%d: [%d,%d,%d] to [%d,%d,%d] with quality %.2f\n", 
                    gi_asp_transition_count, 
                    iFromDens, iFromReg, iFromMov,
-                   iTodens, iToReg, iToMov,
+                   iToDens, iToReg, iToMov,
                    iQuality
         endif
     else

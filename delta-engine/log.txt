@@ -1,48 +1,442 @@
-UnifiedCSD:  test_detectPatternsAndAdapt.csd
+UnifiedCSD:  test_recordTransition.csd
 rtaudio: PortAudio module enabled ...
 using callback interface
 rtmidi: PortMIDI module enabled
+instr PrintTransitionHistory uses instrument number 1
+instr TestValidTransitions uses instrument number 2
+instr TestInvalidParameters uses instrument number 3
+instr TestContextChanges uses instrument number 4
+instr TestCircularBuffer uses instrument number 5
+instr RunAllTests uses instrument number 6
+Elapsed time at end of orchestra compile: real: 0.003s, CPU: 0.003s
+sorting score ...
+	... done
+Elapsed time at end of score sort: real: 0.003s, CPU: 0.003s
 --Csound version 6.18 (double samples) Nov 24 2022
 [commit: a1580f9cdf331c35dceb486f4231871ce0b00266]
 libsndfile-1.1.0
+displays suppressed
 sr = 44100.0, kr = 1378.125, ksmps = 32
 0dBFS level = 1.0, A4 tuning = 440.0
-ftable 101:	729 points, scalemax 0.000
-ftable 102:	700 points, scalemax 0.000
+ftable 101:
+ftable 102:
+ftable 103:
+orch now loaded
 audio buffered in 1024 sample-frame blocks
-writing 4096-byte blks of shorts to test.aif (AIFF)
+PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
+   0: dac0 (BlackHole 2ch [Core Audio, 2 in, 2 out])
+   1: dac1 (BlackHole 64ch [Core Audio, 64 in, 64 out])
+   2: dac2 (MacBook Pro Speakers [Core Audio, 0 in, 2 out])
+   3: dac3 (ZoomAudioDevice [Core Audio, 2 in, 2 out])
+   4: dac4 (PonteOhYeah [Core Audio, 64 in, 64 out])
+   5: dac5 (Aggregate Device 2 [Core Audio, 2 in, 2 out])
+   6: dac6 (pontediMessina [Core Audio, 0 in, 2 out])
+   7: dac7 (Multi-Output Device [Core Audio, 0 in, 2 out])
+PortAudio: selected output device 'MacBook Pro Speakers'
+writing 2048 sample blks of 64-bit floats to dac
 SECTION 1:
+new alloc for instr RunAllTests:
 
-=== TEST 1: Pattern Alternato [5,7,5,7,5,7] ===
-Probabilità prima della rilevazione: 0.3418
-Transizioni lette in ordine cronologico: [7, 5, 7, 5, 7, 0, 7, 7, 7, 7]
-Detected repeating pattern of length 2 in transitions
-Adding randomness to transition matrix to break pattern
-Trovato stato corrente 7 in posizione 0, seguito da 5
-Riducendo probabilità 7->5 da 0.3418 a 0.2392
-Somma probabilità prima norm: 0.8975
-Probabilità dopo la rilevazione: 0.2666
-TEST SUPERATO: Pattern rilevato, probabilità ridotta
+====================================
+TESTING RECORD TRANSITION OPCODE
+====================================
 
-=== TEST 2: Sequenza Senza Pattern ===
-Probabilità iniziale verso stato 10: 0.0370
-Transizioni lette in ordine cronologico: [8, 12, 15, 3, 9, 22, 14, 6, 11, 17]
-Probabilità dopo tentativo di rilevazione: 0.0370
-TEST SUPERATO: Nessun pattern rilevato, matrice invariata
+====================================
+SUMMARY: recordTransition test complete
+Total transitions recorded: 0
+Current history index: 0
+====================================
+new alloc for instr TestValidTransitions:
 
-=== TEST 3: Transizioni Insufficienti ===
-Probabilità iniziale verso stato 1: 0.3418
-Transizioni lette in ordine cronologico: [1, 1, 1, 1, 1, 1, 1, 1]
-Detected repeating pattern of length 2 in transitions
-Adding randomness to transition matrix to break pattern
-Trovato stato corrente 1 in posizione 0, seguito da 1
-Trovato stato corrente 1 in posizione 1, seguito da 1
-Riducendo probabilità 1->1 da 0.3418 a 0.2392
-Somma probabilità prima norm: 0.8975
-Probabilità dopo tentativo di rilevazione: 0.2666
-TEST FALLITO: Matrice modificata nonostante dati insufficienti
+
+=== TEST SCENARIO 1: VALID TRANSITIONS ===
+Mock updateTransitionMatrix: from 0 to 1 with quality 0.80
+Recorded transition #1: [0,0,0] to [0,0,1] with quality 0.80
+Mock updateTransitionMatrix: from 5 to 10 with quality 0.50
+Recorded transition #2: [0,1,2] to [1,0,1] with quality 0.50
+Mock updateTransitionMatrix: from 26 to 0 with quality 0.30
+Recorded transition #3: [2,2,2] to [0,0,0] with quality 0.30
+new alloc for instr PrintTransitionHistory:
+
+=== CURRENT TRANSITION HISTORY ===
+Total transitions recorded: 3
+Current history index: 3
+Format: [idx] FromState ToState Quality Context(4 values)
+[2] 26 → 0 (Q:0.30) Context: [0.30, 0.50, 0.70, 0.40]
+[1] 5 → 10 (Q:0.50) Context: [0.30, 0.50, 0.70, 0.40]
+[0] 0 → 1 (Q:0.80) Context: [0.30, 0.50, 0.70, 0.40]
+===================================
+
+  rtevent:	   T  1.000 TT  1.000 M:  0.00000  0.00000
+new alloc for instr TestInvalidParameters:
+
+
+=== TEST SCENARIO 2: INVALID PARAMETERS ===
+ERROR: Invalid transition parameters (-1,5,0.70) - not recorded
+ERROR: Invalid transition parameters (5,30,0.70) - not recorded
+ERROR: Invalid transition parameters (5,10,-0.20) - not recorded
+ERROR: Invalid transition parameters (5,10,1.50) - not recorded
+
+=== CURRENT TRANSITION HISTORY ===
+Total transitions recorded: 3
+Current history index: 3
+Format: [idx] FromState ToState Quality Context(4 values)
+[2] 26 → 0 (Q:0.30) Context: [0.30, 0.50, 0.70, 0.40]
+[1] 5 → 10 (Q:0.50) Context: [0.30, 0.50, 0.70, 0.40]
+[0] 0 → 1 (Q:0.80) Context: [0.30, 0.50, 0.70, 0.40]
+===================================
+
+  rtevent:	   T  2.000 TT  2.000 M:  0.00000  0.00000
+new alloc for instr TestContextChanges:
+
+
+=== TEST SCENARIO 3: CONTEXT CHANGES ===
+Initial context: [0.30, 0.50, 0.70, 0.40]
+Changed context: [0.10, 0.20, 0.90, 0.80]
+Mock updateTransitionMatrix: from 7 to 8 with quality 0.90
+Recorded transition #4: [0,2,1] to [0,2,2] with quality 0.90
+
+=== CURRENT TRANSITION HISTORY ===
+Total transitions recorded: 4
+Current history index: 4
+Format: [idx] FromState ToState Quality Context(4 values)
+[3] 7 → 8 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[2] 26 → 0 (Q:0.30) Context: [0.30, 0.50, 0.70, 0.40]
+[1] 5 → 10 (Q:0.50) Context: [0.30, 0.50, 0.70, 0.40]
+[0] 0 → 1 (Q:0.80) Context: [0.30, 0.50, 0.70, 0.40]
+===================================
+
+  rtevent:	   T  3.000 TT  3.000 M:  0.00000  0.00000
+new alloc for instr TestCircularBuffer:
+
+
+=== TEST SCENARIO 4: CIRCULAR BUFFER ===
+Testing with 105 transitions (starting from index 4)
+Mock updateTransitionMatrix: from 0 to 3 with quality 0.50
+Recorded transition #5: [0,0,0] to [0,1,0] with quality 0.50
+Mock updateTransitionMatrix: from 1 to 4 with quality 0.60
+Recorded transition #6: [0,0,1] to [0,1,1] with quality 0.60
+Mock updateTransitionMatrix: from 2 to 5 with quality 0.70
+Recorded transition #7: [0,0,2] to [0,1,2] with quality 0.70
+Mock updateTransitionMatrix: from 3 to 6 with quality 0.80
+Recorded transition #8: [0,1,0] to [0,2,0] with quality 0.80
+Mock updateTransitionMatrix: from 4 to 7 with quality 0.90
+Recorded transition #9: [0,1,1] to [0,2,1] with quality 0.90
+Mock updateTransitionMatrix: from 5 to 8 with quality 1.00
+Recorded transition #10: [0,1,2] to [0,2,2] with quality 1.00
+Mock updateTransitionMatrix: from 6 to 9 with quality 0.50
+Recorded transition #11: [0,2,0] to [1,0,0] with quality 0.50
+Mock updateTransitionMatrix: from 7 to 10 with quality 0.60
+Recorded transition #12: [0,2,1] to [1,0,1] with quality 0.60
+Mock updateTransitionMatrix: from 8 to 11 with quality 0.70
+Recorded transition #13: [0,2,2] to [1,0,2] with quality 0.70
+Mock updateTransitionMatrix: from 9 to 12 with quality 0.80
+Recorded transition #14: [1,0,0] to [1,1,0] with quality 0.80
+Mock updateTransitionMatrix: from 10 to 13 with quality 0.90
+Recorded transition #15: [1,0,1] to [1,1,1] with quality 0.90
+Mock updateTransitionMatrix: from 11 to 14 with quality 1.00
+Recorded transition #16: [1,0,2] to [1,1,2] with quality 1.00
+Mock updateTransitionMatrix: from 12 to 15 with quality 0.50
+Recorded transition #17: [1,1,0] to [1,2,0] with quality 0.50
+Mock updateTransitionMatrix: from 13 to 16 with quality 0.60
+Recorded transition #18: [1,1,1] to [1,2,1] with quality 0.60
+Mock updateTransitionMatrix: from 14 to 17 with quality 0.70
+Recorded transition #19: [1,1,2] to [1,2,2] with quality 0.70
+Mock updateTransitionMatrix: from 15 to 18 with quality 0.80
+Recorded transition #20: [1,2,0] to [2,0,0] with quality 0.80
+Mock updateTransitionMatrix: from 16 to 19 with quality 0.90
+Recorded transition #21: [1,2,1] to [2,0,1] with quality 0.90
+Mock updateTransitionMatrix: from 17 to 20 with quality 1.00
+Recorded transition #22: [1,2,2] to [2,0,2] with quality 1.00
+Mock updateTransitionMatrix: from 18 to 21 with quality 0.50
+Recorded transition #23: [2,0,0] to [2,1,0] with quality 0.50
+Mock updateTransitionMatrix: from 19 to 22 with quality 0.60
+Recorded transition #24: [2,0,1] to [2,1,1] with quality 0.60
+Mock updateTransitionMatrix: from 20 to 23 with quality 0.70
+Recorded transition #25: [2,0,2] to [2,1,2] with quality 0.70
+Mock updateTransitionMatrix: from 21 to 24 with quality 0.80
+Recorded transition #26: [2,1,0] to [2,2,0] with quality 0.80
+Mock updateTransitionMatrix: from 22 to 25 with quality 0.90
+Recorded transition #27: [2,1,1] to [2,2,1] with quality 0.90
+Mock updateTransitionMatrix: from 23 to 26 with quality 1.00
+Recorded transition #28: [2,1,2] to [2,2,2] with quality 1.00
+Mock updateTransitionMatrix: from 24 to 0 with quality 0.50
+Recorded transition #29: [2,2,0] to [0,0,0] with quality 0.50
+Mock updateTransitionMatrix: from 25 to 1 with quality 0.60
+Recorded transition #30: [2,2,1] to [0,0,1] with quality 0.60
+Mock updateTransitionMatrix: from 26 to 2 with quality 0.70
+Recorded transition #31: [2,2,2] to [0,0,2] with quality 0.70
+Mock updateTransitionMatrix: from 0 to 3 with quality 0.80
+Recorded transition #32: [0,0,0] to [0,1,0] with quality 0.80
+Mock updateTransitionMatrix: from 1 to 4 with quality 0.90
+Recorded transition #33: [0,0,1] to [0,1,1] with quality 0.90
+Mock updateTransitionMatrix: from 2 to 5 with quality 1.00
+Recorded transition #34: [0,0,2] to [0,1,2] with quality 1.00
+Mock updateTransitionMatrix: from 3 to 6 with quality 0.50
+Recorded transition #35: [0,1,0] to [0,2,0] with quality 0.50
+Mock updateTransitionMatrix: from 4 to 7 with quality 0.60
+Recorded transition #36: [0,1,1] to [0,2,1] with quality 0.60
+Mock updateTransitionMatrix: from 5 to 8 with quality 0.70
+Recorded transition #37: [0,1,2] to [0,2,2] with quality 0.70
+Mock updateTransitionMatrix: from 6 to 9 with quality 0.80
+Recorded transition #38: [0,2,0] to [1,0,0] with quality 0.80
+Mock updateTransitionMatrix: from 7 to 10 with quality 0.90
+Recorded transition #39: [0,2,1] to [1,0,1] with quality 0.90
+Mock updateTransitionMatrix: from 8 to 11 with quality 1.00
+Recorded transition #40: [0,2,2] to [1,0,2] with quality 1.00
+Mock updateTransitionMatrix: from 9 to 12 with quality 0.50
+Recorded transition #41: [1,0,0] to [1,1,0] with quality 0.50
+Mock updateTransitionMatrix: from 10 to 13 with quality 0.60
+Recorded transition #42: [1,0,1] to [1,1,1] with quality 0.60
+Mock updateTransitionMatrix: from 11 to 14 with quality 0.70
+Recorded transition #43: [1,0,2] to [1,1,2] with quality 0.70
+Mock updateTransitionMatrix: from 12 to 15 with quality 0.80
+Recorded transition #44: [1,1,0] to [1,2,0] with quality 0.80
+Mock updateTransitionMatrix: from 13 to 16 with quality 0.90
+Recorded transition #45: [1,1,1] to [1,2,1] with quality 0.90
+Mock updateTransitionMatrix: from 14 to 17 with quality 1.00
+Recorded transition #46: [1,1,2] to [1,2,2] with quality 1.00
+Mock updateTransitionMatrix: from 15 to 18 with quality 0.50
+Recorded transition #47: [1,2,0] to [2,0,0] with quality 0.50
+Mock updateTransitionMatrix: from 16 to 19 with quality 0.60
+Recorded transition #48: [1,2,1] to [2,0,1] with quality 0.60
+Mock updateTransitionMatrix: from 17 to 20 with quality 0.70
+Recorded transition #49: [1,2,2] to [2,0,2] with quality 0.70
+Mock updateTransitionMatrix: from 18 to 21 with quality 0.80
+Recorded transition #50: [2,0,0] to [2,1,0] with quality 0.80
+Mock updateTransitionMatrix: from 19 to 22 with quality 0.90
+Recorded transition #51: [2,0,1] to [2,1,1] with quality 0.90
+Mock updateTransitionMatrix: from 20 to 23 with quality 1.00
+Recorded transition #52: [2,0,2] to [2,1,2] with quality 1.00
+Mock updateTransitionMatrix: from 21 to 24 with quality 0.50
+Recorded transition #53: [2,1,0] to [2,2,0] with quality 0.50
+Mock updateTransitionMatrix: from 22 to 25 with quality 0.60
+Recorded transition #54: [2,1,1] to [2,2,1] with quality 0.60
+Mock updateTransitionMatrix: from 23 to 26 with quality 0.70
+Recorded transition #55: [2,1,2] to [2,2,2] with quality 0.70
+Mock updateTransitionMatrix: from 24 to 0 with quality 0.80
+Recorded transition #56: [2,2,0] to [0,0,0] with quality 0.80
+Mock updateTransitionMatrix: from 25 to 1 with quality 0.90
+Recorded transition #57: [2,2,1] to [0,0,1] with quality 0.90
+Mock updateTransitionMatrix: from 26 to 2 with quality 1.00
+Recorded transition #58: [2,2,2] to [0,0,2] with quality 1.00
+Mock updateTransitionMatrix: from 0 to 3 with quality 0.50
+Recorded transition #59: [0,0,0] to [0,1,0] with quality 0.50
+Mock updateTransitionMatrix: from 1 to 4 with quality 0.60
+Recorded transition #60: [0,0,1] to [0,1,1] with quality 0.60
+Mock updateTransitionMatrix: from 2 to 5 with quality 0.70
+Recorded transition #61: [0,0,2] to [0,1,2] with quality 0.70
+Mock updateTransitionMatrix: from 3 to 6 with quality 0.80
+Recorded transition #62: [0,1,0] to [0,2,0] with quality 0.80
+Mock updateTransitionMatrix: from 4 to 7 with quality 0.90
+Recorded transition #63: [0,1,1] to [0,2,1] with quality 0.90
+Mock updateTransitionMatrix: from 5 to 8 with quality 1.00
+Recorded transition #64: [0,1,2] to [0,2,2] with quality 1.00
+Mock updateTransitionMatrix: from 6 to 9 with quality 0.50
+Recorded transition #65: [0,2,0] to [1,0,0] with quality 0.50
+Mock updateTransitionMatrix: from 7 to 10 with quality 0.60
+Recorded transition #66: [0,2,1] to [1,0,1] with quality 0.60
+Mock updateTransitionMatrix: from 8 to 11 with quality 0.70
+Recorded transition #67: [0,2,2] to [1,0,2] with quality 0.70
+Mock updateTransitionMatrix: from 9 to 12 with quality 0.80
+Recorded transition #68: [1,0,0] to [1,1,0] with quality 0.80
+Mock updateTransitionMatrix: from 10 to 13 with quality 0.90
+Recorded transition #69: [1,0,1] to [1,1,1] with quality 0.90
+Mock updateTransitionMatrix: from 11 to 14 with quality 1.00
+Recorded transition #70: [1,0,2] to [1,1,2] with quality 1.00
+Mock updateTransitionMatrix: from 12 to 15 with quality 0.50
+Recorded transition #71: [1,1,0] to [1,2,0] with quality 0.50
+Mock updateTransitionMatrix: from 13 to 16 with quality 0.60
+Recorded transition #72: [1,1,1] to [1,2,1] with quality 0.60
+Mock updateTransitionMatrix: from 14 to 17 with quality 0.70
+Recorded transition #73: [1,1,2] to [1,2,2] with quality 0.70
+Mock updateTransitionMatrix: from 15 to 18 with quality 0.80
+Recorded transition #74: [1,2,0] to [2,0,0] with quality 0.80
+Mock updateTransitionMatrix: from 16 to 19 with quality 0.90
+Recorded transition #75: [1,2,1] to [2,0,1] with quality 0.90
+Mock updateTransitionMatrix: from 17 to 20 with quality 1.00
+Recorded transition #76: [1,2,2] to [2,0,2] with quality 1.00
+Mock updateTransitionMatrix: from 18 to 21 with quality 0.50
+Recorded transition #77: [2,0,0] to [2,1,0] with quality 0.50
+Mock updateTransitionMatrix: from 19 to 22 with quality 0.60
+Recorded transition #78: [2,0,1] to [2,1,1] with quality 0.60
+Mock updateTransitionMatrix: from 20 to 23 with quality 0.70
+Recorded transition #79: [2,0,2] to [2,1,2] with quality 0.70
+Mock updateTransitionMatrix: from 21 to 24 with quality 0.80
+Recorded transition #80: [2,1,0] to [2,2,0] with quality 0.80
+Mock updateTransitionMatrix: from 22 to 25 with quality 0.90
+Recorded transition #81: [2,1,1] to [2,2,1] with quality 0.90
+Mock updateTransitionMatrix: from 23 to 26 with quality 1.00
+Recorded transition #82: [2,1,2] to [2,2,2] with quality 1.00
+Mock updateTransitionMatrix: from 24 to 0 with quality 0.50
+Recorded transition #83: [2,2,0] to [0,0,0] with quality 0.50
+Mock updateTransitionMatrix: from 25 to 1 with quality 0.60
+Recorded transition #84: [2,2,1] to [0,0,1] with quality 0.60
+Mock updateTransitionMatrix: from 26 to 2 with quality 0.70
+Recorded transition #85: [2,2,2] to [0,0,2] with quality 0.70
+Mock updateTransitionMatrix: from 0 to 3 with quality 0.80
+Recorded transition #86: [0,0,0] to [0,1,0] with quality 0.80
+Mock updateTransitionMatrix: from 1 to 4 with quality 0.90
+Recorded transition #87: [0,0,1] to [0,1,1] with quality 0.90
+Mock updateTransitionMatrix: from 2 to 5 with quality 1.00
+Recorded transition #88: [0,0,2] to [0,1,2] with quality 1.00
+Mock updateTransitionMatrix: from 3 to 6 with quality 0.50
+Recorded transition #89: [0,1,0] to [0,2,0] with quality 0.50
+Mock updateTransitionMatrix: from 4 to 7 with quality 0.60
+Recorded transition #90: [0,1,1] to [0,2,1] with quality 0.60
+Mock updateTransitionMatrix: from 5 to 8 with quality 0.70
+Recorded transition #91: [0,1,2] to [0,2,2] with quality 0.70
+Mock updateTransitionMatrix: from 6 to 9 with quality 0.80
+Recorded transition #92: [0,2,0] to [1,0,0] with quality 0.80
+Mock updateTransitionMatrix: from 7 to 10 with quality 0.90
+Recorded transition #93: [0,2,1] to [1,0,1] with quality 0.90
+Mock updateTransitionMatrix: from 8 to 11 with quality 1.00
+Recorded transition #94: [0,2,2] to [1,0,2] with quality 1.00
+Mock updateTransitionMatrix: from 9 to 12 with quality 0.50
+Recorded transition #95: [1,0,0] to [1,1,0] with quality 0.50
+Mock updateTransitionMatrix: from 10 to 13 with quality 0.60
+Recorded transition #96: [1,0,1] to [1,1,1] with quality 0.60
+Mock updateTransitionMatrix: from 11 to 14 with quality 0.70
+Recorded transition #97: [1,0,2] to [1,1,2] with quality 0.70
+Mock updateTransitionMatrix: from 12 to 15 with quality 0.80
+Recorded transition #98: [1,1,0] to [1,2,0] with quality 0.80
+Mock updateTransitionMatrix: from 13 to 16 with quality 0.90
+Recorded transition #99: [1,1,1] to [1,2,1] with quality 0.90
+Mock updateTransitionMatrix: from 14 to 17 with quality 1.00
+Recorded transition #100: [1,1,2] to [1,2,2] with quality 1.00
+Mock updateTransitionMatrix: from 15 to 18 with quality 0.50
+Recorded transition #101: [1,2,0] to [2,0,0] with quality 0.50
+Mock updateTransitionMatrix: from 16 to 19 with quality 0.60
+Recorded transition #102: [1,2,1] to [2,0,1] with quality 0.60
+Mock updateTransitionMatrix: from 17 to 20 with quality 0.70
+Recorded transition #103: [1,2,2] to [2,0,2] with quality 0.70
+Mock updateTransitionMatrix: from 18 to 21 with quality 0.80
+Recorded transition #104: [2,0,0] to [2,1,0] with quality 0.80
+Mock updateTransitionMatrix: from 19 to 22 with quality 0.90
+Recorded transition #105: [2,0,1] to [2,1,1] with quality 0.90
+Mock updateTransitionMatrix: from 20 to 23 with quality 1.00
+Recorded transition #106: [2,0,2] to [2,1,2] with quality 1.00
+Mock updateTransitionMatrix: from 21 to 24 with quality 0.50
+Recorded transition #107: [2,1,0] to [2,2,0] with quality 0.50
+Mock updateTransitionMatrix: from 22 to 25 with quality 0.60
+Recorded transition #108: [2,1,1] to [2,2,1] with quality 0.60
+Mock updateTransitionMatrix: from 23 to 26 with quality 0.70
+Recorded transition #109: [2,1,2] to [2,2,2] with quality 0.70
+Verifying buffer after 105 transitions...
+Last transition recorded at index 8: 23 → 26 (Q:0.70)
+
+=== CURRENT TRANSITION HISTORY ===
+Total transitions recorded: 109
+Current history index: 9
+Format: [idx] FromState ToState Quality Context(4 values)
+[8] 23 → 26 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[7] 22 → 25 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[6] 21 → 24 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[5] 20 → 23 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[4] 19 → 22 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[3] 18 → 21 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[2] 17 → 20 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[1] 16 → 19 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[0] 15 → 18 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[99] 14 → 17 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[98] 13 → 16 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[97] 12 → 15 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[96] 11 → 14 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[95] 10 → 13 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[94] 9 → 12 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[93] 8 → 11 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[92] 7 → 10 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[91] 6 → 9 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[90] 5 → 8 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[89] 4 → 7 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[88] 3 → 6 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[87] 2 → 5 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[86] 1 → 4 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[85] 0 → 3 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[84] 26 → 2 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[83] 25 → 1 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[82] 24 → 0 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[81] 23 → 26 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[80] 22 → 25 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[79] 21 → 24 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[78] 20 → 23 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[77] 19 → 22 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[76] 18 → 21 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[75] 17 → 20 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[74] 16 → 19 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[73] 15 → 18 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[72] 14 → 17 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[71] 13 → 16 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[70] 12 → 15 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[69] 11 → 14 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[68] 10 → 13 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[67] 9 → 12 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[66] 8 → 11 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[65] 7 → 10 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[64] 6 → 9 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[63] 5 → 8 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[62] 4 → 7 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[61] 3 → 6 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[60] 2 → 5 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[59] 1 → 4 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[58] 0 → 3 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[57] 26 → 2 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[56] 25 → 1 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[55] 24 → 0 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[54] 23 → 26 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[53] 22 → 25 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[52] 21 → 24 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[51] 20 → 23 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[50] 19 → 22 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[49] 18 → 21 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[48] 17 → 20 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[47] 16 → 19 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[46] 15 → 18 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[45] 14 → 17 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[44] 13 → 16 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[43] 12 → 15 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[42] 11 → 14 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[41] 10 → 13 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[40] 9 → 12 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[39] 8 → 11 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[38] 7 → 10 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[37] 6 → 9 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[36] 5 → 8 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[35] 4 → 7 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[34] 3 → 6 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[33] 2 → 5 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[32] 1 → 4 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[31] 0 → 3 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[30] 26 → 2 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[29] 25 → 1 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[28] 24 → 0 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[27] 23 → 26 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[26] 22 → 25 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[25] 21 → 24 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[24] 20 → 23 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[23] 19 → 22 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[22] 18 → 21 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[21] 17 → 20 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[20] 16 → 19 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[19] 15 → 18 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[18] 14 → 17 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[17] 13 → 16 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[16] 12 → 15 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[15] 11 → 14 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+[14] 10 → 13 (Q:0.90) Context: [0.10, 0.20, 0.90, 0.80]
+[13] 9 → 12 (Q:0.80) Context: [0.10, 0.20, 0.90, 0.80]
+[12] 8 → 11 (Q:0.70) Context: [0.10, 0.20, 0.90, 0.80]
+[11] 7 → 10 (Q:0.60) Context: [0.10, 0.20, 0.90, 0.80]
+[10] 6 → 9 (Q:0.50) Context: [0.10, 0.20, 0.90, 0.80]
+[9] 5 → 8 (Q:1.00) Context: [0.10, 0.20, 0.90, 0.80]
+===================================
+
+B  0.000 ..  5.000 T  5.000 TT  5.000 M:  0.00000  0.00000
 Score finished in csoundPerform().
+inactive allocs returned to freespace
 end of score.		   overall amps:  0.00000  0.00000
 	   overall samples out of range:        0        0
 0 errors in performance
-2048 4096 sample blks of shorts written to test.aif (AIFF)
+Elapsed time at end of performance: real: 5.136s, CPU: 0.061s
+closing device
+216 2048 sample blks of 64-bit floats written to dac
