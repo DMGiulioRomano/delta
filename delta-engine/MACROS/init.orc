@@ -63,16 +63,17 @@ gi_eve_comportamento ftgen 0, 0, gi_NUMEVENTI, -2, 0  ; ID del comportamento
 ; manipolati in base al sistema di transizione di stato per creare un'evoluzione
 ; compositiva coerente.
 ;
+; Il primo elemento di ogni blocco di 11 (indice 0) è la lunghezza dell'array
+; I successivi 10 elementi (indici 1-10) sono i valori effettivi
+gi_comp_RITMI      ftgen 0, 0, gi_NUMComportamenti*11, -2, 3, 4, 5, 3      ; 1 per la lunghezza + 10 ritmi 
+gi_comp_POSIZIONI  ftgen 0, 0, gi_NUMComportamenti*11, -2, 3, 0, 0, 0      ; 1 per la lunghezza + 10 ritmi 
+
 gi_comp_ATTACCO     ftgen 0, 0, gi_NUMComportamenti, -2, 0       ; Tempo di attacco
-gi_comp_RITMO_LEN   ftgen 0, 0, gi_NUMComportamenti, -2, 3       ; Lunghezza array ritmi
-gi_comp_RITMO_VAL   ftgen 0, 0, gi_NUMComportamenti*5, -2, 4,5,3 ; Valori ritmici
 gi_comp_DURARMONICA ftgen 0, 0, gi_NUMComportamenti, -2, 10      ; Durata armonica
 gi_comp_DURATA      ftgen 0, 0, gi_NUMComportamenti, -2, 20.0    ; Durata complessiva
 gi_comp_AMPIEZZA    ftgen 0, 0, gi_NUMComportamenti, -2, -20     ; Ampiezza in dB
 gi_comp_OTTAVA      ftgen 0, 0, gi_NUMComportamenti, -2, 3       ; Ottava
 gi_comp_REGISTRO    ftgen 0, 0, gi_NUMComportamenti, -2, 4       ; Registro
-gi_comp_POS_LEN     ftgen 0, 0, gi_NUMComportamenti, -2, 3       ; Lunghezza array posizioni
-gi_comp_POSIZIONE   ftgen 0, 0, gi_NUMComportamenti*5, -2, 0,0,0 ; Valori posizioni
 
 ; --------------------------------------------------------------------
 ; SISTEMA DI ANALISI DELLA SOVRAPPOSIZIONE
