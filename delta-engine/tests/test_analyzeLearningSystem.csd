@@ -61,7 +61,7 @@ gi_asp_max_overlap init 20                          ; Limite massimo di sovrappo
 ; DEFINIZIONE DELLE FUNZIONI UTILIZZATE DALL'UDO
 ;-------------------------------------------------------------------------
 #include "../udos/adaptiveStatePrediction.udo"
-#include "../udos/asp_analyzeLearningState.udo"
+#include "../udos/asp_analyzeLearningSystem.udo"
 
 ; Strumento per inizializzare i dati di test
 instr 1 
