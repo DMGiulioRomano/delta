@@ -1,14 +1,22 @@
 ; -----------------------------------------------------------------------
-; BEHAVIOR GENERATION WITH INTERPOLATED PARAMETERS
+; BEHAVIOR GENERATION WITH INTERPOLATED PARAMETERS - VERSIONE RISTRUTTURATA
 ; -----------------------------------------------------------------------
 opcode generateTransitionBehavior, 0, i
     iProgress xin
+    
+    ; Limitazione esplicita del progresso tra 0 e 1 per prevenire valori nan
+    iProgress = limit(iProgress, 0, 1)
     
     ; Interpolate between source and target states
     iInterpolatedDensity interpolateParameter gi_tc_source_density, gi_tc_target_density, iProgress, 0.3
     iInterpolatedRegister interpolateParameter gi_tc_source_register, gi_tc_target_register, iProgress, 0
     iInterpolatedMovement interpolateParameter gi_tc_source_movement, gi_tc_target_movement, iProgress, -0.3
-    
+
+    ; Limita esplicitamente i valori interpolati nel range [0,2]
+    iInterpolatedDensity = limit(iInterpolatedDensity, 0, 2)
+    iInterpolatedRegister = limit(iInterpolatedRegister, 0, 2)
+    iInterpolatedMovement = limit(iInterpolatedMovement, 0, 2)
+
     ; Now map these state values to actual musical parameters
     
     ; 1. Harmonic Duration based on density
@@ -25,12 +33,15 @@ opcode generateTransitionBehavior, 0, i
     ; 3. Generate rhythm values based on interpolated movement parameter
     iRhythmTableSize = 5
     iRhythmsTable generateRhythmsForState iInterpolatedDensity, iInterpolatedMovement, iHarmonicDuration, iRhythmTableSize
+    
     ; 4. Amplitude based on register and octave
     iMaxAmplitude calculateMaxAmplitude iOctave, iRegister
     iAmplitude random iMaxAmplitude - 3, iMaxAmplitude
     
     ; 5. Duration based on harmonic duration and density
     iDuration = iHarmonicDuration * (2 + iInterpolatedDensity)
+    iDuration = max(5, iDuration)
+    iDuration = min(iDuration, 300)  ; Previene durate estremamente lunghe
     
     ; 6. Generate positions - for simplicity, use random positions
     iPositionsTable ftgen 0, 0, iRhythmTableSize+1, -2, 0
@@ -43,23 +54,22 @@ opcode generateTransitionBehavior, 0, i
         iIdx += 1
     od
     
-    ; Start time for the behavior (now)
-    iStartTime = 0
-    ; Globally unique ID for this behavior
-    gi_compId +=1
-    ; 
-    ; da capire come gestire iNextID
-    iNextID = gi_NUMComportamenti - 10  ; Reserve last 10 slots for transition behaviors
-    iNextID += gi_tc_transition_active   ; Increment when transition is active
-    iAt times
-    ; Schedule the behavior generation with interpolated parameters
-    event_i "i", "GeneraComportamenti", iStartTime, 10, 
-            iAt, iDuration, iRhythmsTable, iHarmonicDuration, 
-            iAmplitude, iOctave, iRegister, iPositionsTable, gi_compId
+    ; Tempo corrente come attacco
+    iAttacco times
+    
+    ; Utilizza lo storeTransitionBehaviorParameters per memorizzare i parametri
+    ; NON incrementare gi_compId qui, lo fa già storeTransitionBehaviorParameters
+    iIdComp storeTransitionBehaviorParameters iAttacco, iDuration, iHarmonicDuration, 
+                                              iAmplitude, iOctave, iRegister, 
+                                              iRhythmsTable, iPositionsTable
+    ftfree iRhythmsTable, 1
+    ftfree iPositionsTable, 1
+    ; Chiama GeneraComportamenti con i parametri essenziali
+    schedule "GeneraComportamenti", 0, 1, 0, iDuration, iIdComp
     
     ; Debug output
     if (gi_debug >= 2) then
-        prints "Generated transition behavior at progress %.2f:\n", iProgress
+        prints "Generated transition behavior at progress %.2f (ID %d):\n", iProgress, iIdComp
         prints "  Density: %.2f, Register: %.2f, Movement: %.2f\n", 
                iInterpolatedDensity, iInterpolatedRegister, iInterpolatedMovement
         prints "  Duration: %.1f, Harmonic Duration: %.1f\n", 
@@ -68,4 +78,3 @@ opcode generateTransitionBehavior, 0, i
                iOctave, iRegister, iAmplitude
     endif
 endop
-
