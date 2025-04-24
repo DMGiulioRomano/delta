@@ -50,6 +50,11 @@ $(VENV)/bin/activate: requirements.txt
 	touch $(VENV)/bin/activate
 
 ## Analyze overlap data and generate plots
+analyzeMyRAM: venv
+	mkdir -p docs/analysis/plots
+	$(VENV_PYTHON) docs/memoryRAMxMyTables.py MACROS/init.orc docs/analysis/memoryRAM.csv
+
+## Analyze overlap data and generate plots
 analyze: venv
 	mkdir -p docs/analysis/plots
 	$(VENV_PYTHON) docs/plot_overlap.py docs/analysis/overlap_data.csv
