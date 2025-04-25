@@ -1,61 +1,40 @@
 #define DEBUG_Generatore # 
     if i_Res == 1 then
-        if int(i_debug) == 3 then
+        if int(i_debug) >= 3 then
             prints "%d %d %d %d %d %d %d %d\n",i_Attacco, i_Durata, gi_temp_ritmi, i_DurArm, i_Amp,  i_Oct, i_Reg, gi_temp_pos
         endif
     endif
-    if int(i_debug) == 5 then
+    if int(i_debug) >= 5 then
         ftprint gi_Intonazione
     endif#
 
 #define DEBUG_Comp1 #
-   if int(i_debug) == 1 || int(i_debug) == 2 then
+   if int(i_debug) >= 1 then
       prints "\n\t\t=========================================\n"
       prints "\t\t\tdentro comportamento %d\n", i_IdComp
    endif#
 
-#define DEBUG_Comp2 #
-   if int(i_debug) == 2 then
-      prints "\n\t\t\tRitmi (Array copiato)\n"
-      printarray i_Ritmi
-      prints "---------------------"
-      prints "\n\t\t\tRitmi tabella\n"
-      ftprint gi_comp_temp_ritmi, 1, 0, gi_Index+1
-      prints "---------------------"
-      prints "\n\t\t\tPosizioni\n"
-      printarray i_Posizioni
-      prints "---------------------"
-      prints "\n"
-   endif#
-
-#define DEBUG_Comp3 #
-   if int(i_debug) == 3 then
-      prints "\t\t---------------------"
-      prints "\n\t\t\tRitmi tabella\n per gi_Index = %d\n", gi_Index
-      ftprint gi_comp_temp_ritmi, 1, 0, gi_Index+1
-   endif#
-
 #define DEBUG_Comp4 #
-   if int(i_debug) == 3 then
-      prints "___\nritmo corrente: %d\nad index:%d\n",i_RitmoCorrente,i_Index
+   if int(i_debug) >= 3 then
+      prints "___\nritmo corrente: %d\nad index:%d\n",i_RitmoCorrente,i_EventIdx
    endif#
 
 #define DEBUG_Comp5 #
-   if int(i_debug) == 3 then
-      prints "___\nvecchio ritmo: %d\nad index:%d\n",i_Vecchio_Ritmo,i_Index
+   if int(i_debug) >= 3 then
+      prints "___\nvecchio ritmo: %d\nad index:%d\n",i_Vecchio_Ritmo,i_EventIdx
    endif#
 
 
 #define DEBUG_Comp6 #
-      if int(i_debug) == 2 || int(i_debug) == 3 then 
-         prints "___\nad attacco:%f\nampiezza: %f\nfrequenza: %f\ndurata evento:%f\nposizione:%d\n\n", i_time, round3(i_Amp), round3(i_Freq1), round3(i_DurEvento), i_Pos
+      if int(i_debug) >= 2 then 
+         prints "___\nad attacco:%f\nampiezza: %f\nfrequenza: %f\ndurata evento:%f\nposizione:%d\n\n", i_EventAttack, round3(i_Amp), round3(i_Freq1), round3(i_EventDuration), i_Pos
          ftprint gi_eve_posizione, 1, 0, gi_Index+1
       endif#
 
 #define DEBUG_CompEND #
    if int(i_debug) >= 1 then
       ; Print useful debug info
-      prints "\tComportamento %d completed.\n\tGenerated %d events.\n", i_IdComp, i_Index
+      prints "\tComportamento %d completed.\n\tGenerated %d events.\n", i_IdComp, i_EventIdx
       prints "=========================================\n\n"
    endif#
 
@@ -68,6 +47,6 @@
 
 #define DEBUG_Evento2 #
     ktim timeinsts				;read time 
-    if int(i_debug) == 5 then
+    if int(i_debug) >= 5 then
       printks "\ninviluppo: %f della funzione: %d instr: %d, tempo: %f\n", 0.5, kEnv, ifn, id_evento, ktim 
     endif#

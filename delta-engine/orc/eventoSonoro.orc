@@ -11,11 +11,6 @@
 ; p8 - ending frequency
 ; p9 - function table number for position
 ;==================================================================
-
-
-
-
-
 instr eventoSonoro
     id_evento=p10
     id_comportamento=p11

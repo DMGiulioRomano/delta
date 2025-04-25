@@ -1,129 +1,195 @@
-
+; ===========================================================================
+; OPCODE PER GENERAZIONE RITMI NON LINEARE
+; ===========================================================================
 opcode NonlinearFunc, i, i
   iX xin
-  ;iPI = 3.14159
-  iPI = 4*taninv(1.0)
-  iResult = abs(iX*2 * sin(iX * iPI/2 + iX)+ 1/(iX+0.001))
+  iPI = 4*taninv(1.0)  ; Calcolo preciso di PI
+  
+  ; Formula non lineare per generare nuovi ritmi basati sui precedenti
+  ; Produce un comportamento pseudo-caotico per varietà ritmica
+  iResult = abs(iX*2 * sin(iX * iPI/2 + iX) + 1/(iX+0.001))
   iResult = round(iResult)
+  
   xout iResult
 endop
 
 
+; ===========================================================================
+; COMPORTAMENTO - GENERATORE DI EVENTI SONORI
+; ===========================================================================
+; Questo strumento genera una sequenza di eventi sonori basati sui parametri
+; forniti e li schedula per l'esecuzione. Modula i parametri del suono in base
+; al contesto musicale corrente per adattarsi alla composizione globale.
+; ===========================================================================
 instr Comportamento
-   ; Input parameters
-   i_debug= gi_debug
-   i_CAttacco = p2
-   i_Durata = p3
-   i_RitmiTab = p4
-   i_DurataArmonica = p5 
-   i_Ampiezza = p6
-   i_Ottava = p7
-   i_Registro = p8
-   i_PosTab = p9
-   i_IdComp = p10
+    ; -----------------------------------------------------------------------
+    ; 1. INIZIALIZZAZIONE E ACQUISIZIONE PARAMETRI
+    ; -----------------------------------------------------------------------
+    i_debug = gi_debug
 
-   $DEBUG_Comp1
-   gi_comp_temp_ritmi ftgen 0, 0, ftlen(i_RitmiTab)+100, -2, 0
-   i_Ritmi[]        tab2array i_RitmiTab,0, ftlen(i_RitmiTab)-1 
-   i_Posizioni[]    tab2array i_PosTab,0, ftlen(i_RitmiTab)-1
-   copya2ftab i_Ritmi, gi_comp_temp_ritmi
-   ; debug line
-   $DEBUG_Comp2
-   ; Inizializza indice per i ritmi ciclici
-   i_RitmoIndex = 0
-   i_LenRitmi = lenarray(i_Ritmi)
-   
-   ; Per ogni evento sonoro
-   i_Index = 0
-   i_time = 0
-   while i_time < i_Durata do
-      ; Calcola il ritmo corrente
-      if  i_Index < i_LenRitmi then
-         i_RitmoCorrente tab_i i_Index, gi_comp_temp_ritmi 
-         ;debug line
-         $DEBUG_Comp4
-         if i_Index == 0 then
-            i_Vecchio_Ritmo = 1
-         else
-            i_Vecchio_Ritmo tab_i i_Index-1, gi_comp_temp_ritmi 
-         endif
-      else 
-         i_Vecchio_Ritmo tab_i i_Index-1, gi_comp_temp_ritmi
-         $DEBUG_Comp5
-         i_RitmoCorrente NonlinearFunc i_Vecchio_Ritmo
-         ;debug line
-         $DEBUG_Comp4
-         tabw_i i_RitmoCorrente, i_Index,gi_comp_temp_ritmi
-         $DEBUG_Comp3
-      endif
-      if i_Index == 0 then
-         i_Pfield2 = i_CAttacco
-      else
-         iRitmoN = 1/i_Vecchio_Ritmo
-         iLast_at tab_i i_Index-1, gi_eve_attacco 
-         i_Pfield2 = i_DurataArmonica * iRitmoN + iLast_at
-      endif
+    ; Parametri di input
+    i_CAttacco = p2             ; Tempo di attacco del comportamento
+    i_Durata = p3               ; Durata complessiva del comportamento
+    i_RitmiTab = p4             ; Tabella dei ritmi
+    i_DurataArmonica = p5       ; Durata armonica di riferimento
+    i_Ampiezza = p6             ; Ampiezza in dB
+    i_Ottava = p7               ; Ottava
+    i_Registro = p8             ; Registro
+    i_PosTab = p9               ; Tabella delle posizioni
+    i_IdComp = p10              ; ID del comportamento  
+    ; Mostra informazioni debug iniziali se richiesto
+    if int(i_debug) >= 1 then
+        prints "\n\t\t=========================================\n"
+        prints "\t\t\tdentro comportamento %d\n", i_IdComp
+    endif
+    ; -----------------------------------------------------------------------
+    ; 2. PREPARAZIONE DELLE SEQUENZE RITMICHE E POSIZIONALI
+    ; -----------------------------------------------------------------------
+    ; Ottieni la lunghezza effettiva dei ritmi disponibili
+    i_LenRitmiTab = ftlen(i_RitmiTab)
 
-      ; Calcola ampiezza con smorzamento fisso per ora
-      i_Amp = calcAmpiezza(i_Ampiezza, i_RitmoCorrente, -0.05)
-      ; Calcola frequenza
-      i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
-      i_Freq2 = i_Freq1  ; Per ora uguale, poi si può modificare
-      ; Calcola posizione
-      i_Pos = int(random:i(0, i_RitmoCorrente))
+    ; Creiamo una tabella temporanea abbastanza grande da contenere 
+    ; anche i ritmi che verranno generati algoritmicamente. perché ne ho bisogno?
+    ; perché devo dare in pasto alla dnl il ritmo precedente per generare il successivo
+    i_TempRitmiTab ftgen 0, 0, i_LenRitmiTab + 100, -2, 0
 
+    ; Copiamo i ritmi dalla tabella di input nella tabella temporanea
+    i_IndexCopy = 0
+    while i_IndexCopy < i_LenRitmiTab do
+        i_ValRitmo tab_i i_IndexCopy, i_RitmiTab
+        tabw_i i_ValRitmo, i_IndexCopy, i_TempRitmiTab
+        i_IndexCopy += 1
+    od
 
-      iCurrentTime = i_time + i_CAttacco
-      iLookbackTime = max(0, iCurrentTime - 30)  ; Guarda agli ultimi 30 secondi
-      i_OverlapFactor = suggestDurationFactor(iLookbackTime, iCurrentTime, i_RitmoCorrente)
+    ; -----------------------------------------------------------------------
+    ; 3. GENERAZIONE DEGLI EVENTI SONORI
+    ; -----------------------------------------------------------------------
+    i_EventIdx = 0     ; Indice dell'evento corrente
+    i_CurrentTime = 0  ; Tempo cumulativo per il ciclo
 
-      if gi_Index < 10 then ; Per i primi 10 eventi
-         prints "MODALITÀ BOOTSTRAP: Forzatura durata evento\n"
-         i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * 3.0
-      else
-      ; Calcola la durata dell'evento con il fattore di adattamento
-         i_DurEvento = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
-      endif
-      
+    ; Continua a generare eventi finché non raggiungiamo la durata specificata
+    while i_CurrentTime < i_Durata do
+        ; -------- 3.1 GESTIONE RITMI --------
+        ; Determina il ritmo corrente dalla tabella o genera un nuovo ritmo se necessario
+        if i_EventIdx < i_LenRitmiTab then
+            ; Usa un ritmo esistente dalla tabella
+            i_RitmoCorrente tab_i i_EventIdx, i_TempRitmiTab
+            $DEBUG_Comp4  ; Debug    
+            ; Ottieni anche il ritmo precedente (per il calcolo dell'attacco)
+            if i_EventIdx == 0 then
+                i_Vecchio_Ritmo = 1  ; Valore default per il primo evento
+            else
+                i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
+            endif
+        else 
+           ; Genera un nuovo ritmo basato sull'ultimo ritmo utilizzato
+           i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
+           $DEBUG_Comp5  ; Debug    
+           ; Genera un nuovo ritmo usando la funzione non lineare
+           i_RitmoCorrente NonlinearFunc i_Vecchio_Ritmo
+           $DEBUG_Comp4  ; Debug    
+           ; Salva il nuovo ritmo nella tabella temporanea
+           tabw_i i_RitmoCorrente, i_EventIdx, i_TempRitmiTab
+        endif
 
-      ; Debug opzionale
-      if gi_debug >= 2 then
-         ; Ottieni il valore corrente di sovrapposizione dall'Analizzatore
-         i_current_overlap = i(gk_current_overlap)
-         prints "Sovrapposizione: %d, Ritmo: %d, Fattore: %f, Durata: %f\n", 
-               i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_DurEvento
-      endif
+        ; -------- 3.2 CALCOLO TEMPO DI ATTACCO --------
+        ; Calcola il tempo di attacco per questo evento
+        if i_EventIdx == 0 then
+           ; Il primo evento inizia all'inizio del comportamento
+            i_EventAttack = i_CAttacco
+        else
+           ; Gli eventi successivi dipendono dal ritmo precedente
+            i_RitmoNormalizzato = 1/i_Vecchio_Ritmo
+            i_PreviousAttack tab_i i_EventIdx-1, gi_eve_attacco
+            i_EventAttack = i_DurataArmonica * i_RitmoNormalizzato + i_PreviousAttack
+        endif
 
-      ; Debug opzionale
-      if gi_debug >= 2 then
-         prints "Evento %d: Tempo=%.2f, OverlapFactor=%.2f, Durata=%.2f\n", 
-               i_Index, iCurrentTime, i_OverlapFactor, i_DurEvento
-      endif
-      ; Store in global tables
-      tabw_i i_Pfield2,             gi_Index, gi_eve_attacco
-      tabw_i i_DurEvento,           gi_Index, gi_eve_durata  
-      tabw_i i_Amp,                 gi_Index, gi_eve_ampiezza
-      tabw_i i_Freq1,               gi_Index, gi_eve_frequenza1
-      tabw_i i_Freq2,               gi_Index, gi_eve_frequenza2 
-      tabw_i i_Pos,                 gi_Index, gi_eve_posizione
-      tabw_i i_RitmoCorrente,       gi_Index, gi_eve_hr
-      tabw_i i_Freq2,               gi_Index, gi_eve_ifn
-      tabw_i i_IdComp,              gi_Index, gi_eve_comportamento
-      ; debug line for i_Amp, i_Freq1, i_Freq2, i_DurEvento, gi_eve_posizione
-      $DEBUG_Comp6
-      ; Schedule evento sonoro
-      schedule "eventoSonoro", i_Pfield2, i_DurEvento, i_Amp, i_Freq1, tab_i(gi_Index,gi_eve_posizione), tab_i(gi_Index,gi_eve_hr), i_Freq2, 2, gi_Index, i_IdComp
-      ;event "i", "eventoSonoro", i_Pfield2, i_DurEvento, i_Amp, i_Freq1, tab_i(gi_Index,gi_eve_posizione), tab_i(gi_Index,gi_eve_hr), i_Freq2, 2, gi_Index, i_IdComp
-      ; Aggiorna indici 
-      i_RitmoIndex += 1
-      i_Index += 1
-      gi_Index += 1
-      i_time = i_Pfield2 + i_DurEvento
-   od
-   i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
-   Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
-   ftsave Snd, 1, gi_comp_ATTACCO, gi_comp_RITMO_VAL, gi_comp_DURARMONICA, gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONE
-   Scmd sprintf "python3.11 docs/plot.py %s", Snd
-   i_tmp_res system_i 1, Scmd, 0
-   $DEBUG_CompEND
+        ; -------- 3.3 CALCOLO PARAMETRI DELL'EVENTO --------
+        ; Calcola l'ampiezza con smorzamento
+        i_Amp = calcAmpiezza(i_Ampiezza, i_RitmoCorrente, -0.05)
+
+        ; Calcola la frequenza basata su ottava, registro e ritmo
+        i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
+        i_Freq2 = i_Freq1  ; Frequenza finale uguale all'iniziale per ora
+
+        ; Determina la posizione - prova a usare la tabella delle posizioni se disponibile,
+        ; altrimenti genera casualmente
+        if i_EventIdx < ftlen(i_PosTab) then
+            i_Pos tab_i i_EventIdx, i_PosTab
+        else
+            ; Posizione casuale entro il range del ritmo
+            i_Pos = int(random:i(0, i_RitmoCorrente))
+        endif
+
+        ; -------- 3.4 CALCOLO DURATA ADATTATIVA --------
+        ; Calcola la durata dell'evento in base al contesto musicale
+        i_GlobalTime = i_CurrentTime + i_CAttacco
+        i_LookbackTime = max(0, i_GlobalTime - 30)  ; Analizza gli ultimi 30 secondi
+
+        ; Ottieni un fattore di durata basato sulla sovrapposizione di eventi nel contesto
+        i_OverlapFactor = suggestDurationFactor(i_LookbackTime, i_GlobalTime, i_RitmoCorrente)
+
+        ; Gestione della fase iniziale (bootstrap)
+        if gi_Index < 10 then
+            if i_debug >= 1 then
+                prints "MODALITÀ BOOTSTRAP: Forzatura durata evento\n"
+            endif
+            i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * 3.0
+        else
+            ; Calcola la durata adattativa dell'evento
+            i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
+        endif
+
+        ; Debug dell'adattamento della durata
+        if i_debug >= 2 then
+           i_current_overlap = gi_current_overlap
+           prints "Evento %d: Sovrapposizione=%d, Ritmo=%d, Fattore=%.2f, Durata=%.2f\n", 
+                 i_EventIdx, i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_EventDuration
+        endif
+
+        ; -------- 3.5 MEMORIZZAZIONE DELL'EVENTO NELLE TABELLE GLOBALI --------
+        ; Salva tutti i parametri dell'evento nelle tabelle globali
+        tabw_i i_EventAttack,    gi_Index, gi_eve_attacco
+        tabw_i i_EventDuration,  gi_Index, gi_eve_durata  
+        tabw_i i_Amp,            gi_Index, gi_eve_ampiezza
+        tabw_i i_Freq1,          gi_Index, gi_eve_frequenza1
+        tabw_i i_Freq2,          gi_Index, gi_eve_frequenza2 
+        tabw_i i_Pos,            gi_Index, gi_eve_posizione
+        tabw_i i_RitmoCorrente,  gi_Index, gi_eve_hr
+        tabw_i i_Freq2,          gi_Index, gi_eve_ifn
+        tabw_i i_IdComp,         gi_Index, gi_eve_comportamento
+
+        ; Debug dei parametri dell'evento
+        $DEBUG_Comp6
+
+        ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
+        ; Schedula l'evento sonoro con tutti i parametri calcolati
+        schedule "eventoSonoro", i_EventAttack, i_EventDuration, i_Amp, i_Freq1, 
+                i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp
+
+        ; -------- 3.7 AGGIORNAMENTO DEGLI INDICI E DEL TEMPO --------
+        i_EventIdx += 1          ; Prossimo evento
+        gi_Index += 1            ; Incrementa l'indice globale degli eventi
+        i_CurrentTime = i_EventAttack + i_EventDuration  ; Aggiorna il tempo corrente
+    od
+
+    ; -----------------------------------------------------------------------
+    ; 4. SALVATAGGIO E ANALISI DEI DATI
+    ; -----------------------------------------------------------------------
+    ; Crea la directory per i dati dei comportamenti
+    i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
+
+    ; Genera il nome del file
+    Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
+
+    ; Salva i dati del comportamento per analisi
+    ftsave Snd, 1, gi_comp_ATTACCO, i_RitmiTab, gi_comp_DURARMONICA, 
+           gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, i_PosTab
+
+    ; Esegui lo script Python di visualizzazione
+    Scmd sprintf "python3.11 docs/plot.py %s", Snd
+    i_tmp_res system_i 1, Scmd, 0
+
+    ; Debug finale
+    $DEBUG_CompEND
 endin
