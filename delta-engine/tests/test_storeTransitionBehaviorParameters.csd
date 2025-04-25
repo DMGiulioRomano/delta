@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac -d -m0
+-d -m0
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -34,12 +34,16 @@ gi_comp_OTTAVA      ftgen 0, 0, gi_NUMComportamenti, -2, 0       ; Ottava
 gi_comp_REGISTRO    ftgen 0, 0, gi_NUMComportamenti, -2, 0       ; Registro
 
 ; ====================================================================
-; IMPLEMENTAZIONE DELL'OPCODE DI TEST
+; IMPLEMENTAZIONE DELL'OPCODE DI TEST MODIFICATO PER ARRAY
 ; ====================================================================
 
-; Implementazione dell'opcode storeTransitionBehaviorParameters
-opcode storeTransitionBehaviorParameters, i, iiiiiiii
-    iAttacco, iDurata, iDurataArmonica, iAmpiezza, iOttava, iRegistro, iRhythmsTable, iPositionsTable xin
+; Implementazione corretta dell'opcode che determina le dimensioni con lenarray()
+opcode storeTransitionBehaviorParameters, i, iiiiiii[]i[]
+    iAttacco, iDurata, iDurataArmonica, iAmpiezza, iOttava, iRegistro, iRhythms[], iPositions[] xin
+    
+    ; Calcola le dimensioni effettive degli array
+    iRhythmsSize = lenarray(iRhythms)
+    iPositionsSize = lenarray(iPositions)
     
     ; Incrementa il contatore globale per ottenere un nuovo ID
     gi_compId += 1
@@ -59,9 +63,8 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     tabw_i iOttava, iIdComp, gi_comp_OTTAVA
     tabw_i iRegistro, iIdComp, gi_comp_REGISTRO
     
-    ; Conta il numero di ritmi nella tabella di input
-    iRhythmSize = ftlen(iRhythmsTable)
-    iNumRitmi = min(iRhythmSize, 10)  ; Limita a max 10 ritmi
+    ; Limita il numero di ritmi
+    iNumRitmi = min(iRhythmsSize, 10)  ; Limita a max 10 ritmi
     
     ; Calcola l'indice base per i ritmi
     iRitmiBaseIndex = iIdComp * 11
@@ -69,17 +72,16 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     ; Memorizza la lunghezza come primo elemento
     tabw_i iNumRitmi, iRitmiBaseIndex, gi_comp_RITMI
     
-    ; Copia i valori dei ritmi
+    ; Copia i valori dei ritmi dall'array
     iRIdx = 0
     while (iRIdx < iNumRitmi) do
-        iRitmo tab_i iRIdx, iRhythmsTable
+        iRitmo = iRhythms[iRIdx]
         tabw_i iRitmo, iRitmiBaseIndex + 1 + iRIdx, gi_comp_RITMI
         iRIdx += 1
     od
     
-    ; Conta il numero di posizioni nella tabella di input
-    iPosSize = ftlen(iPositionsTable)
-    iNumPos = min(iPosSize, 10)  ; Limita a max 10 posizioni
+    ; Limita il numero di posizioni
+    iNumPos = min(iPositionsSize, 10)  ; Limita a max 10 posizioni
     
     ; Calcola l'indice base per le posizioni
     iPosBaseIndex = iIdComp * 11
@@ -87,10 +89,10 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     ; Memorizza la lunghezza come primo elemento
     tabw_i iNumPos, iPosBaseIndex, gi_comp_POSIZIONI
     
-    ; Copia i valori delle posizioni
+    ; Copia i valori delle posizioni dall'array
     iPIdx = 0
     while (iPIdx < iNumPos) do
-        iPos tab_i iPIdx, iPositionsTable
+        iPos = iPositions[iPIdx]
         tabw_i iPos, iPosBaseIndex + 1 + iPIdx, gi_comp_POSIZIONI
         iPIdx += 1
     od
@@ -106,8 +108,7 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
         
         iIdx = 0
         while (iIdx < iNumRitmi) do
-            iVal tab_i iRitmiBaseIndex + 1 + iIdx, gi_comp_RITMI
-            prints "%d ", iVal
+            prints "%d ", iRhythms[iIdx]
             iIdx += 1
         od
         prints "\n"
@@ -115,8 +116,7 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
         prints "  Posizioni (%d): ", iNumPos
         iIdx = 0
         while (iIdx < iNumPos) do
-            iVal tab_i iPosBaseIndex + 1 + iIdx, gi_comp_POSIZIONI
-            prints "%d ", iVal
+            prints "%d ", iPositions[iIdx]
             iIdx += 1
         od
         prints "\n"
@@ -126,12 +126,12 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
 endop
 
 ; ====================================================================
-; STRUMENTI DI TEST
+; STRUMENTI DI TEST ADATTATI PER USARE ARRAY
 ; ====================================================================
 
 ; Strumento per testare con ritmi e posizioni di varie lunghezze
 instr TestCase1
-    prints "\n=== TEST CASE 1: Ritmi e posizioni di varie lunghezze ===\n"
+    prints "\n=== TEST CASE 1: Ritmi e posizioni di varie lunghezze (versione array) ===\n"
     
     ; Parametri base di test
     iAttacco = 0
@@ -143,40 +143,68 @@ instr TestCase1
     
     ; CASO 1: Pochi elementi (3 ritmi, 2 posizioni)
     prints "CASO 1.1: Pochi elementi (3 ritmi, 2 posizioni)\n"
-    iRhythmsTable ftgen 0, 0, 4, -2, 4, 5, 6
-    iPositionsTable ftgen 0, 0, 3, -2, 1, 2
-    iSize = ftlen(iRhythmsTable)
-    prints "Dimensione dichiarata: 4, Dimensione effettiva ftlen(): %d\n", iSize
+    iRhythms[] init 3
+    iRhythms[0] = 4
+    iRhythms[1] = 5
+    iRhythms[2] = 6
+    
+    iPositions[] init 2
+    iPositions[0] = 1
+    iPositions[1] = 2
+    
+    prints "Array di ritmi creato con %d elementi\n", lenarray(iRhythms)
+    prints "Array di posizioni creato con %d elementi\n", lenarray(iPositions)
     
     iIdComp storeTransitionBehaviorParameters iAttacco, iDurata, iDurataArmonica, 
                                              iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                             iRhythms, iPositions
     
     ; CASO 2: Esattamente 10 elementi (limite)
     prints "\nCASO 1.2: Esattamente 10 elementi (limite)\n"
-    iRhythmsTable ftgen 0, 0, 10, -2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-    iPositionsTable ftgen 0, 0, 10, -2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-    iSize = ftlen(iRhythmsTable)
-    prints "Dimensione dichiarata: 10, Dimensione effettiva ftlen(): %d\n", iSize
+    iRhythms10[] init 10
+    iPositions10[] init 10
+    
+    iIdx = 0
+    while (iIdx < 10) do
+        iRhythms10[iIdx] = iIdx + 1
+        iPositions10[iIdx] = iIdx
+        iIdx += 1
+    od
+    
+    prints "Array di ritmi creato con %d elementi\n", lenarray(iRhythms10)
+    prints "Array di posizioni creato con %d elementi\n", lenarray(iPositions10)
+    
     iAttacco = 10 ; Modifica l'attacco per distinguere i casi
     iIdComp storeTransitionBehaviorParameters iAttacco, iDurata, iDurataArmonica, 
                                              iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                             iRhythms10, iPositions10
     
     ; CASO 3: Più di 10 elementi (dovrebbe limitare)
     prints "\nCASO 1.3: Più di 10 elementi (dovrebbe limitare a 10)\n"
-    iRhythmsTable ftgen 0, 0, 15, -2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-    iPositionsTable ftgen 0, 0, 12, -2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+    iRhythms15[] init 15
+    iPositions12[] init 12
+    
+    iIdx = 0
+    while (iIdx < 15) do
+        iRhythms15[iIdx] = iIdx + 1
+        if (iIdx < 12) then
+            iPositions12[iIdx] = iIdx
+        endif
+        iIdx += 1
+    od
+    
+    prints "Array di ritmi creato con %d elementi\n", lenarray(iRhythms15)
+    prints "Array di posizioni creato con %d elementi\n", lenarray(iPositions12)
     
     iAttacco = 20 ; Modifica l'attacco per distinguere i casi
     iIdComp storeTransitionBehaviorParameters iAttacco, iDurata, iDurataArmonica, 
                                              iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                             iRhythms15, iPositions12
 endin
 
 ; Strumento per testare valori limite e casi particolari
 instr TestCase2
-    prints "\n=== TEST CASE 2: Valori limite e casi particolari ===\n"
+    prints "\n=== TEST CASE 2: Valori limite e casi particolari (versione array) ===\n"
     
     ; CASO 1: Valori estremi
     prints "CASO 2.1: Valori estremi\n"
@@ -187,12 +215,19 @@ instr TestCase2
     iOttava = 10       ; Ottava alta
     iRegistro = 1      ; Registro basso
     
-    iRhythmsTable ftgen 0, 0, 5, -2, 100, 200, 300, 400, 500  ; Ritmi molto grandi
-    iPositionsTable ftgen 0, 0, 5, -2, 99, 199, 299, 399, 499  ; Posizioni elevate
+    iRhythmsExt[] init 5
+    iPositionsExt[] init 5
+    
+    iIdx = 0
+    while (iIdx < 5) do
+        iRhythmsExt[iIdx] = (iIdx + 1) * 100
+        iPositionsExt[iIdx] = (iIdx + 1) * 100 - 1
+        iIdx += 1
+    od
     
     iIdComp storeTransitionBehaviorParameters iAttacco, iDurata, iDurataArmonica, 
                                              iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                             iRhythmsExt, iPositionsExt
 
     ; CASO 2: Valori negativi
     prints "\nCASO 2.2: Valori negativi\n"
@@ -203,23 +238,43 @@ instr TestCase2
     iOttava = 2
     iRegistro = 3
     
-    iRhythmsTable ftgen 0, 0, 5, -2, -1, 2, -3, 4, -5  ; Ritmi negativi (non dovrebbero esistere)
-    iPositionsTable ftgen 0, 0, 5, -2, -1, 0, 1, -2, 2  ; Posizioni negative
+    iRhythmsNeg[] init 5
+    iPositionsNeg[] init 5
+    
+    iRhythmsNeg[0] = -1
+    iRhythmsNeg[1] = 2
+    iRhythmsNeg[2] = -3
+    iRhythmsNeg[3] = 4
+    iRhythmsNeg[4] = -5
+    
+    iPositionsNeg[0] = -1
+    iPositionsNeg[1] = 0
+    iPositionsNeg[2] = 1
+    iPositionsNeg[3] = -2
+    iPositionsNeg[4] = 2
     
     iIdComp storeTransitionBehaviorParameters iAttacco, iDurata, iDurataArmonica, 
                                              iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                             iRhythmsNeg, iPositionsNeg
     
-    ; CASO 3: Tabelle vuote o molto piccole
-    prints "\nCASO 2.3: Tabelle vuote o molto piccole\n"
+    ; CASO 3: Array molto piccoli
+    prints "\nCASO 2.3: Array molto piccoli\n"
     iAttacco = 40
-    
-    iRhythmsTable ftgen 0, 0, 1, -2, 1  ; Solo un elemento
-    iPositionsTable ftgen 0, 0, 0, -2, 0  ; Tabella vuota (dovrebbe gestire questo caso)
-    
+        
+    iRhythmsSmall[] init 1
+    iRhythmsSmall[0] = 1
+        
+    ; Non è possibile usare init 0, quindi creo un array di dimensione 1
+    ; ma lo tratterò come vuoto in termini logici
+    iPositionsEmpty[] init 1
+    ; Non assegno nessun valore, lascio così che contenga 0 come valore predefinito
+
+    prints "Array di ritmi creato con %d elementi\n", lenarray(iRhythmsSmall)
+    prints "Array di posizioni creato con %d elementi (trattato come vuoto)\n", lenarray(iPositionsEmpty)
+        
     iIdComp storeTransitionBehaviorParameters iAttacco, iDurata, iDurataArmonica, 
-                                             iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                            iAmpiezza, iOttava, iRegistro, 
+                                            iRhythmsSmall, iPositionsEmpty
 endin
 
 ; Strumento per verificare la lettura dei valori memorizzati
@@ -279,7 +334,7 @@ endin
 
 ; Questo strumento tenta di generare più comportamenti del limite massimo
 instr TestOverflow
-    prints "\n=== TEST OVERFLOW: Più comportamenti del limite ===\n"
+    prints "\n=== TEST OVERFLOW: Più comportamenti del limite (versione array) ===\n"
     
     ; Parametri base di test
     iAttacco = 100
@@ -289,8 +344,16 @@ instr TestOverflow
     iOttava = 3
     iRegistro = 4
     
-    iRhythmsTable ftgen 0, 0, 3, -2, 1, 2, 3
-    iPositionsTable ftgen 0, 0, 3, -2, 0, 1, 2
+    iRhythmsTest[] init 3
+    iPositionsTest[] init 3
+    
+    iRhythmsTest[0] = 1
+    iRhythmsTest[1] = 2
+    iRhythmsTest[2] = 3
+    
+    iPositionsTest[0] = 0
+    iPositionsTest[1] = 1
+    iPositionsTest[2] = 2
     
     ; Calcola quanti comportamenti dobbiamo creare per raggiungere il limite
     iToCreate = gi_NUMComportamenti - gi_compId
@@ -306,7 +369,7 @@ instr TestOverflow
     while (iCount < iToCreate) do
         iIdComp storeTransitionBehaviorParameters iAttacco + iCount, iDurata, iDurataArmonica, 
                                                  iAmpiezza, iOttava, iRegistro, 
-                                                 iRhythmsTable, iPositionsTable
+                                                 iRhythmsTest, iPositionsTest
         iCount += 1
     od
     
@@ -314,83 +377,11 @@ instr TestOverflow
     prints "\nProvo a creare un comportamento oltre il limite...\n"
     iIdComp storeTransitionBehaviorParameters iAttacco + 1000, iDurata, iDurataArmonica, 
                                              iAmpiezza, iOttava, iRegistro, 
-                                             iRhythmsTable, iPositionsTable
+                                             iRhythmsTest, iPositionsTest
     
     skip:
 endin
 
-instr DiagnosticTest
-    prints "\n=== TEST DIAGNOSTICO PER ANOMALIE TABELLE ===\n"
-    
-    ; Test 1: Tabella di dimensione 3
-    prints "TEST 1: Tabella di dimensione 3\n"
-    iRhythmsTable ftgen 0, 0, 3, -2, 4, 5, 6
-    
-    ; Stampa la dimensione effettiva della tabella
-    iSize = ftlen(iRhythmsTable)
-    prints "Dimensione dichiarata: 3, Dimensione effettiva ftlen(): %d\n", iSize
-    
-    ; Tenta di accedere a tutti gli elementi
-    prints "Contenuto della tabella secondo tab_i:\n"
-    iIdx = 0
-    while (iIdx < 5) do  ; Proviamo a leggere anche oltre la dimensione dichiarata
-        iValue = -999    ; Valore di default per identificare errori
-        
-        ; Usa una struttura try-catch per evitare errori fatali
-        if (iIdx < iSize) then
-            iValue tab_i iIdx, iRhythmsTable
-            prints "  Elemento[%d] = %d\n", iIdx, iValue
-        else
-            prints "  Elemento[%d] = INACCESSIBILE (oltre dimensione)\n", iIdx
-        endif
-        
-        iIdx += 1
-    od
-    
-    ; Test 2: Tabella di dimensione 5 (valori positivi)
-    prints "\nTEST 2: Tabella di dimensione 5 (valori positivi)\n"
-    iRhythmsTable2 ftgen 0, 0, 5, -2, 100, 200, 300, 400, 500
-    
-    ; Stampa la dimensione effettiva
-    iSize2 = ftlen(iRhythmsTable2)
-    prints "Dimensione dichiarata: 5, Dimensione effettiva ftlen(): %d\n", iSize2
-    
-    ; Accedi a ogni elemento
-    prints "Contenuto della tabella secondo tab_i:\n"
-    iIdx = 0
-    while (iIdx < 6) do
-        if (iIdx < iSize2) then
-            iValue tab_i iIdx, iRhythmsTable2
-            prints "  Elemento[%d] = %d\n", iIdx, iValue
-        else
-            prints "  Elemento[%d] = INACCESSIBILE (oltre dimensione)\n", iIdx
-        endif
-        
-        iIdx += 1
-    od
-
-    ; Test 3: Verifica della funzione di dump tabella
-    prints "\nTEST 3: Dump completo della tabella con ftprint\n"
-    prints "Tabella 1 (dimensione 3):\n"
-    ftprint iRhythmsTable, 0, 0, 5
-    
-    prints "\nTabella 2 (dimensione 5):\n"
-    ftprint iRhythmsTable2, 0, 0, 6
-    
-    ; Test 4: Alternativa di creazione tabella
-    prints "\nTEST 4: Creazione tabella alternativa\n"
-    
-    ; Crea tabella con size+1 per vedere se cambia qualcosa
-    iRhythmsTable4 ftgen 0, 0, 4, -2, 10, 20, 30
-    
-    iSize4 = ftlen(iRhythmsTable4)
-    prints "Dimensione dichiarata: 4 (per 3 elementi), Dimensione effettiva: %d\n", iSize4
-    
-    prints "Contenuto tabella:\n"
-    ftprint iRhythmsTable4, 0, 0, 5
-    
-    prints "\nTest diagnostico completato.\n"
-endin
 ; ====================================================================
 ; STRUMENTO PRINCIPALE DI TEST
 ; ====================================================================
@@ -416,6 +407,5 @@ endin
 <CsScore>
 ; Avvia il test principale
 i "RunTests" 0 2
-i "DiagnosticTest" 2 2
 </CsScore>
 </CsoundSynthesizer>

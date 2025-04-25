@@ -15,9 +15,13 @@
 ;   iIdComp - ID del comportamento memorizzato
 ; ==========================================================================
 
-opcode storeTransitionBehaviorParameters, i, iiiiiiii
-    iAttacco, iDurata, iDurataArmonica, iAmpiezza, iOttava, iRegistro, iRhythmsTable, iPositionsTable xin
-    
+opcode storeTransitionBehaviorParameters, i, i[]i[]iiiiii
+    iRhythms[], iPositions[], iAttacco, iDuration, iHarmonicDuration, iAmplitude, iOctave, iRegister  xin
+
+    ; Calcola le dimensioni effettive degli array
+    iRhythmsSize = lenarray(iRhythms)
+    iPositionsSize = lenarray(iPositions)
+
     ; Incrementa il contatore globale per ottenere un nuovo ID
     gi_compId += 1
     iIdComp = gi_compId
@@ -25,20 +29,19 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     ; Controlla che l'ID sia entro i limiti
     if (iIdComp >= gi_NUMComportamenti) then
         prints "ERRORE: Superato il numero massimo di comportamenti (%d)\n", gi_NUMComportamenti
-        iIdComp = gi_NUMComportamenti - 1  ; Limita all'ultimo disponibile
+        iIdComp = gi_NUMComportamenti - 1
     endif
     
     ; Memorizza i parametri principali nelle tabelle
     tabw_i iAttacco, iIdComp, gi_comp_ATTACCO
-    tabw_i iDurata, iIdComp, gi_comp_DURATA
-    tabw_i iDurataArmonica, iIdComp, gi_comp_DURARMONICA
-    tabw_i iAmpiezza, iIdComp, gi_comp_AMPIEZZA
-    tabw_i iOttava, iIdComp, gi_comp_OTTAVA
-    tabw_i iRegistro, iIdComp, gi_comp_REGISTRO
+    tabw_i iDuration, iIdComp, gi_comp_DURATA
+    tabw_i iHarmonicDuration, iIdComp, gi_comp_DURARMONICA
+    tabw_i iAmplitude, iIdComp, gi_comp_AMPIEZZA
+    tabw_i iOctave, iIdComp, gi_comp_OTTAVA
+    tabw_i iRegister, iIdComp, gi_comp_REGISTRO
     
-    ; Conta il numero di ritmi nella tabella di input
-    iRhythmSize = ftlen(iRhythmsTable)
-    iNumRitmi = min(iRhythmSize, 10)  ; Limita a max 10 ritmi
+    ; Limita il numero di ritmi
+    iNumRitmi = min(iRhythmSize, 10)
     
     ; Calcola l'indice base per i ritmi
     iRitmiBaseIndex = iIdComp * 11
@@ -46,17 +49,16 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     ; Memorizza la lunghezza come primo elemento
     tabw_i iNumRitmi, iRitmiBaseIndex, gi_comp_RITMI
     
-    ; Copia i valori dei ritmi
+    ; Copia i valori dei ritmi dall'array
     iRIdx = 0
     while (iRIdx < iNumRitmi) do
-        iRitmo tab_i iRIdx, iRhythmsTable
+        iRitmo = iRhythms[iRIdx]
         tabw_i iRitmo, iRitmiBaseIndex + 1 + iRIdx, gi_comp_RITMI
         iRIdx += 1
     od
     
-    ; Conta il numero di posizioni nella tabella di input
-    iPosSize = ftlen(iPositionsTable)
-    iNumPos = min(iPosSize, 10)  ; Limita a max 10 posizioni
+    ; Limita il numero di posizioni
+    iNumPos = min(iPositionsSize, 10)
     
     ; Calcola l'indice base per le posizioni
     iPosBaseIndex = iIdComp * 11
@@ -64,10 +66,10 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     ; Memorizza la lunghezza come primo elemento
     tabw_i iNumPos, iPosBaseIndex, gi_comp_POSIZIONI
     
-    ; Copia i valori delle posizioni
+    ; Copia i valori delle posizioni dall'array
     iPIdx = 0
     while (iPIdx < iNumPos) do
-        iPos tab_i iPIdx, iPositionsTable
+        iPos = iPositions[iPIdx]
         tabw_i iPos, iPosBaseIndex + 1 + iPIdx, gi_comp_POSIZIONI
         iPIdx += 1
     od
@@ -76,15 +78,14 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
     if (gi_debug >= 2) then
         prints "Comportamento %d memorizzato nelle tabelle:\n", iIdComp
         prints "  Attacco: %.2f, Durata: %.2f, DurArmonica: %.2f\n", 
-               iAttacco, iDurata, iDurataArmonica
+               iAttacco, iDuration, iHarmonicDuration
         prints "  Ampiezza: %.2f, Ottava: %d, Registro: %d\n",
-               iAmpiezza, iOttava, iRegistro
+               iAmplitude, iOctave, iRegister
         prints "  Ritmi (%d): ", iNumRitmi
         
         iIdx = 0
         while (iIdx < iNumRitmi) do
-            iVal tab_i iRitmiBaseIndex + 1 + iIdx, gi_comp_RITMI
-            prints "%d ", iVal
+            prints "%d ", iRhythms[iIdx]
             iIdx += 1
         od
         prints "\n"
@@ -92,8 +93,7 @@ opcode storeTransitionBehaviorParameters, i, iiiiiiii
         prints "  Posizioni (%d): ", iNumPos
         iIdx = 0
         while (iIdx < iNumPos) do
-            iVal tab_i iPosBaseIndex + 1 + iIdx, gi_comp_POSIZIONI
-            prints "%d ", iVal
+            prints "%d ", iPositions[iIdx]
             iIdx += 1
         od
         prints "\n"
