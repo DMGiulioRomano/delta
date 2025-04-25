@@ -32,7 +32,10 @@ endop
 ; Fixed version of the complex generateRhythmsForState function
 opcode generateRhythmsForState, i, iiii
     iDensityState, iMovementState, iHarmonicDuration, iTableSize xin
-    
+
+    ; Array di output
+    iRhythms[] init iArraySize
+
     ; Debug output to trace input parameters
     if gi_debug >= 3 then
         prints "generateRhythmsForState called with:\n"
@@ -44,12 +47,9 @@ opcode generateRhythmsForState, i, iiii
     iDensityState = limit(iDensityState, 0, 2)
     iMovementState = limit(iMovementState, 0, 2)
     iHarmonicDuration = limit(iHarmonicDuration, 1, 60)  ; Reasonable range for harmonic duration
-    
-    ; Create rhythm table with extra safety margin
-    iRhythmTable ftgen 0, 0, iTableSize+2, -2, 0
-    
+        
     ; Calculate movement-based rhythm range continuously
-    i_MovementNormalized = limit:i(iMovementState / 2, 0, 1)
+    i_MovementNormalized = limit(iMovementState / 2, 0, 1)
     i_temp pow i_MovementNormalized, 1.5
     iMovementFactor = 1 - i_temp
     
@@ -60,7 +60,7 @@ opcode generateRhythmsForState, i, iiii
     iMaxRhythm = limit(iMaxRhythm, 5, 30)      ; Never below 5, never above 30
     
     ; Density calculations with safety bounds
-    i_fDensityNormalized = limit:i(iDensityState / 2, 0, 1)
+    i_fDensityNormalized = limit(iDensityState / 2, 0, 1)
     iDensityFactor = limit(pow(i_fDensityNormalized, 1.2), 0, 1)
     
     ; Safer calculation for events per second
@@ -79,8 +79,8 @@ opcode generateRhythmsForState, i, iiii
     iBlendedTarget = limit(iBlendedTarget, 1, 40)  ; Reasonable upper limit
     
     ; Final range calculation with strict bounds
-    i_fFinalMin = limit:i(iBlendedTarget * 0.8, iMinRhythm, iMaxRhythm)
-    i_fFinalMax = limit:i(iBlendedTarget * 1.2, iMinRhythm, iMaxRhythm)
+    i_fFinalMin = limit(iBlendedTarget * 0.8, iMinRhythm, iMaxRhythm)
+    i_fFinalMax = limit(iBlendedTarget * 1.2, iMinRhythm, iMaxRhythm)
     
     ; Additional safety checks on range
     i_fFinalMin = limit(i_fFinalMin, 1, 25)
@@ -92,24 +92,18 @@ opcode generateRhythmsForState, i, iiii
     
     ; Fill rhythm table with values - with index bounds checking
     iIdx = 0
-    while iIdx < iTableSize do
-        if iIdx < ftlen(iRhythmTable) then
-            iRhythmValue = random(i_fFinalMin, i_fFinalMax)
-            iRhythmValue = round(iRhythmValue)
-            iRhythmValue = limit(iRhythmValue, 1, 40)  ; Final safety cap
+    while iIdx < iArraySize do
+        iRhythmValue = random(i_fFinalMin, i_fFinalMax)
+        iRhythmValue = round(iRhythmValue)
+        iRhythmValue = limit(iRhythmValue, 1, 40)  ; Final safety cap
             
-            tabw_i iRhythmValue, iIdx, iRhythmTable
+        iRhythms[iIdx] = iRhythmValue
             
-            if gi_debug >= 3 && iIdx == 0 then
-                prints "  First rhythm value generated: %f\n", iRhythmValue
-            endif
-        else
-            prints "ERROR: Index %d exceeds table size %d in generateRhythmsForState\n", 
-                  iIdx, ftlen(iRhythmTable)
-        endif
-        
+        if gi_debug >= 3 && iIdx == 0 then
+            prints "  First rhythm value generated: %f\n", iRhythmValue
+        endif        
         iIdx += 1
     od
     
-    xout iRhythmTable
+    xout iRhythms
 endop

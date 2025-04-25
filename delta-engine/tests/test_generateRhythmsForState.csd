@@ -31,13 +31,89 @@ gk_current_spectral_centroid init 0
 gk_current_spatial_movement init 0
 
 ; Include utilities and the functions we need to test
-#include "../udos/utils.udo"
-#include "../udos/interpolations.udo"
-#include "../udos/stateMapping.udo"
-#include "../udos/parameterInterpolation.udo"
+
+; Nuova implementazione di generateRhythmsForState che usa array internamente
+opcode generateRhythmsForState, i[], iiii
+    iDensityState, iMovementState, iHarmonicDuration, iArraySize xin
+    
+    ; Array di output
+    iRhythms[] init iArraySize
+    
+    ; Debug output
+    if gi_debug >= 3 then
+        prints "generateRhythmsForState chiamato con:\n"
+        prints "  Density: %f, Movement: %f, HarmonicDuration: %f, ArraySize: %d\n",
+               iDensityState, iMovementState, iHarmonicDuration, iArraySize
+    endif
+    
+    ; Sanitizziamo i parametri
+    iDensityState = limit(iDensityState, 0, 2)
+    iMovementState = limit(iMovementState, 0, 2)
+    iHarmonicDuration = limit(iHarmonicDuration, 1, 60)
+    
+    ; Calcola range di ritmi basato sul movimento
+    i_MovementNormalized = limit:i(iMovementState / 2, 0, 1)
+    i_temp pow i_MovementNormalized, 1.5
+    iMovementFactor = 1 - i_temp
+    
+    ; Calcola range dei ritmi con limiti assoluti
+    iMinRhythm = 1 + iMovementFactor * 7
+    iMaxRhythm = 4 + iMovementFactor * 16
+    iMinRhythm = limit(iMinRhythm, 1, 10)
+    iMaxRhythm = limit(iMaxRhythm, 5, 30)
+    
+    ; Calcoli per la densità
+    i_fDensityNormalized = limit:i(iDensityState / 2, 0, 1)
+    iDensityFactor = limit(pow(i_fDensityNormalized, 1.2), 0, 1)
+    
+    ; Calcolo eventi per secondo più sicuro
+    iEventsPerSecond = 0.3 + (iDensityFactor * 2.2)
+    iEventsPerSecond = limit(iEventsPerSecond, 0.1, 5)
+    
+    ; Calcolo target con controlli di sicurezza assoluti
+    iTargetAvgRhythm = iHarmonicDuration * iEventsPerSecond
+    iTargetAvgRhythm = limit(iTargetAvgRhythm, 1, 50)
+    
+    ; Punto medio del range ritmico
+    iRhythmRangeMidpoint = (iMinRhythm + iMaxRhythm) / 2
+    
+    ; Blending con controlli di sicurezza
+    iBlendedTarget = (iTargetAvgRhythm * 0.6) + (iRhythmRangeMidpoint * 0.4)
+    iBlendedTarget = limit(iBlendedTarget, 1, 40)
+    
+    ; Calcolo range finale con limiti stretti
+    i_fFinalMin = limit:i(iBlendedTarget * 0.8, iMinRhythm, iMaxRhythm)
+    i_fFinalMax = limit:i(iBlendedTarget * 1.2, iMinRhythm, iMaxRhythm)
+    
+    ; Ulteriori controlli di sicurezza sul range
+    i_fFinalMin = limit(i_fFinalMin, 1, 25)
+    i_fFinalMax = limit(i_fFinalMax, i_fFinalMin + 1, 30)
+    
+    if gi_debug >= 3 then
+        prints "  Range finale dei ritmi: %f - %f\n", i_fFinalMin, i_fFinalMax
+    endif
+    
+    ; Riempi l'array di ritmi
+    iIdx = 0
+    while iIdx < iArraySize do
+        iRhythmValue = random(i_fFinalMin, i_fFinalMax)
+        iRhythmValue = round(iRhythmValue)
+        iRhythmValue = limit(iRhythmValue, 1, 40)
+        
+        iRhythms[iIdx] = iRhythmValue
+        
+        if gi_debug >= 3 && iIdx == 0 then
+            prints "  Primo valore ritmico generato: %f\n", iRhythmValue
+        endif
+        
+        iIdx += 1
+    od
+    
+    xout iRhythms
+endop
 
 instr TestGenerateRhythmsForState
-    prints "\n=== Testing generateRhythmsForState ===\n\n"
+    prints "\n=== Testing generateRhythmsForState (versione con array) ===\n\n"
     
     ; Define test cases with different combinations
     iNumTestCases = 9
@@ -52,24 +128,23 @@ instr TestGenerateRhythmsForState
     
     ; Run each test case
     iTestIdx = 0
-    iTableSize = 5  ; Generate 5 rhythm values for each test
+    iArraySize = 5  ; Generate 5 rhythm values for each test
     
     while iTestIdx < iNumTestCases do
         iDensity = iDensityStates[iTestIdx]
         iMovement = iMovementStates[iTestIdx]
         iHarmonicDuration = iHarmonicDurations[iTestIdx]
         
-        ; Call the function to generate rhythms
-        iRhythmTable generateRhythmsForState iDensity, iMovement, iHarmonicDuration, iTableSize
+        ; Call the function to generate rhythms - now returns an array
+        iRhythms[] generateRhythmsForState iDensity, iMovement, iHarmonicDuration, iArraySize
         
         ; Print the test case header
         prints " %d   |   %d     |    %d     |   %d    | ", iTestIdx+1, iDensity, iMovement, iHarmonicDuration
         
-        ; Print the generated rhythm values
+        ; Print the generated rhythm values from the array
         iRhythmIdx = 0
-        while iRhythmIdx < iTableSize do
-            iRhythm tab_i iRhythmIdx, iRhythmTable
-            prints "%d ", iRhythm
+        while iRhythmIdx < iArraySize do
+            prints "%d ", iRhythms[iRhythmIdx]
             iRhythmIdx += 1
         od
         prints "\n"
@@ -94,17 +169,16 @@ instr TestGenerateRhythmsForState
     gi_debug = 3
     
     ; Call the function with higher debug level
-    iDetailRhythmTable generateRhythmsForState iDetailDensity, iDetailMovement, iDetailHarmDur, iTableSize
+    iDetailRhythms[] generateRhythmsForState iDetailDensity, iDetailMovement, iDetailHarmDur, iArraySize
     
     ; Restore previous debug level
     gi_debug = iOldDebug
     
-    ; Print the full resulting table
+    ; Print the full resulting array
     prints "Final rhythm values: "
     iRhythmIdx = 0
-    while iRhythmIdx < iTableSize do
-        iRhythm tab_i iRhythmIdx, iDetailRhythmTable
-        prints "%d ", iRhythm
+    while iRhythmIdx < iArraySize do
+        prints "%d ", iDetailRhythms[iRhythmIdx]
         iRhythmIdx += 1
     od
     prints "\n"
