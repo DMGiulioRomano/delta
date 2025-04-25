@@ -24,19 +24,19 @@ gi_compId init 0
 #define OTTAVE          #10#      ; Numero di ottave generate
 #define INTERVALLI      #200#     ; Divisioni per ottava
 #define REGISTRI        #10#      ; Numero di registri disponibili
-
+gi_PythagSysSize init $OTTAVE*$INTERVALLI+1
 ; --------------------------------------------------------------------
 ; SISTEMA DI INTONAZIONE
 ; --------------------------------------------------------------------
 ; Tabella per memorizzare le frequenze generate dal sistema pitagorico
-gi_Intonazione ftgen 0, 0, 2001, -2, 0
+gi_Intonazione ftgen 0, 0, gi_PythagSysSize, -2, 0
 
 ; --------------------------------------------------------------------
 ; DIMENSIONAMENTO DEL SISTEMA
 ; --------------------------------------------------------------------
 ; Numero massimo di eventi e comportamenti
-gi_NUMEVENTI init 1000          ; Capacità massima di eventi sonori
-gi_NUMComportamenti init 100    ; Capacità massima di comportamenti
+gi_NUMEVENTI init 1001          ; Capacità massima di eventi sonori
+gi_NUMComportamenti init 101    ; Capacità massima di comportamenti
 
 ; --------------------------------------------------------------------
 ; TABELLE DEGLI EVENTI SONORI
