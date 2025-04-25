@@ -30,8 +30,8 @@ opcode mapDensityToHarmonicDuration, i, i
 endop
 
 ; Fixed version of the complex generateRhythmsForState function
-opcode generateRhythmsForState, i, iiii
-    iDensityState, iMovementState, iHarmonicDuration, iTableSize xin
+opcode generateRhythmsForState, i[], iiii
+    iDensityState, iMovementState, iHarmonicDuration, iArraySize xin
 
     ; Array di output
     iRhythms[] init iArraySize
@@ -40,7 +40,7 @@ opcode generateRhythmsForState, i, iiii
     if gi_debug >= 3 then
         prints "generateRhythmsForState called with:\n"
         prints "  Density: %f, Movement: %f, HarmonicDuration: %f, TableSize: %d\n",
-               iDensityState, iMovementState, iHarmonicDuration, iTableSize
+               iDensityState, iMovementState, iHarmonicDuration, iArraySize
     endif
     
     ; SAFETY: Sanitize input parameters

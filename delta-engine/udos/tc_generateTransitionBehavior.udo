@@ -31,8 +31,8 @@ opcode generateTransitionBehavior, 0, i
     iRegister = round(iRegister)
     
     ; 3. Generate rhythm values based on interpolated movement parameter
-    iRhythmTableSize = 5
-    iRhythmsTable generateRhythmsForState iInterpolatedDensity, iInterpolatedMovement, iHarmonicDuration, iRhythmTableSize
+    iRhythmSize = 5
+    iRhythms[] generateRhythmsForState iInterpolatedDensity, iInterpolatedMovement, iHarmonicDuration, iRhythmSize
     
     ; 4. Amplitude based on register and octave
     iMaxAmplitude calculateMaxAmplitude iOctave, iRegister
@@ -44,13 +44,12 @@ opcode generateTransitionBehavior, 0, i
     iDuration = min(iDuration, 300)  ; Previene durate estremamente lunghe
     
     ; 6. Generate positions - for simplicity, use random positions
-    iPositionsTable ftgen 0, 0, iRhythmTableSize+1, -2, 0
     iIdx = 0
-    while (iIdx < iRhythmTableSize) do
-        iRhythmVal tab_i iIdx, iRhythmsTable
+    while (iIdx < iRhythmSize) do
+        iRhythmVal = iRhythms[iIdx]
         iPos random 0, iRhythmVal
         iPos = int(iPos)
-        tabw_i iPos, iIdx, iPositionsTable
+        iPositions[iIdx] = iPos
         iIdx += 1
     od
     
@@ -59,11 +58,9 @@ opcode generateTransitionBehavior, 0, i
     
     ; Utilizza lo storeTransitionBehaviorParameters per memorizzare i parametri
     ; NON incrementare gi_compId qui, lo fa già storeTransitionBehaviorParameters
-    iIdComp storeTransitionBehaviorParameters iAttacco, iDuration, iHarmonicDuration, 
-                                              iAmplitude, iOctave, iRegister, 
-                                              iRhythmsTable, iPositionsTable
-    ftfree iRhythmsTable, 1
-    ftfree iPositionsTable, 1
+    iIdComp storeTransitionBehaviorParameters iRhythms[], iPositions[], iAttacco, 
+                                              iDuration, iHarmonicDuration, 
+                                              iAmplitude, iOctave, iRegister
     ; Chiama GeneraComportamenti con i parametri essenziali
     schedule "GeneraComportamenti", 0, 1, 0, iDuration, iIdComp
     
@@ -76,5 +73,12 @@ opcode generateTransitionBehavior, 0, i
                iDuration, iHarmonicDuration
         prints "  Octave: %d, Register: %d, Amplitude: %.1f\n", 
                iOctave, iRegister, iAmplitude
+        iIdx = 0
+        while (iIdx < iRhythmSize) do
+            prints "Rhythm val: %d for idx %d", iRhythms[iIdx], iIdx
+        od
+        while (iIdx < iRhythmSize) do
+            prints "Positions val: %d for idx %d", iPositions[iIdx], iIdx
+        od
     endif
 endop
