@@ -57,8 +57,6 @@ gi_debug init 3
 #include "EnhancedSaveTransitionMatrix.orc"
 
 
-zakinit 2,1
-
 ; Always-on instruments
 alwayson "Analizzatore"
 alwayson "TimeKeeper"

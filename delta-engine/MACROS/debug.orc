@@ -1,12 +1,7 @@
 #define DEBUG_Generatore # 
-    if i_Res == 1 then
-        if int(i_debug) >= 3 then
-            prints "%d %d %d %d %d %d %d %d\n",i_Attacco, i_Durata, gi_temp_ritmi, i_DurArm, i_Amp,  i_Oct, i_Reg, gi_temp_pos
-        endif
-    endif
-    if int(i_debug) >= 5 then
-        ftprint gi_Intonazione
-    endif#
+   if int(i_debug) >= 5 then
+      ftprint gi_Intonazione
+   endif#
 
 #define DEBUG_Comp1 #
    if int(i_debug) >= 1 then
@@ -24,13 +19,6 @@
       prints "___\nvecchio ritmo: %d\nad index:%d\n",i_Vecchio_Ritmo,i_EventIdx
    endif#
 
-
-#define DEBUG_Comp6 #
-      if int(i_debug) >= 2 then 
-         prints "___\nad attacco:%f\nampiezza: %f\nfrequenza: %f\ndurata evento:%f\nposizione:%d\n\n", i_EventAttack, round3(i_Amp), round3(i_Freq1), round3(i_EventDuration), i_Pos
-         ftprint gi_eve_posizione, 1, 0, gi_Index+1
-      endif#
-
 #define DEBUG_CompEND #
    if int(i_debug) >= 1 then
       ; Print useful debug info
@@ -38,15 +26,21 @@
       prints "=========================================\n\n"
    endif#
 
-#define DEBUG_Evento1 #
-    if int(i_debug) >=2 then
-        prints "\n\t\t\tevento sonoro %d del comportamento %d",id_evento, id_comportamento
-        prints "\n\t\t\t\tattacco: %f\n\t\t\t\tdurata: %f\n\t\t\t\tamp: %f\n\t\t\t\tfreq1: %f\n\t\t\t\twz: %f\n\t\t\t\tdir: %f\n\t\t\t\tHR: %f\n\t\t\t\tfreq2: %f\n\t\t\t\tifn: %f\n\t\t\t\tid_evento: %f\n\n", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
-        fprints "sco.sco", "\n%f\t\t%f\t\t%f\t\t%f\t\t %f\t\t%f\t\t%f\t\t%f\t\t%f\t\t%f", p2, p3, p4, p5, p6, p7, p8, p9, p10    
-    endif#
+#define DEBUG_Evento_print_Pfields #
+   if (int(i_debug) >=2) then
+      Snamefile sprintf "%sComp%d.sco", gSdirSco, id_comportamento
+      prints "\n\t\t\tevento sonoro %d del comportamento %d",id_evento, id_comportamento
+      prints "\n\t\t\t\tattacco: %.3f\n\t\t\t\tdurata: %.3f\n\t\t\t\tamp: %.3f\n\t\t\t\tfreq1: %.3f\n\t\t\t\twz: %.3f\n\t\t\t\tdir: %.3f\n\t\t\t\tHR: %.3f\n\t\t\t\tfreq2: %.3f\n\t\t\t\tifn: %.3f\n\t\t\t\tid_evento: %.3f\n\n", p2, p3, p4, p5, p6, signum(p6),p7, p8, p9, p10    
+      if (id_evento%100==0) then
+      ;fprints Snamefile,"\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:"
+      endif
+      fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:"
+      fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      SentireSco sprintf "%sAll.sco", gSdirSco
+      fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:", p11
+      fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      if iLastStr ==1 then
+      fprints Snamefile, "\n;---------------------------"
+      endif
+   endif#
 
-#define DEBUG_Evento2 #
-    ktim timeinsts				;read time 
-    if int(i_debug) >= 5 then
-      printks "\ninviluppo: %f della funzione: %d instr: %d, tempo: %f\n", 0.5, kEnv, ifn, id_evento, ktim 
-    endif#

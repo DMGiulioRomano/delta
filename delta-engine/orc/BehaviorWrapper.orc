@@ -1,4 +1,4 @@
-instr GeneraComportamenti
+instr BehaviorWrapper
     ; Input parameters
     i_attacco = p4          ; Start time
     i_durata = p5           ; Duration

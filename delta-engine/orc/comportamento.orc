@@ -37,6 +37,24 @@ instr Comportamento
     i_Registro = p8             ; Registro
     i_PosTab = p9               ; Tabella delle posizioni
     i_IdComp = p10              ; ID del comportamento  
+    Snamefile sprintf "Comp%d.sco", i_IdComp
+    Snamefile strcat gSdirSco, Snamefile
+    fprints Snamefile, "\n; =========================="
+    fprints Snamefile, "\n; -- COMPORTAMENTO %d\n", i_IdComp
+    Srhythms = ""
+    Spos=""
+    idx=0
+    while idx<ftlen(i_RitmiTab) do
+        Srhythms strcat Srhythms, sprintf("%d ",tab_i(idx, i_RitmiTab))
+        idx+=1
+    od
+    idx=0
+    while idx<ftlen(i_PosTab) do
+        Spos strcat Spos, sprintf("%d ",tab_i(idx, i_PosTab))
+        idx+=1
+    od
+    fprints Snamefile, "; - Atk\t\t\tDur\t\t\tRhythmtab\t\tDurataArmonica\tAmpiezza\tOttava\tRegistro\tPositiontab\n"
+    fprints Snamefile, "; - %.3f\t\t%.3f\t\t[%s]\t\t%.3f\t\t\t%.3f\t\t%d\t\t%d\t\t\t[%s]\t\t", p2, p3, Srhythms, p5, p6, p7, p8, Spos
     ; Mostra informazioni debug iniziali se richiesto
     if int(i_debug) >= 1 then
         prints "\n\t\t=========================================\n"
@@ -65,10 +83,10 @@ instr Comportamento
     ; 3. GENERAZIONE DEGLI EVENTI SONORI
     ; -----------------------------------------------------------------------
     i_EventIdx = 0     ; Indice dell'evento corrente
-    i_CurrentTime = 0  ; Tempo cumulativo per il ciclo
+    i_whileTime = 0  ; Tempo cumulativo per il ciclo
 
     ; Continua a generare eventi finché non raggiungiamo la durata specificata
-    while i_CurrentTime < i_Durata do
+    while i_whileTime < i_Durata do
         ; -------- 3.1 GESTIONE RITMI --------
         ; Determina il ritmo corrente dalla tabella o genera un nuovo ritmo se necessario
         if i_EventIdx < i_LenRitmiTab then
@@ -123,7 +141,7 @@ instr Comportamento
 
         ; -------- 3.4 CALCOLO DURATA ADATTATIVA --------
         ; Calcola la durata dell'evento in base al contesto musicale
-        i_GlobalTime = i_CurrentTime + i_CAttacco
+        i_GlobalTime = i_whileTime + i_CAttacco
         i_LookbackTime = max(0, i_GlobalTime - 30)  ; Analizza gli ultimi 30 secondi
 
         ; Ottieni un fattore di durata basato sulla sovrapposizione di eventi nel contesto
@@ -142,9 +160,10 @@ instr Comportamento
 
         ; Debug dell'adattamento della durata
         if i_debug >= 2 then
-           i_current_overlap = gi_current_overlap
-           prints "Evento %d: Sovrapposizione=%d, Ritmo=%d, Fattore=%.2f, Durata=%.2f\n", 
-                 i_EventIdx, i_current_overlap, i_RitmoCorrente, i_OverlapFactor, i_EventDuration
+            prints  "Evento %d:\n", i_EventIdx
+            printks "Sovrapposizione=%.3f ",0, gk_current_overlap
+            prints  "Ritmo=%d, Fattore=%.2f, Durata=%.2f\n", 
+                i_RitmoCorrente, i_OverlapFactor, i_EventDuration
         endif
 
         ; -------- 3.5 MEMORIZZAZIONE DELL'EVENTO NELLE TABELLE GLOBALI --------
@@ -158,19 +177,16 @@ instr Comportamento
         tabw_i i_RitmoCorrente,  gi_Index, gi_eve_hr
         tabw_i i_Freq2,          gi_Index, gi_eve_ifn
         tabw_i i_IdComp,         gi_Index, gi_eve_comportamento
-
-        ; Debug dei parametri dell'evento
-        $DEBUG_Comp6
-
+        iLastStr = (i_whileTime+(i_DurataArmonica/NonlinearFunc(i_RitmoCorrente)) >= i_Durata ? 1 : 0)
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
         ; Schedula l'evento sonoro con tutti i parametri calcolati
-        schedule "eventoSonoro", i_EventAttack, i_EventDuration, i_Amp, i_Freq1, 
+        schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, 
                 i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp
 
         ; -------- 3.7 AGGIORNAMENTO DEGLI INDICI E DEL TEMPO --------
         i_EventIdx += 1          ; Prossimo evento
         gi_Index += 1            ; Incrementa l'indice globale degli eventi
-        i_CurrentTime = i_EventAttack + i_EventDuration  ; Aggiorna il tempo corrente
+        i_whileTime += (i_DurataArmonica/i_RitmoCorrente)  ; Aggiorna il tempo corrente
     od
 
     ; -----------------------------------------------------------------------

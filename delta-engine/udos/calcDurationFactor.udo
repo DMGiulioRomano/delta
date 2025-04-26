@@ -54,7 +54,7 @@ opcode suggestDurationFactor, i, iii
     
     ; Altrimenti, suggerisci un fattore basato sull'analisi
     ; Valori di riferimento calibrati per il sistema
-    iMaxReference = 20  ; Livello di riferimento per la sovrapposizione massima
+    iMaxReference = 200  ; Livello di riferimento per la sovrapposizione massima
     iAvgReference = 15  ; Livello di riferimento per la sovrapposizione media
     
     ; Calcola un fattore basato sia sul massimo che sulla media

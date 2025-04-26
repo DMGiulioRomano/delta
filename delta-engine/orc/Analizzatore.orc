@@ -110,18 +110,18 @@ instr Analizzatore
         kCurrentSpatialMovement = (kActiveEventsCount > 0) ? kSumInverseRhythms / kActiveEventsCount : 0
 
         ; Aggiorna variabili globali
-        gk_current_overlap = kActiveEventsCount
-        gk_current_harmonic_density = kHarmonicDensity
-        gk_current_octave_spread = kOctaveSpread
-        gk_current_spectral_centroid = kSpectralCentroid
-        gk_current_spatial_movement = kCurrentSpatialMovement  
+        gi_current_overlap = kActiveEventsCount
+        gi_current_harmonic_density = kHarmonicDensity
+        gi_current_octave_spread = kOctaveSpread
+        gi_current_spectral_centroid = kSpectralCentroid
+        gi_current_spatial_movement = kCurrentSpatialMovement  
         
         ; Memorizza il conteggio degli eventi attivi e il timestamp
-        tabw kActiveEventsCount, gk_analysis_index, gi_analysis_active_events
-        tabw kCurrentTime, gk_analysis_index, gi_analysis_timepoints
+        tabw kActiveEventsCount, gi_analysis_index, gi_analysis_active_events
+        tabw kCurrentTime, gi_analysis_index, gi_analysis_timepoints
         
         ; Avanzamento ciclico nell'indice della tabella
-        gk_analysis_index = (gk_analysis_index + 1) % gi_analysis_buffer_size
+        gi_analysis_index = (gi_analysis_index + 1) % gi_analysis_buffer_size
     endif
 
     ; Aggiornamento memoria compositiva
@@ -131,23 +131,23 @@ instr Analizzatore
         kMemIdx = int(kCurrentTime / gi_memory_resolution)
         
         if kMemIdx >= 0 && kMemIdx < gi_memory_size then
-            tabw gk_current_overlap, kMemIdx, gi_memory_overlap
+            tabw gi_current_overlap, kMemIdx, gi_memory_overlap
             tabw kActiveEventsCount, kMemIdx, gi_memory_events
             
             ; Memorizza anche i dati armonici
-            tabw gk_current_harmonic_density, kMemIdx, gi_memory_harmonic_density
-            tabw gk_current_octave_spread, kMemIdx, gi_memory_octave_spread
-            tabw gk_current_spectral_centroid, kMemIdx, gi_memory_spectral_centroid
-            tabw gk_current_spatial_movement, kMemIdx, gi_memory_spatial_movement  
+            tabw gi_current_harmonic_density, kMemIdx, gi_memory_harmonic_density
+            tabw gi_current_octave_spread, kMemIdx, gi_memory_octave_spread
+            tabw gi_current_spectral_centroid, kMemIdx, gi_memory_spectral_centroid
+            tabw gi_current_spatial_movement, kMemIdx, gi_memory_spatial_movement  
             ; Determina lo stato corrente
-            iCurrentDensity = i(gk_current_overlap)
-            iCurrentRegister = i(gk_current_octave_spread) 
-            iCurrentMovement = i(gk_current_spatial_movement)
+            iCurrentDensity = gi_current_overlap
+            iCurrentRegister = gi_current_octave_spread
+            iCurrentMovement = gi_current_spatial_movement
             
             iDensityState, iRegisterState, iMovementState determineCurrentState iCurrentDensity, iCurrentRegister, iCurrentMovement
             
             ; Aggiorna la cronologia degli stati usando il buffer circolare
-            kNextIndex = (gk_state_history_index + 1) % gi_state_history_size
+            kNextIndex = (gi_state_history_index + 1) % gi_state_history_size
             
             ; Memorizza il nuovo stato nella posizione corrente del buffer
             tabw iDensityState, kNextIndex, gi_state_history_density
@@ -155,7 +155,7 @@ instr Analizzatore
             tabw iMovementState, kNextIndex, gi_state_history_movement
             
             ; Aggiorna l'indice globale del buffer
-            gk_state_history_index = kNextIndex
+            gi_state_history_index = kNextIndex
             
             ; Memorizza lo stato nella cronologia temporale completa
             tabw iDensityState, kMemIdx, gi_memory_state_density

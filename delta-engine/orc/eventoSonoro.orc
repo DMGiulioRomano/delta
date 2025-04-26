@@ -15,7 +15,9 @@ instr eventoSonoro
     id_evento=p10
     id_comportamento=p11
     i_debug=gi_debug
-    $DEBUG_Evento1
+    ; only for score
+    iLastStr=p12
+    $DEBUG_Evento_print_Pfields
     ;--------------------------------------------------------------
     ; Parameter Initialization and Validation
     ;--------------------------------------------------------------
@@ -50,7 +52,6 @@ instr eventoSonoro
     
     ; Envelope generation
     kEnv = abs(sin(krad*iHR/2))     ; Basic envelope shape
-    $DEBUG_Evento2
     ;--------------------------------------------------------------
     ; Sound Generation and Spatialization
     ;--------------------------------------------------------------

@@ -17,6 +17,9 @@ gi_compId init 0
 #define SQRT2 #1.4142135623730951# ; sqrt(2) per normalizzazione
 #define MAX_AMP #0.999# ; Ampiezza massima per prevenire clipping
 
+
+gSdirSco = "sco/"
+
 ; --------------------------------------------------------------------
 ; PARAMETRI DELLO SPAZIO COMPOSITIVO
 ; --------------------------------------------------------------------

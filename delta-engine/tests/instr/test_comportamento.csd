@@ -1,334 +1,371 @@
 <CsoundSynthesizer>
 <CsOptions>
--o "comportamento-test.wav" -W -m0
+-o "comportamento.wav" -W
 </CsOptions>
 <CsInstruments>
-sr = 96000
-ksmps = 1
+sr = 44100
+ksmps=1
 nchnls = 2
 0dbfs = 1
+; Debug mode
+gi_debug init 2
 
-; Debug level - increase to see more detailed output
-gi_debug init 3
-
-; --------------------------------------------------------------------------
-; IMPORT REQUIRED FILES
-; --------------------------------------------------------------------------
-#include "../../MACROS/debug.orc"
+; Include necessary UDOs and macros
 #include "../../MACROS/init.orc"
+#include "../../MACROS/debug.orc"
 #include "../../udos/utils.udo"
 #include "../../udos/GenPythagFreqs.udo"
 #include "../../udos/pfield_comp.udo"
 #include "../../udos/calcDurationFactor.udo"
-#include "../../udos/determineCurrentState.udo"
 #include "../../udos/validator.udo"
+; Include the instruments we're testing
 #include "../../orc/eventoSonoro.orc"
-#include "../../orc/Comportamento.orc"
 
-; --------------------------------------------------------------------------
-; INITIALIZATION
-; --------------------------------------------------------------------------
+; ==========================================================================
+; TEST ENVIRONMENT SETUP
+; ==========================================================================
+gSdirSco = "sco/"
+; Create test tab_iles for different musical context scenarios
+; Format: Time, Overlap, HarmonicDensity, OctaveSpread, SpatialMovement
+gi_test_dense ftgen 0, 0, 7, -2,15,      18,      20,      25,      22,      18,      15      
+gi_test_sparse ftgen 0, 0, 7, -2,3,2,4,5,3,2,3
+gi_test_fluctuating ftgen 0, 0, 7, -2,5, 12,3, 18,6, 14,4
 
-instr Init
-    ; Create directory for test results
-    iRes system_i 1, "mkdir -p ./test-results"
+; Globals for test control
+gi_test_mode init 0    ; 0=dense, 1=sparse, 2=fluctuating
+gi_test_idx  init 0    ; Current index in the test tab_ile
+gi_test_last_time init 0  ; Last update time
 
-    ; Set up logging file for the test
-    prints "test-results/comportamento_test_log.txt", "\n=== COMPORTAMENTO STRESS TEST ===\n"
-    prints "test-results/comportamento_test_log.txt", "Started at: %s\n", date(1)
-    prints "test-results/comportamento_test_log.txt", "Debug level: %d\n\n", gi_debug
-    
-    ; Initialize frequency system
-    iRes GenPythagFreqs $FONDAMENTALE, $INTERVALLI, $OTTAVE, gi_Intonazione
-    
-    if iRes == 1 then
-        prints "\nGenPythagFreqs: Success!\n\n"
-        prints "test-results/comportamento_test_log.txt", "PythagFreqs initialization: SUCCESS\n"
-    else
-        prints "\nGenPythagFreqs failed: %d\n", iRes
-        prints "test-results/comportamento_test_log.txt", "PythagFreqs initialization: FAILED (%d)\n", iRes
-        exitnow
-    endif
-    
-    ; Initialize Analyzer with default values
-    schedule "AnalyzerControl", 0, -1, 1, 5  ; Mode 1 (normal), default overlap 5
-    
-    ; Generate test rhythm tables
-    giRhythmsNormal ftgen 0, 0, 16, -2, 4, 5, 6, 7, 8  ; Normal rhythms
-    giPosNormal ftgen 0, 0, 16, -2, 0, 1, 2, 3, 4     ; Normal positions
-    
-    giRhythmsFast ftgen 0, 0, 16, -2, 1, 2, 1, 2, 3   ; Fast rhythms
-    giPosFast ftgen 0, 0, 16, -2, 0, 1, 0, 1, 2       ; Fast positions
-    
-    giRhythmsSlow ftgen 0, 0, 16, -2, 10, 12, 15, 20, 25 ; Slow rhythms
-    giPosSlow ftgen 0, 0, 16, -2, 5, 6, 7, 10, 12      ; Slow positions
-    
-    prints "test-results/comportamento_test_log.txt", "Test tables initialized\n"
-    prints "test-results/comportamento_test_log.txt", "Starting test sequence...\n\n"
-endin
+gk_current_overlap init 1
+; ===========================================================================
+; OPCODE PER GENERAZIONE RITMI NON LINEARE
+; ===========================================================================
+opcode NonlinearFunc, i, i
+  iX xin
+  iPI = 4*taninv(1.0)  ; Calcolo preciso di PI
+  ; Formula non lineare per generare nuovi ritmi basati sui precedenti
+  ; Produce un comportamento pseudo-caotico per varietà ritmica
+  iResult = abs(iX*2 * sin(iX * iPI/2 + iX) + 1/(iX+0.001))
+  iResult = round(iResult)
+  
+  xout iResult
+endop
 
-; --------------------------------------------------------------------------
-; CUSTOM ANALYZER CONTROL
-; --------------------------------------------------------------------------
 
-instr AnalyzerControl
-    ; Mode:
-    ;  1 = normal (value set by p4)
-    ;  2 = escalating (starts at p4, increases to p5 over duration)
-    ;  3 = oscillating (oscillates between p4 and p5)
-    ;  0 = disabled (always returns 0)
-    iMode = p4
-    iValue1 = p5
-    iValue2 = (p6 == 0) ? 20 : p6
-    
-    if iMode == 0 then
-        gi_current_overlap = 0
-        printks "Analyzer DISABLED - overlap fixed at 0\n", 1
-        prints "test-results/comportamento_test_log.txt", "Analyzer mode: DISABLED\n"
-    elseif iMode == 1 then
-        gi_current_overlap = iValue1
-        printks "Analyzer FIXED - overlap = %d\n", 1, gi_current_overlap
-        prints "test-results/comportamento_test_log.txt", "Analyzer mode: FIXED (value: %d)\n", iValue1
-    elseif iMode == 2 then
-        ; Escalating mode
-        kTime timeinsts
-        kDur = 60  ; Duration of escalation
-        kProgress = limit(kTime/kDur, 0, 1)
-        gi_current_overlap = iValue1 + (iValue2 - iValue1) * kProgress
-        
-        ktrig metro 2
-        if ktrig == 1 then
-            printks "Analyzer ESCALATING - overlap = %.2f\n", 0, gi_current_overlap
-        endif
-        
-        if kTime < 0.1 then
-            prints "test-results/comportamento_test_log.txt", "Analyzer mode: ESCALATING (from %d to %d over %.1f seconds)\n", 
-                     iValue1, iValue2, kDur
-        endif
-    elseif iMode == 3 then
-        ; Oscillating mode
-        kTime timeinsts
-        kFreq = 0.05  ; Complete cycle every 20 seconds
-        gi_current_overlap = iValue1 + (iValue2 - iValue1) * 0.5 * (1 + sin(kTime * kFreq * 2 * 3.14159))
-        
-        ktrig metro 2
-        if ktrig == 1 then
-            printks "Analyzer OSCILLATING - overlap = %.2f\n", 0, gi_current_overlap
-        endif
-        
-        if kTime < 0.1 then
-            prints "test-results/comportamento_test_log.txt", "Analyzer mode: OSCILLATING (between %d and %d, %.1f seconds per cycle)\n", 
-                     iValue1, iValue2, 1/kFreq
-        endif
-    endif
-endin
+; ===========================================================================
+; COMPORTAMENTO - GENERATORE DI EVENTI SONORI
+; ===========================================================================
+; Questo strumento genera una sequenza di eventi sonori basati sui parametri
+; forniti e li schedula per l'esecuzione. Modula i parametri del suono in base
+; al contesto musicale corrente per adattarsi alla composizione globale.
+; ===========================================================================
+instr Comportamento
+    ; -----------------------------------------------------------------------
+    ; 1. INIZIALIZZAZIONE E ACQUISIZIONE PARAMETRI
+    ; -----------------------------------------------------------------------
+    i_debug = gi_debug
 
-; --------------------------------------------------------------------------
-; TEST COORDINATOR
-; --------------------------------------------------------------------------
-
-instr TestCoordinator
-    ; Schedule the test sequence
-    
-    ; TEST 1: Basic functionality test - single behavior
-    schedule "TestSingleBehavior", 0, 1
-    
-    ; TEST 2: Concurrency Test - Multiple behaviors with slight time offset
-    schedule "TestConcurrentBehaviors", 10, 1 
-    
-    ; TEST 3: Analyzer dependency test - changing analyzer values
-    schedule "TestAnalyzerDependency", 30, 1
-    
-    ; TEST 4: Long duration stability test
-    schedule "TestLongDuration", 50, 1
-    
-    ; TEST 5: Extreme concurrency - many behaviors with small increments
-    schedule "TestExtremeConcurrency", 90, 1
-    
-    ; Final analysis scheduled far enough to capture all events
-    schedule "TestAnalysis", 150, 1
-endin
-
-; --------------------------------------------------------------------------
-; TEST SCENARIOS
-; --------------------------------------------------------------------------
-
-; TEST 1 - Basic functionality test - single behavior
-instr TestSingleBehavior
-    prints "\n\n=== TEST 1: SINGLE BEHAVIOR TEST ===\n\n"
-    prints "test-results/comportamento_test_log.txt", "=== TEST 1: SINGLE BEHAVIOR ===\n"
-    prints "test-results/comportamento_test_log.txt", "Time: %.2f\n", times()
-    
-    ; Normal single behavior
-    schedule "Comportamento", 0, 10, giRhythmsNormal, 10, -20, 4, 5, giPosNormal, 1
-endin
-
-; TEST 2 - Concurrency test - multiple behaviors with slight time offset
-instr TestConcurrentBehaviors
-    prints "\n\n=== TEST 2: CONCURRENT BEHAVIORS TEST ===\n\n"
-    prints "test-results/comportamento_test_log.txt", "=== TEST 2: CONCURRENT BEHAVIORS ===\n"
-    prints "test-results/comportamento_test_log.txt", "Time: %.2f\n", times()
-    
-    iOffset = 0
-    iCount = 5
-    
-    iIdx = 0
-    while iIdx < iCount do
-        schedule "Comportamento", iOffset, 15, giRhythmsNormal, 10, -20, 4, 5, giPosNormal, 10+iIdx
-        iOffset += 0.5  ; Half-second offset between behaviors
-        iIdx += 1
+    ; Parametri di input
+    i_CAttacco = p2             ; Tempo di attacco del comportamento
+    i_Durata = p3               ; Durata complessiva del comportamento
+    i_RitmiTab = p4             ; Tabella dei ritmi
+    i_DurataArmonica = p5       ; Durata armonica di riferimento
+    i_Ampiezza = p6             ; Ampiezza in dB
+    i_Ottava = p7               ; Ottava
+    i_Registro = p8             ; Registro
+    i_PosTab = p9               ; Tabella delle posizioni
+    i_IdComp = p10              ; ID del comportamento  
+    Snamefile sprintf "Comp%d.sco", i_IdComp
+    Snamefile strcat gSdirSco, Snamefile
+    fprints Snamefile, "\n; =========================="
+    fprints Snamefile, "\n; -- COMPORTAMENTO %d\n", i_IdComp
+    Srhythms = ""
+    Spos=""
+    idx=0
+    while idx<ftlen(i_RitmiTab) do
+        Srhythms strcat Srhythms, sprintf("%d ",tab_i(idx, i_RitmiTab))
+        idx+=1
     od
-    
-    prints "test-results/comportamento_test_log.txt", "Scheduled %d concurrent behaviors with %.1f second offset\n", 
-             iCount, 0.5
-endin
+    idx=0
+    while idx<ftlen(i_PosTab) do
+        Spos strcat Spos, sprintf("%d ",tab_i(idx, i_PosTab))
+        idx+=1
+    od
+    fprints Snamefile, "; - Atk\t\t\tDur\t\t\tRhythmtab\t\tDurataArmonica\tAmpiezza\tOttava\tRegistro\tPositiontab\n"
+    fprints Snamefile, "; - %.3f\t\t%.3f\t\t[%s]\t\t%.3f\t\t\t%.3f\t\t%d\t\t%d\t\t\t[%s]\t\t", p2, p3, Srhythms, p5, p6, p7, p8, Spos
+    ; Mostra informazioni debug iniziali se richiesto
+    if int(i_debug) >= 1 then
+        prints "\n\t\t=========================================\n"
+        prints "\t\t\tdentro comportamento %d\n", i_IdComp
+    endif
+    ; -----------------------------------------------------------------------
+    ; 2. PREPARAZIONE DELLE SEQUENZE RITMICHE E POSIZIONALI
+    ; -----------------------------------------------------------------------
+    ; Ottieni la lunghezza effettiva dei ritmi disponibili
+    i_LenRitmiTab = ftlen(i_RitmiTab)
 
-; TEST 3 - Analyzer dependency test
-instr TestAnalyzerDependency
-    prints "\n\n=== TEST 3: ANALYZER DEPENDENCY TEST ===\n\n"
-    prints "test-results/comportamento_test_log.txt", "=== TEST 3: ANALYZER DEPENDENCY ===\n"
-    prints "test-results/comportamento_test_log.txt", "Time: %.2f\n", times()
-    
-    ; First test with normal analyzer
-    schedule "Comportamento", 0, 5, giRhythmsFast, 8, -15, 3, 4, giPosFast, 20
-    
-    ; Change analyzer to disabled mode
-    prints "test-results/comportamento_test_log.txt", "Disabling analyzer at %.2f\n", times()
-    schedule "AnalyzerControl", 5, -1, 0, 0
-    
-    ; Run behavior with analyzer disabled
-    schedule "Comportamento", 5, 5, giRhythmsFast, 8, -15, 3, 4, giPosFast, 21
-    
-    ; Change analyzer to escalating mode
-    prints "test-results/comportamento_test_log.txt", "Setting analyzer to escalating mode at %.2f\n", times()
-    schedule "AnalyzerControl", 10, -1, 2, 1, 30
-    
-    ; Run behavior with escalating analyzer
-    schedule "Comportamento", 10, 5, giRhythmsFast, 8, -15, 3, 4, giPosFast, 22
-    
-    ; Reset analyzer to normal
-    schedule "AnalyzerControl", 15, -1, 1, 5
-endin
+    ; Creiamo una tabella temporanea abbastanza grande da contenere 
+    ; anche i ritmi che verranno generati algoritmicamente. perché ne ho bisogno?
+    ; perché devo dare in pasto alla dnl il ritmo precedente per generare il successivo
+    i_TempRitmiTab ftgen 0, 0, i_LenRitmiTab + 100, -2, 0
 
-; TEST 4 - Long duration stability test
-instr TestLongDuration
-    prints "\n\n=== TEST 4: LONG DURATION STABILITY TEST ===\n\n"
-    prints "test-results/comportamento_test_log.txt", "=== TEST 4: LONG DURATION STABILITY ===\n"
-    prints "test-results/comportamento_test_log.txt", "Time: %.2f\n", times()
-    
-    ; Test with long duration to check NonlinearFunc stability
-    iDuration = 30
-    schedule "Comportamento", 0, iDuration, giRhythmsSlow, 20, -18, 2, 6, giPosSlow, 30
-    
-    prints "test-results/comportamento_test_log.txt", "Scheduled long behavior (duration: %d seconds)\n", iDuration
-endin
+    ; Copiamo i ritmi dalla tabella di input nella tabella temporanea
+    i_IndexCopy = 0
+    while i_IndexCopy < i_LenRitmiTab do
+        i_ValRitmo tab_i i_IndexCopy, i_RitmiTab
+        tabw_i i_ValRitmo, i_IndexCopy, i_TempRitmiTab
+        i_IndexCopy += 1
+    od
 
-; TEST 5 - Extreme concurrency test
-instr TestExtremeConcurrency
-    prints "\n\n=== TEST 5: EXTREME CONCURRENCY TEST ===\n\n"
-    prints "test-results/comportamento_test_log.txt", "=== TEST 5: EXTREME CONCURRENCY ===\n"
-    prints "test-results/comportamento_test_log.txt", "Time: %.2f\n", times()
-    
-    iStartTime = times()
-    iOffset = 0
-    iCount = 20
-    
-    ; Set oscillating analyzer mode
-    schedule "AnalyzerControl", 0, -1, 3, 2, 15
-    
-    ; Schedule many behaviors with tiny offsets
-    iIdx = 0
-    while iIdx < iCount do
-        ; Alternate between different rhythm types
-        if (iIdx % 3 == 0) then
-            schedule "Comportamento", iOffset, 10, giRhythmsFast, 5, -20, 5, 3, giPosFast, 40+iIdx
-        elseif (iIdx % 3 == 1) then
-            schedule "Comportamento", iOffset, 12, giRhythmsNormal, 8, -18, 4, 5, giPosNormal, 40+iIdx
+    ; -----------------------------------------------------------------------
+    ; 3. GENERAZIONE DEGLI EVENTI SONORI
+    ; -----------------------------------------------------------------------
+    i_EventIdx = 0     ; Indice dell'evento corrente
+    i_whileTime = 0  ; Tempo cumulativo per il ciclo
+
+    ; Continua a generare eventi finché non raggiungiamo la durata specificata
+    while i_whileTime < i_Durata do
+        ; -------- 3.1 GESTIONE RITMI --------
+        ; Determina il ritmo corrente dalla tabella o genera un nuovo ritmo se necessario
+        if i_EventIdx < i_LenRitmiTab then
+            ; Usa un ritmo esistente dalla tabella
+            i_RitmoCorrente tab_i i_EventIdx, i_TempRitmiTab
+            $DEBUG_Comp4  ; Debug    
+            ; Ottieni anche il ritmo precedente (per il calcolo dell'attacco)
+            if i_EventIdx == 0 then
+                i_Vecchio_Ritmo = 1  ; Valore default per il primo evento
+            else
+                i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
+            endif
         else
-            schedule "Comportamento", iOffset, 15, giRhythmsSlow, 12, -15, 3, 7, giPosSlow, 40+iIdx
+           ; Genera un nuovo ritmo basato sull'ultimo ritmo utilizzato
+           i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
+           $DEBUG_Comp5  ; Debug    
+           ; Genera un nuovo ritmo usando la funzione non lineare
+           i_RitmoCorrente NonlinearFunc i_Vecchio_Ritmo
+           $DEBUG_Comp4  ; Debug    
+           ; Salva il nuovo ritmo nella tabella temporanea
+           tabw_i i_RitmoCorrente, i_EventIdx, i_TempRitmiTab
         endif
-        
-        iOffset += 0.1  ; Very small offset (100ms)
-        iIdx += 1
+
+        ; -------- 3.2 CALCOLO TEMPO DI ATTACCO --------
+        ; Calcola il tempo di attacco per questo evento
+        if i_EventIdx == 0 then
+           ; Il primo evento inizia all'inizio del comportamento
+            i_EventAttack = i_CAttacco
+        else
+           ; Gli eventi successivi dipendono dal ritmo precedente
+            i_RitmoNormalizzato = 1/i_Vecchio_Ritmo
+            i_PreviousAttack tab_i i_EventIdx-1, gi_eve_attacco
+            i_EventAttack = i_DurataArmonica * i_RitmoNormalizzato + i_PreviousAttack
+        endif
+
+        ; -------- 3.3 CALCOLO PARAMETRI DELL'EVENTO --------
+        ; Calcola l'ampiezza con smorzamento
+        i_Amp = calcAmpiezza(i_Ampiezza, i_RitmoCorrente, -0.05)
+
+        ; Calcola la frequenza basata su ottava, registro e ritmo
+        i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
+        i_Freq2 = i_Freq1  ; Frequenza finale uguale all'iniziale per ora
+
+        ; Determina la posizione - prova a usare la tabella delle posizioni se disponibile,
+        ; altrimenti genera casualmente
+        if i_EventIdx < ftlen(i_PosTab) then
+            i_Pos tab_i i_EventIdx, i_PosTab
+        else
+            ; Posizione casuale entro il range del ritmo
+            i_Pos = int(random:i(0, i_RitmoCorrente))
+        endif
+
+        ; -------- 3.4 CALCOLO DURATA ADATTATIVA --------
+        ; Calcola la durata dell'evento in base al contesto musicale
+        i_GlobalTime = i_whileTime + i_CAttacco
+        i_LookbackTime = max(0, i_GlobalTime - 30)  ; Analizza gli ultimi 30 secondi
+
+        ; Ottieni un fattore di durata basato sulla sovrapposizione di eventi nel contesto
+        i_OverlapFactor = suggestDurationFactor(i_LookbackTime, i_GlobalTime, i_RitmoCorrente)
+
+        ; Gestione della fase iniziale (bootstrap)
+        if gi_Index < 10 then
+            if i_debug >= 1 then
+                prints "MODALITÀ BOOTSTRAP: Forzatura durata evento\n"
+            endif
+            i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * 3.0
+        else
+            ; Calcola la durata adattativa dell'evento
+            i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
+        endif
+
+        ; -------- 3.5 MEMORIZZAZIONE DELL'EVENTO NELLE TABELLE GLOBALI --------
+        ; Salva tutti i parametri dell'evento nelle tabelle globali
+        tabw_i i_EventAttack,    gi_Index, gi_eve_attacco
+        tabw_i i_EventDuration,  gi_Index, gi_eve_durata  
+        tabw_i i_Amp,            gi_Index, gi_eve_ampiezza
+        tabw_i i_Freq1,          gi_Index, gi_eve_frequenza1
+        tabw_i i_Freq2,          gi_Index, gi_eve_frequenza2 
+        tabw_i i_Pos,            gi_Index, gi_eve_posizione
+        tabw_i i_RitmoCorrente,  gi_Index, gi_eve_hr
+        tabw_i i_Freq2,          gi_Index, gi_eve_ifn
+        tabw_i i_IdComp,         gi_Index, gi_eve_comportamento
+        iLastStr = (i_whileTime+(i_DurataArmonica/NonlinearFunc(i_RitmoCorrente)) >= i_Durata ? 1 : 0)
+        ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
+        ; Schedula l'evento sonoro con tutti i parametri calcolati
+        schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, 
+                i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp,iLastStr
+
+        ; -------- 3.7 AGGIORNAMENTO DEGLI INDICI E DEL TEMPO --------
+        i_EventIdx += 1          ; Prossimo evento
+        gi_Index += 1            ; Incrementa l'indice globale degli eventi
+        i_whileTime += (i_DurataArmonica/i_RitmoCorrente)  ; Aggiorna il tempo corrente
     od
-    
-    prints "test-results/comportamento_test_log.txt", "Scheduled %d concurrent behaviors with %.2f second offset\n", 
-             iCount, 0.1
-    
-    ; Reset analyzer after 15 seconds
-    schedule "AnalyzerControl", 20, -1, 1, 5
+    ; -----------------------------------------------------------------------
+    ; 4. SALVATAGGIO E ANALISI DEI DATI
+    ; -----------------------------------------------------------------------
+    ; Crea la directory per i dati dei comportamenti
+    if i_debug>=3 then 
+        i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
+        ; Genera il nome del file
+        Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
+        ; Salva i dati del comportamento per analisi
+        ftsave Snd, 1, gi_comp_ATTACCO, i_RitmiTab, gi_comp_DURARMONICA, 
+               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, i_PosTab
+        ; Esegui lo script Python di visualizzazione
+        Scmd sprintf "python3.11 docs/plot.py %s", Snd
+        i_tmp_res system_i 1, Scmd, 0
+        ; Debug finale
+        $DEBUG_CompEND
+    endif
 endin
 
-; TEST ANALYSIS - Generate statistics about all tests
-instr TestAnalysis
-    prints "\n\n=== TEST ANALYSIS ===\n\n"
-    prints "test-results/comportamento_test_log.txt", "=== TEST ANALYSIS ===\n"
-    prints "test-results/comportamento_test_log.txt", "Time: %.2f\n", times()
+instr initial
+    ipino system_i 1, "mkdir -p ./sco"
+    ; Initialize generator for Pythagorean frequencies
+    i_Res GenPythagFreqs $FONDAMENTALE, $INTERVALLI, $OTTAVE, gi_Intonazione
+    if i_Res == 1 then
+        prints "GenPythagFreqs: Success!\n"
+    else
+        prints "GenPythagFreqs failed: %d\n", i_Res
+        turnoff
+    endif
+
+endin
+; ==========================================================================
+; CONTEXT SIMULATOR
+; Simulates changing musical context parameters over time
+; ==========================================================================
+instr ContextSimulator
     
-    ; Count total events generated
-    iTotalEvents = gi_Index
-    prints "Total events generated: %d\n", iTotalEvents
-    prints "test-results/comportamento_test_log.txt", "Total events generated: %d\n", iTotalEvents
+    ; Select test tab_ile based on mode
+    itab = 0
+    if gi_test_mode == 0 then
+        itab = gi_test_dense
+        prints "\n=== TEST MODE: DENSE CONTEXT ===\n"
+    elseif gi_test_mode == 1 then
+        itab = gi_test_sparse
+        prints "\n=== TEST MODE: SPARSE CONTEXT ===\n"
+    else
+        itab = gi_test_fluctuating
+        prints "\n=== TEST MODE: FLUCTUATING CONTEXT ===\n"
+    endif
     
-    ; Analyze event durations
-    iMinDuration = 1000000
-    iMaxDuration = 0
-    iTotalDuration = 0
+    ; Update rate (Hz)
+    iupdate_rate =1
     
-    iIdx = 0
-    while iIdx < iTotalEvents do
-        iDuration tab_i iIdx, gi_eve_durata
-        
-        iMinDuration = min(iMinDuration, iDuration)
-        iMaxDuration = max(iMaxDuration, iDuration)
-        iTotalDuration += iDuration
-        
-        iIdx += 1
-    od
+    ; Create metro for regular updates
+    ktrig metro iupdate_rate
+    ;printks "this is ktrig %d\n", iupdate_rate, ktrig
+    kIdx init 0
+    iLimiter = ftlen(itab)
+    if ktrig == 1 then
+        gk_current_overlap tab kIdx%iLimiter, itab
+        ktime times
+        tabw gk_current_overlap, ktime , gi_memory_overlap
+        ;printks "kIdx %d\n", iupdate_rate, kIdx
+        ;printks "gk_current_overlap %d\n", iupdate_rate,gk_current_overlap
+        ;printks "%.f è il valore di gi_memory_overlap\n", iupdate_rate, tab(int(ktime), gi_memory_overlap)
+        ;printks "ktime: %.4f",iupdate_rate, ktime
+        kIdx +=1
+    endif
+endin
+
+; ==========================================================================
+; TEST BEHAVIOR GENERATOR
+; Schedules test behaviors with different parameters
+; ==========================================================================
+instr TestGenerator
+    ; Schedule a context simulator
     
-    iAvgDuration = (iTotalEvents > 0) ? iTotalDuration / iTotalEvents : 0
+    ; Schedule test behaviors at different times
+    schedule "ContextSimulator", 0, p3
+    ; Basic test behavior 1 (standard)
+    iAtt1 = 2
+    iDur1 = 30
+    iRitmitable1 ftgen 0, 0,4 , -2, 3, 4, 5, 6
+    iDurArm1 = 10
+    iAmp1 = -12
+    iOct1 = 7
+    iReg1 = 1
+    iPostab_ile1 ftgen 0, 0, 4, -2, 0, 1, 2, 3
     
-    prints "test-results/comportamento_test_log.txt", "Event duration statistics:\n"
-    prints "test-results/comportamento_test_log.txt", "  Minimum: %.3f seconds\n", iMinDuration
-    prints "test-results/comportamento_test_log.txt", "  Maximum: %.3f seconds\n", iMaxDuration
-    prints "test-results/comportamento_test_log.txt", "  Average: %.3f seconds\n", iAvgDuration
+    ; Schedule the first behavior
+    schedule "Comportamento", 0, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1, iPostab_ile1, gi_compId
+    igoto end
+    gi_compId+=1
+    schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostab_ile1, gi_compId
+    gi_compId+=1
+    schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostab_ile1, gi_compId
+    gi_compId+=1
+    schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostab_ile1, gi_compId
+    gi_compId+=1
     
-    ; Create CSV of all events for analysis
-    fprints "test-results/event_data.csv", "id,attack,duration,amplitude,frequency,position,rhythm,behavior\n"
+    ; Test behavior 2 (sparse, higher register)
+    iAtt2 = 12
+    iDur2 = 40
+    iRitmitable2 ftgen 0, 0, 4, -2, 10, 12, 15, 18
+    iDurArm2 = 8
+    iAmp2 = -12
+    iOct2 = 4
+    iReg2 = 3
+    iPostab_ile2 ftgen 0, 0, 4, -2, 5, 6, 7, 8
     
-    iIdx = 0
-    while iIdx < iTotalEvents do
-        iAttack tab_i iIdx, gi_eve_attacco
-        iDuration tab_i iIdx, gi_eve_durata
-        iAmplitude tab_i iIdx, gi_eve_ampiezza
-        iFrequency tab_i iIdx, gi_eve_frequenza1
-        iPosition tab_i iIdx, gi_eve_posizione
-        iRhythm tab_i iIdx, gi_eve_hr
-        iBehavior tab_i iIdx, gi_eve_comportamento
-        
-        fprints "test-results/event_data.csv", "%d,%.3f,%.3f,%.3f,%.3f,%d,%d,%d\n",
-                iIdx, iAttack, iDuration, iAmplitude, iFrequency, iPosition, iRhythm, iBehavior
-        
-        iIdx += 1
-    od
+    ; Schedule the second behavior
+    schedule "Comportamento", iAtt2, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2, iPostab_ile2, 2
+    gi_compId+=1
+    schedule "Comportamento", iAtt2+5, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+2, iPostab_ile2, 2
+    gi_compId+=1
+    schedule "Comportamento", iAtt2+9, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+7, iPostab_ile2, 2
     
-    prints "test-results/comportamento_test_log.txt", "Event data exported to test-results/event_data.csv\n"
-    prints "test-results/comportamento_test_log.txt", "\nTest completed at: %s\n", date(1)
-    prints "test-results/comportamento_test_log.txt", "=== END OF TEST ===\n"
+    ; Test behavior 3 (dense, lower register)
+    iAtt3 = 22
+    iDur3 = 50
+    iRitmitable3 ftgen 0, 0, 4, -2, 2, 3, 4, 5
+    iDurArm3 = 15
+    iAmp3 = -9
+    iOct3 = 2
+    iReg3 = 8
+    iPostab_ile3 ftgen 0, 0, 4, -2, 1, 2, 1, 2
     
-    prints "\nTest completed. Results saved to test-results/ directory.\n"
+    ; Schedule the third behavior
+    schedule "Comportamento", iAtt3, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3, iPostab_ile3, 3
+    gi_compId+=1
+    schedule "Comportamento", iAtt3+4, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3+1, iPostab_ile3, 3
+    gi_compId+=1
+    schedule "Comportamento", iAtt3+10, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3-1, iReg3, iPostab_ile3, 3
+    gi_compId+=1
+    schedule "Comportamento", iAtt3+7, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3-2, iPostab_ile3, 3
+    end:
 endin
 
 </CsInstruments>
 <CsScore>
-; Initialize the test environment
-i "Init" 0 0.1
+f1 0 4096 10 1
+f2 0 1024 6 0 1024 .5 1024 1
+; Test each context mode sequentially
+i "initial" 0 3
+i "TestGenerator" 0 60 ; Test with dense context
+i "TestGenerator" 60 60 ; Test with sparse context
+i "TestGenerator" 120 60 ; Test with fluctuating context
 
-; Start the test coordinator
-i "TestCoordinator" 0.5 0.1
-
-; Ensure enough time for all tests to complete
-f 0 200  ; Run for 200 seconds
-e
+e 20
 </CsScore>
 </CsoundSynthesizer>
