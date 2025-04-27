@@ -193,19 +193,17 @@ instr Comportamento
     ; 4. SALVATAGGIO E ANALISI DEI DATI
     ; -----------------------------------------------------------------------
     ; Crea la directory per i dati dei comportamenti
-    i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
-
-    ; Genera il nome del file
-    Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
-
-    ; Salva i dati del comportamento per analisi
-    ftsave Snd, 1, gi_comp_ATTACCO, i_RitmiTab, gi_comp_DURARMONICA, 
-           gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, i_PosTab
-
-    ; Esegui lo script Python di visualizzazione
-    Scmd sprintf "python3.11 docs/plot.py %s", Snd
-    i_tmp_res system_i 1, Scmd, 0
-
-    ; Debug finale
-    $DEBUG_CompEND
+    if i_debug>=3 then 
+        i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
+        ; Genera il nome del file
+        Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
+        ; Salva i dati del comportamento per analisi
+        ftsave Snd, 1, gi_comp_ATTACCO, i_RitmiTab, gi_comp_DURARMONICA, 
+               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, i_PosTab
+        ; Esegui lo script Python di visualizzazione
+        Scmd sprintf "python3.11 docs/plot.py %s", Snd
+        i_tmp_res system_i 1, Scmd, 0
+        ; Debug finale
+        $DEBUG_CompEND
+    endif
 endin
