@@ -41,7 +41,7 @@ opcode storeTransitionBehaviorParameters, i, i[]i[]iiiiii
     tabw_i iRegister, iIdComp, gi_comp_REGISTRO
     
     ; Limita il numero di ritmi
-    iNumRitmi = min(iRhythmSize, 10)
+    iNumRitmi = min(iRhythmsSize, 10)
     
     ; Calcola l'indice base per i ritmi
     iRitmiBaseIndex = iIdComp * 11

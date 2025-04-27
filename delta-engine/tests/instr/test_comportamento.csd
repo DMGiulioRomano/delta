@@ -1,14 +1,15 @@
 <CsoundSynthesizer>
 <CsOptions>
 -o "comportamento.wav" -W
+-d
 </CsOptions>
 <CsInstruments>
-sr = 44100
+sr = 96000
 ksmps=1
 nchnls = 2
 0dbfs = 1
 ; Debug mode
-gi_debug init 2
+gi_debug init 3
 
 ; Include necessary UDOs and macros
 #include "../../MACROS/init.orc"
@@ -20,7 +21,7 @@ gi_debug init 2
 #include "../../udos/validator.udo"
 ; Include the instruments we're testing
 #include "../../orc/eventoSonoro.orc"
-
+#include "../../udos/tc_storeTransitionBehaviorParameters.udo"
 ; ==========================================================================
 ; TEST ENVIRONMENT SETUP
 ; ==========================================================================
@@ -50,7 +51,6 @@ opcode NonlinearFunc, i, i
   
   xout iResult
 endop
-
 
 ; ===========================================================================
 ; COMPORTAMENTO - GENERATORE DI EVENTI SONORI
@@ -156,7 +156,7 @@ instr Comportamento
         else
            ; Gli eventi successivi dipendono dal ritmo precedente
             i_RitmoNormalizzato = 1/i_Vecchio_Ritmo
-            i_PreviousAttack tab_i i_EventIdx-1, gi_eve_attacco
+            i_PreviousAttack tab_i gi_Index-1, gi_eve_attacco
             i_EventAttack = i_DurataArmonica * i_RitmoNormalizzato + i_PreviousAttack
         endif
 
@@ -195,7 +195,6 @@ instr Comportamento
             ; Calcola la durata adattativa dell'evento
             i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
         endif
-
         ; -------- 3.5 MEMORIZZAZIONE DELL'EVENTO NELLE TABELLE GLOBALI --------
         ; Salva tutti i parametri dell'evento nelle tabelle globali
         tabw_i i_EventAttack,    gi_Index, gi_eve_attacco
@@ -212,28 +211,41 @@ instr Comportamento
         ; Schedula l'evento sonoro con tutti i parametri calcolati
         schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, 
                 i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp,iLastStr
-
+        /*
+        SentireSco sprintf "%sAll.sco", gSdirSco
+        fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\tid_comp:\tiLastStr:"
+        fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d\t\t\t%d\t\t\t%d", i_EventAttack, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp, iLastStr 
+        fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\tid_comp:\tiLastStr:", i_IdComp
+        fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d\t\t\t%d\t\t\t%d", i_EventAttack, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp, iLastStr 
+        */
         ; -------- 3.7 AGGIORNAMENTO DEGLI INDICI E DEL TEMPO --------
         i_EventIdx += 1          ; Prossimo evento
         gi_Index += 1            ; Incrementa l'indice globale degli eventi
         i_whileTime += (i_DurataArmonica/i_RitmoCorrente)  ; Aggiorna il tempo corrente
     od
+    $DEBUG_CompEND
+endin
+
+
+instr Salvatore
+; Salvatore!!
     ; -----------------------------------------------------------------------
     ; 4. SALVATAGGIO E ANALISI DEI DATI
     ; -----------------------------------------------------------------------
     ; Crea la directory per i dati dei comportamenti
-    if i_debug>=3 then 
-        i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
+    if gi_debug>=4 then 
+        i_tmp_res system_i 1, "mkdir -p ./docs/tablesData"
         ; Genera il nome del file
-        Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
+        Snd = "docs/tablesData/compParams.table"
+        SndMeta= "docs/tablesData/compParams.docs"
         ; Salva i dati del comportamento per analisi
-        ftsave Snd, 1, gi_comp_ATTACCO, i_RitmiTab, gi_comp_DURARMONICA, 
-               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, i_PosTab
+        fprints SndMeta, "gi_comp_ATTACCO: %d\ngi_comp_RITMI: %d\ngi_comp_DURARMONICA: %d\ngi_comp_DURATA: %d\ngi_comp_AMPIEZZA: %d\ngi_comp_OTTAVA: %d\ngi_comp_REGISTRO: %d\ngi_comp_POSIZIONI: %d", gi_comp_ATTACCO, gi_comp_RITMI, gi_comp_DURARMONICA, 
+               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONI
+        ftsave Snd, 1, gi_comp_ATTACCO, gi_comp_RITMI, gi_comp_DURARMONICA, 
+               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONI
         ; Esegui lo script Python di visualizzazione
         Scmd sprintf "python3.11 docs/plot.py %s", Snd
-        i_tmp_res system_i 1, Scmd, 0
-        ; Debug finale
-        $DEBUG_CompEND
+        i_tmp_res system_i 1, Scmd
     endif
 endin
 
@@ -247,7 +259,6 @@ instr initial
         prints "GenPythagFreqs failed: %d\n", i_Res
         turnoff
     endif
-
 endin
 ; ==========================================================================
 ; CONTEXT SIMULATOR
@@ -299,25 +310,26 @@ instr TestGenerator
     schedule "ContextSimulator", 0, p3
     ; Basic test behavior 1 (standard)
     iAtt1 = 2
-    iDur1 = 30
+    iDur1 = 60
     iRitmitable1 ftgen 0, 0,4 , -2, 3, 4, 5, 6
-    iDurArm1 = 10
+    iDurArm1 = 20
     iAmp1 = -12
     iOct1 = 7
     iReg1 = 1
-    iPostab_ile1 ftgen 0, 0, 4, -2, 0, 1, 2, 3
-    
+    iPostable1 ftgen 0, 0, 4, -2, 0, 1, 2, 3
+    iRhythmArr[] init ftlen(iRitmitable1)
+    iPosArr[] init ftlen(iPostable1)
+    copyf2array iRhythmArr, iRitmitable1
+    copyf2array iPosArr, iPostable1
     ; Schedule the first behavior
-    schedule "Comportamento", 0, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1, iPostab_ile1, gi_compId
-    igoto end
-    gi_compId+=1
-    schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostab_ile1, gi_compId
-    gi_compId+=1
-    schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostab_ile1, gi_compId
-    gi_compId+=1
-    schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostab_ile1, gi_compId
-    gi_compId+=1
-    
+    schedule "Comportamento", 0, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1, iPostable1, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2, iDur1, iDurArm1, iAmp1, iOct1, iReg1
+    schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostable1, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+2, iDur1, iDurArm1, iAmp1, iOct1-1, iReg1
+    schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostable1, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+7, iDur1, iDurArm1, iAmp1, iOct1, iReg1-7
+    schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostable1, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+10, iDur1, iDurArm1, iAmp1, iOct1, iReg1-4
     ; Test behavior 2 (sparse, higher register)
     iAtt2 = 12
     iDur2 = 40
@@ -326,15 +338,20 @@ instr TestGenerator
     iAmp2 = -12
     iOct2 = 4
     iReg2 = 3
-    iPostab_ile2 ftgen 0, 0, 4, -2, 5, 6, 7, 8
+    iPostable2 ftgen 0, 0, 4, -2, 5, 6, 7, 8
+    iRhythmArr2[] init ftlen(iRitmitable2)
+    iPosArr2[] init ftlen(iPostable2)
+    copyf2array iRhythmArr2, iRitmitable2
+    copyf2array iPosArr2, iPostable2
     
     ; Schedule the second behavior
-    schedule "Comportamento", iAtt2, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2, iPostab_ile2, 2
-    gi_compId+=1
-    schedule "Comportamento", iAtt2+5, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+2, iPostab_ile2, 2
-    gi_compId+=1
-    schedule "Comportamento", iAtt2+9, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+7, iPostab_ile2, 2
-    
+    schedule "Comportamento", p2+iAtt2, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2, iPostable2, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr2, iPosArr2, p2+iAtt2, iDur2, iDurArm2, iAmp2, iOct2, iReg2
+    schedule "Comportamento", p2+iAtt2+5, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+2, iPostable2, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr2, iPosArr2, p2+iAtt2+5, iDur2, iDurArm2, iAmp2, iOct2, iReg2+2
+    schedule "Comportamento", p2+iAtt2+9, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+7, iPostable2, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr2, iPosArr2, p2+iAtt2+9, iDur2, iDurArm2, iAmp2, iOct2, iReg2+7
+
     ; Test behavior 3 (dense, lower register)
     iAtt3 = 22
     iDur3 = 50
@@ -343,28 +360,35 @@ instr TestGenerator
     iAmp3 = -9
     iOct3 = 2
     iReg3 = 8
-    iPostab_ile3 ftgen 0, 0, 4, -2, 1, 2, 1, 2
+    iPostable3 ftgen 0, 0, 4, -2, 1, 2, 1, 2
+    iRhythmArr3[] init ftlen(iRitmitable3)
+    iPosArr3[] init ftlen(iPostable3)
+    copyf2array iRhythmArr3, iRitmitable3
+    copyf2array iPosArr3, iPostable3
     
     ; Schedule the third behavior
-    schedule "Comportamento", iAtt3, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3, iPostab_ile3, 3
-    gi_compId+=1
-    schedule "Comportamento", iAtt3+4, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3+1, iPostab_ile3, 3
-    gi_compId+=1
-    schedule "Comportamento", iAtt3+10, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3-1, iReg3, iPostab_ile3, 3
-    gi_compId+=1
-    schedule "Comportamento", iAtt3+7, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3-2, iPostab_ile3, 3
-    end:
+    schedule "Comportamento", p2+iAtt3, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3, iPostable3, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3, iDur3, iDurArm3, iAmp3, iOct3, iReg3
+    schedule "Comportamento", p2+iAtt3+4, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3+1, iPostable3, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3+4, iDur3, iDurArm3, iAmp3, iOct3, iReg3+1
+    schedule "Comportamento", p2+iAtt3+10, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3-1, iReg3, iPostable3, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3+10, iDur3, iDurArm3, iAmp3, iOct3-1, iReg3
+    schedule "Comportamento", p2+iAtt3+7, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3-2, iPostable3, gi_compId
+    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3+7, iDur3, iDurArm3, iAmp3, iOct3, iReg3-2
+
+
 endin
 
 </CsInstruments>
 <CsScore>
 f1 0 4096 10 1
-f2 0 1024 6 0 1024 .5 1024 1
+f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
 ; Test each context mode sequentially
 i "initial" 0 3
 i "TestGenerator" 0 60 ; Test with dense context
 i "TestGenerator" 60 60 ; Test with sparse context
 i "TestGenerator" 120 60 ; Test with fluctuating context
+i "Salvatore" 180 1
 
 e 20
 </CsScore>

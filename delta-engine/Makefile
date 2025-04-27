@@ -34,7 +34,7 @@ create_log_dir:
 
 ## Clean up generated files and temporary data
 clean:
-	rm -rf *.wav *.aif *.log *.sco *.txt *.table tests/instr/docs 
+	rm -rf *.wav *.aif *.log *.sco *.table tests/instr/docs tests/instr/*.wav tests/instr/sco
 
 ## Run Csound with the specified CSD file (default: main.csd)
 cs: create_log_dir

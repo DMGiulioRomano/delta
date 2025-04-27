@@ -10,12 +10,12 @@
    endif#
 
 #define DEBUG_Comp4 #
-   if int(i_debug) >= 3 then
+   if int(i_debug) >= 4 then
       prints "___\nritmo corrente: %d\nad index:%d\n",i_RitmoCorrente,i_EventIdx
    endif#
 
 #define DEBUG_Comp5 #
-   if int(i_debug) >= 3 then
+   if int(i_debug) >= 4 then
       prints "___\nvecchio ritmo: %d\nad index:%d\n",i_Vecchio_Ritmo,i_EventIdx
    endif#
 
@@ -34,11 +34,15 @@
       if (id_evento%100==0) then
       ;fprints Snamefile,"\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:"
       endif
-      fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:"
-      fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\tifn:\tid_evento:"
+      if p5 >= 1000 then
+         fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%d\t\t%d\t\t%.3f\t\t%.d\t\t%d", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      else
+         fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t\t%d\t\t%d\t\t%.3f\t\t\t%.d\t\t%d", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      endif
       SentireSco sprintf "%sAll.sco", gSdirSco
-      fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:", p11
-      fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f\t\t%.3f", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\tifn:\tid_evento:", p11
+      fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t%d\t\t%d\t\t%f\t%.d\t\t%d", p2, p3, p4, p5, p6, p7, p8, p9, p10  
       if iLastStr ==1 then
       fprints Snamefile, "\n;---------------------------"
       endif

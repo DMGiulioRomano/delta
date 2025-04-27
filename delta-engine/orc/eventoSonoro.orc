@@ -39,24 +39,44 @@ instr eventoSonoro
     
     ; Initial radius calculation with safety check
     iradi = (iwhichZero > 0 ? (iwhichZero-1) * iPeriod : 0)
-    ifn = p9
     ;--------------------------------------------------------------
     ; Position and Envelope Generation
     ;--------------------------------------------------------------
     ; Position from table lookup
     kndx line 0, p3, 1               ; Normalized time index
-    ktab table kndx, ifn, 1           ; Table lookup for position
+    ktab tab kndx, p9,1         ; Table lookup for position
     
     ; Spatial angle calculation
     krad = iradi + (ktab * iPeriod * idirection)
-    
+    kdeg = krad*180/$M_PI
     ; Envelope generation
-    kEnv = abs(sin(krad*iHR/2))     ; Basic envelope shape
+    kEnv = abs(sin(krad*iHR/2))    ; Basic envelope shape
+    ;kEnv2 = sin(krad*iHR/2)   ; Basic envelope shape
+    ktime timek
+    kMinute = int((ktime/kr)/60) 
+    kSeconds = ((ktime/kr)%60)
+    ;printks "kEnv %.4f evento %d\n", .01, kEnv, id_evento
+    ;printks "kEnv2 %.4f evento %d\n", .01, kEnv, id_evento
+    if gi_debug >=6 then
+    Sdir = "./docs/printEnv"
+    ;i_tmp_res system_i 1, sprintf("mkdir -p %s",Sdir)
+    ;Sname sprintf "%s/printEnv%d.data", Sdir,id_evento
+    ;fprintks Sname, "\tkrad %.4f\n", krad
+    ;fprintks Sname, "kdeg %.4f\n", kdeg
+    ;fprintks Sname, "iPeriod radiants %.4f\n", iPeriod
+    ;fprintks Sname, "iPeriod degrees %.4f\n", iPeriod*180/$M_PI
+    ;fprintks Sname, "kEnv %.4f\n", kEnv
+    ;fprintks Sname, "kEnv %f\n", kEnv
+    ;fprintks Sname, "ktime %f\n", ktime
+    ;fprintks Sname, "ktime/kr: %f\n", ktime/kr
+    ;fprintks Sname, "minutes: %f\n", int((ktime/kr)/60)
+    ;fprintks Sname ,"al tempo: %d'%.3f'' valore inviluppo: %.3f envento %d\n",kMinute,kSeconds,kEnv,id_evento
+    endif
     ;--------------------------------------------------------------
     ; Sound Generation and Spatialization
     ;--------------------------------------------------------------
     ; Frequency interpolation
-    kfreq line ifreq1, p3, ifreq2
+    kfreq =ifreq1;line ifreq1, p3, ifreq2
     
     ; Main oscillator
     as poscil3 iamp, kfreq
@@ -76,8 +96,6 @@ instr eventoSonoro
     aL = (aMid + aSide) / $SQRT2
     aR = (aMid - aSide) / $SQRT2
     
-    ; Safety limiting
-    ;aL = limit(aL, -$MAX_AMP, $MAX_AMP)
-    ;aR = limit(aR, -$MAX_AMP, $MAX_AMP)
     outs aL, aR
+
 endin

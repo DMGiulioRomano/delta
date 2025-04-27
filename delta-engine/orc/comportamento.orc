@@ -118,7 +118,7 @@ instr Comportamento
         else
            ; Gli eventi successivi dipendono dal ritmo precedente
             i_RitmoNormalizzato = 1/i_Vecchio_Ritmo
-            i_PreviousAttack tab_i i_EventIdx-1, gi_eve_attacco
+            i_PreviousAttack tab_i gi_Index-1, gi_eve_attacco
             i_EventAttack = i_DurataArmonica * i_RitmoNormalizzato + i_PreviousAttack
         endif
 
@@ -181,29 +181,12 @@ instr Comportamento
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
         ; Schedula l'evento sonoro con tutti i parametri calcolati
         schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, 
-                i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp
+                i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp,iLastStr
 
         ; -------- 3.7 AGGIORNAMENTO DEGLI INDICI E DEL TEMPO --------
         i_EventIdx += 1          ; Prossimo evento
         gi_Index += 1            ; Incrementa l'indice globale degli eventi
         i_whileTime += (i_DurataArmonica/i_RitmoCorrente)  ; Aggiorna il tempo corrente
     od
-
-    ; -----------------------------------------------------------------------
-    ; 4. SALVATAGGIO E ANALISI DEI DATI
-    ; -----------------------------------------------------------------------
-    ; Crea la directory per i dati dei comportamenti
-    if i_debug>=3 then 
-        i_tmp_res system_i 1, "mkdir -p ./docs/tablesData", 0
-        ; Genera il nome del file
-        Snd sprintf "docs/tablesData/comp%d.table", i_IdComp
-        ; Salva i dati del comportamento per analisi
-        ftsave Snd, 1, gi_comp_ATTACCO, i_RitmiTab, gi_comp_DURARMONICA, 
-               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, i_PosTab
-        ; Esegui lo script Python di visualizzazione
-        Scmd sprintf "python3.11 docs/plot.py %s", Snd
-        i_tmp_res system_i 1, Scmd, 0
-        ; Debug finale
-        $DEBUG_CompEND
-    endif
+    $DEBUG_CompEND
 endin
