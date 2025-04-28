@@ -40,7 +40,7 @@ gi_Intonazione ftgen 0, 0, gi_PythagSysSize, -2, 0
 ; DIMENSIONAMENTO DEL SISTEMA
 ; --------------------------------------------------------------------
 ; Numero massimo di eventi e comportamenti
-gi_NUMEVENTI init 1001          ; Capacità massima di eventi sonori
+gi_NUMEVENTI init 300          ; Capacità massima di eventi sonori
 gi_NUMComportamenti init 101    ; Capacità massima di comportamenti
 
 ; --------------------------------------------------------------------

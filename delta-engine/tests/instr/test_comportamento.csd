@@ -308,11 +308,11 @@ instr TestGenerator
     ; Schedule the first behavior
     schedule "Comportamento", 0, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2, iDur1, iDurArm1, iAmp1, iOct1, iReg1
-    ;schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostable1, gi_compId
+    schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+2, iDur1, iDurArm1, iAmp1, iOct1-1, iReg1
-    ;schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostable1, gi_compId
+    schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+7, iDur1, iDurArm1, iAmp1, iOct1, iReg1-7
-    ;schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostable1, gi_compId
+    schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+10, iDur1, iDurArm1, iAmp1, iOct1, iReg1-4
     ; Test behavior 2 (sparse, higher register)
     iAtt2 = 12
@@ -370,8 +370,8 @@ f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
 ; Test each context mode sequentially
 i "initial" 0 3
 i "TestGenerator" 0 60 ; Test with dense context
-i "Salvatore" 180 1
-ei "TestGenerator" 60 60 ; Test with sparse context
+;i "Salvatore" 180 1
+i "TestGenerator" 60 60 ; Test with sparse context
 i "TestGenerator" 120 60 ; Test with fluctuating context
 
 e 20

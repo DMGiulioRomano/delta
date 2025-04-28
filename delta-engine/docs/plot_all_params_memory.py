@@ -13,25 +13,6 @@ import re
 import math
 import numpy as np
 
-def read_table_names(docs_file):
-    """Legge il file .docs e crea un dizionario di numeri di tabella e nomi."""
-    table_names = {}
-    try:
-        with open(docs_file, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if line and ':' in line:
-                    name, number = line.split(':', 1)
-                    # Pulizia e normalizzazione
-                    name = name.strip()
-                    number = number.strip()
-                    # Aggiungi al dizionario
-                    table_names[number] = name
-        return table_names
-    except Exception as e:
-        print(f"Errore nella lettura del file .docs: {e}")
-        return {}
-    
 def extract_tables(file_path):
     """Extract all tables from a Csound table file."""
     with open(file_path, 'r') as file:
@@ -59,6 +40,116 @@ def extract_tables(file_path):
     
     return result
 
+def filter_empty_indices(tables):
+    """Rimuove gli indici dove tutte le tabelle hanno valore zero."""
+    if not tables:
+        return tables
+    
+    # Determina la lunghezza minima comune tra tutte le tabelle
+    min_length = min(len(data) for _, data in tables)
+    
+    # Tieni traccia degli indici da mantenere
+    indices_to_keep = []
+    
+    # Per ogni indice, controlla se esiste almeno un valore non zero
+    for idx in range(min_length):
+        has_non_zero = False
+        for _, data in tables:
+            if idx < len(data) and data[idx] != 0:
+                has_non_zero = True
+                break
+        
+        if has_non_zero:
+            indices_to_keep.append(idx)
+    
+    # Crea nuove tabelle mantenendo solo gli indici non vuoti
+    filtered_tables = []
+    for table_num, data in tables:
+        filtered_data = [data[idx] for idx in indices_to_keep if idx < len(data)]
+        filtered_tables.append((table_num, filtered_data))
+    
+    print(f"Filtered out {min_length - len(indices_to_keep)} empty indices. Kept {len(indices_to_keep)} indices.")
+    return filtered_tables
+
+def read_table_short_names(docs_file):
+    """Legge il file .docs e crea un dizionario di numeri di tabella e nomi."""
+    table_names = {}
+    try:
+        with open(docs_file, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line and ':' in line:
+                    name, number = line.split(':', 1)
+                    # Pulizia e normalizzazione
+                    name = name.strip()
+                    number = number.strip()
+                    
+                    # Estrai solo la parte dopo il secondo underscore
+                    if name.count('_') >= 2:
+                        # Trova la posizione del secondo underscore
+                        first_underscore = name.find('_')
+                        second_underscore = name.find('_', first_underscore + 1)
+                        # Estrai la parte dopo il secondo underscore
+                        name = name[second_underscore + 1:]
+                    
+                    # Aggiungi al dizionario
+                    table_names[number] = name
+        return table_names
+    except Exception as e:
+        print(f"Errore nella lettura del file .docs: {e}")
+        return {}
+    
+def sort_tables_by_attack(tables, table_names):
+    """Ordina tutte le tabelle in base ai valori della tabella 'attacco'."""
+    
+    # Cerca la tabella "attacco" tra tutte le tabelle
+    attack_table_num = None
+    attack_table_data = None
+    
+    for table_num, data in tables:
+        name = table_names.get(table_num, f"Table {table_num}")
+        if "attacco" in name.lower():
+            attack_table_num = table_num
+            attack_table_data = data
+            break
+    
+    # Se la tabella attacco non è stata trovata, non fare nulla
+    if attack_table_num is None:
+        print("Tabella 'attacco' non trovata, le tabelle non saranno ordinate.")
+        return tables
+    
+    # Crea una lista di tuple (indice_originale, valore_attacco)
+    indexed_attack_values = [(i, val) for i, val in enumerate(attack_table_data)]
+    
+    # Ordina questa lista in base ai valori di attacco
+    indexed_attack_values.sort(key=lambda x: x[1])
+    
+    # Crea la mappatura degli indici vecchi -> nuovi
+    old_to_new_indices = {}
+    for new_idx, (old_idx, _) in enumerate(indexed_attack_values):
+        old_to_new_indices[old_idx] = new_idx
+    
+    # Riorganizza tutte le tabelle in base a questa mappatura
+    sorted_tables = []
+    for table_num, data in tables:
+        if table_num == attack_table_num:
+            # Per la tabella attacco, ordina direttamente i valori
+            sorted_data = [val for _, val in indexed_attack_values]
+        else:
+            # Per le altre tabelle, riorganizza i valori in base agli indici mappati
+            sorted_data = [None] * len(data)
+            for old_idx, value in enumerate(data):
+                if old_idx < len(data):  # Protezione contro indici fuori range
+                    new_idx = old_to_new_indices.get(old_idx, old_idx)
+                    if new_idx < len(sorted_data):  # Altra protezione
+                        sorted_data[new_idx] = value
+        
+        # Aggiungi la tabella riordinata al risultato
+        sorted_tables.append((table_num, sorted_data))
+    
+    return sorted_tables
+
+
 def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, output_filename="all_tables_grid", chunk_size=100):
     """Create multiple figures with all tables in a grid of subplots, chunked in blocks.
     
@@ -72,10 +163,15 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
     """
     
     # Cerca di leggere i nomi delle tabelle dal file .docs
-    table_names = {}
+    table_short_names = {}
     if docs_file:
-        table_names = read_table_names(docs_file)
-    
+        table_short_names = read_table_short_names(docs_file)
+        # Ordina le tabelle in base ai tempi di attacco se la tabella attacco è presente
+        if any("attacco" == name for name in table_short_names.values()):
+            tables = sort_tables_by_attack(tables, table_short_names)
+            print("Tabelle riordinate in base ai tempi di attacco.")
+
+
     if not tables:
         print(f"No valid tables found in {file_path}")
         return
@@ -169,14 +265,28 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
                     
                     # Plot stem lines
                     ax.stem(chunk_indices, chunk_data, linefmt='-', markerfmt='.', basefmt=" ")
+
+                    max_labels = 20  # imposta un massimo di etichette da mostrare
+                    step = max(1, len(chunk_data) // max_labels)
                     
+                    for i in range(0, len(chunk_data), step):
+                        idx = chunk_indices[i]
+                        val = chunk_data[i]
+                        # Formatta la label con il valore arrotondato a 2 decimali
+                        ax.annotate(f"{val:.2f}", 
+                                    (idx, val),
+                                    textcoords="offset points", 
+                                    xytext=(0, 10),  # offset verticale di 10 punti
+                                    ha='center',  # allineamento orizzontale centrato
+                                    fontsize=8)   # dimensione testo più piccola
+
                     # Add grid and labels
                     ax.grid(True, linestyle='--', alpha=0.5)
                     
                     # Trova il nome della tabella dal dizionario o usa il numero come fallback
                     table_title = f"Table {table_num}"
-                    if table_num in table_names:
-                        table_title = f"{table_names[table_num]} (Table {table_num})"
+                    if table_num in table_short_names:
+                        table_title = f"{table_short_names[table_num]} (Table {table_num})"
                     
                     if is_large_table:
                         table_title += f" [LARGE TABLE - Points {start_idx}-{end_idx-1}]"
@@ -257,8 +367,11 @@ def main():
     try:
         tables = extract_tables(file_path)
         print(f"Extracted {len(tables)} tables from {file_path}")
+        # Filtra gli indici vuoti
+        tables = filter_empty_indices(tables)
+    
         create_combined_plot_chunked(tables, file_path, output_dir, docs_file, output_filename, chunk_size)
-        # Dopo aver generato tutti i PDF
+
     except Exception as e:
         print(f"Error processing {file_path}: {e}")
         import traceback
