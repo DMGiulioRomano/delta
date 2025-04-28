@@ -9,7 +9,7 @@ ksmps=1
 nchnls = 2
 0dbfs = 1
 ; Debug mode
-gi_debug init 3
+gi_debug init 4
 
 ; Include necessary UDOs and macros
 #include "../../MACROS/init.orc"
@@ -21,6 +21,7 @@ gi_debug init 3
 #include "../../udos/validator.udo"
 ; Include the instruments we're testing
 #include "../../orc/eventoSonoro.orc"
+#include "../../udos/saveFtablesBehavior.udo"
 #include "../../udos/tc_storeTransitionBehaviorParameters.udo"
 ; ==========================================================================
 ; TEST ENVIRONMENT SETUP
@@ -228,25 +229,8 @@ endin
 
 
 instr Salvatore
-; Salvatore!!
-    ; -----------------------------------------------------------------------
-    ; 4. SALVATAGGIO E ANALISI DEI DATI
-    ; -----------------------------------------------------------------------
-    ; Crea la directory per i dati dei comportamenti
-    if gi_debug>=4 then 
-        i_tmp_res system_i 1, "mkdir -p ./docs/tablesData"
-        ; Genera il nome del file
-        Snd = "docs/tablesData/compParams.table"
-        SndMeta= "docs/tablesData/compParams.docs"
-        ; Salva i dati del comportamento per analisi
-        fprints SndMeta, "gi_comp_ATTACCO: %d\ngi_comp_RITMI: %d\ngi_comp_DURARMONICA: %d\ngi_comp_DURATA: %d\ngi_comp_AMPIEZZA: %d\ngi_comp_OTTAVA: %d\ngi_comp_REGISTRO: %d\ngi_comp_POSIZIONI: %d", gi_comp_ATTACCO, gi_comp_RITMI, gi_comp_DURARMONICA, 
-               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONI
-        ftsave Snd, 1, gi_comp_ATTACCO, gi_comp_RITMI, gi_comp_DURARMONICA, 
-               gi_comp_DURATA, gi_comp_AMPIEZZA, gi_comp_OTTAVA, gi_comp_REGISTRO, gi_comp_POSIZIONI
-        ; Esegui lo script Python di visualizzazione
-        Scmd sprintf "python3.11 docs/plot.py %s", Snd
-        i_tmp_res system_i 1, Scmd
-    endif
+    saveFtablesBehavior
+    saveFtablesEvents
 endin
 
 instr initial
@@ -324,11 +308,11 @@ instr TestGenerator
     ; Schedule the first behavior
     schedule "Comportamento", 0, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2, iDur1, iDurArm1, iAmp1, iOct1, iReg1
-    schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostable1, gi_compId
+    ;schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+2, iDur1, iDurArm1, iAmp1, iOct1-1, iReg1
-    schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostable1, gi_compId
+    ;schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+7, iDur1, iDurArm1, iAmp1, iOct1, iReg1-7
-    schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostable1, gi_compId
+    ;schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostable1, gi_compId
     iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+10, iDur1, iDurArm1, iAmp1, iOct1, iReg1-4
     ; Test behavior 2 (sparse, higher register)
     iAtt2 = 12
@@ -386,9 +370,9 @@ f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
 ; Test each context mode sequentially
 i "initial" 0 3
 i "TestGenerator" 0 60 ; Test with dense context
-i "TestGenerator" 60 60 ; Test with sparse context
-i "TestGenerator" 120 60 ; Test with fluctuating context
 i "Salvatore" 180 1
+ei "TestGenerator" 60 60 ; Test with sparse context
+i "TestGenerator" 120 60 ; Test with fluctuating context
 
 e 20
 </CsScore>

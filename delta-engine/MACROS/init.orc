@@ -19,6 +19,8 @@ gi_compId init 0
 
 
 gSdirSco = "sco/"
+gSdirTables = "docs/tables"
+gSdirResults = "docs/results"
 
 ; --------------------------------------------------------------------
 ; PARAMETRI DELLO SPAZIO COMPOSITIVO
