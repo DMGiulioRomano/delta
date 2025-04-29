@@ -62,7 +62,7 @@ opcode generateTransitionBehavior, 0, i
                                               iDuration, iHarmonicDuration, 
                                               iAmplitude, iOctave, iRegister
     ; Chiama GeneraComportamenti con i parametri essenziali
-    schedule "GeneraComportamenti", 0, 1, 0, iDuration, iIdComp
+    schedule "BehaviorWrapper", 0, 5, 0, iDuration, iIdComp
     
     ; Debug output
     if (gi_debug >= 2) then

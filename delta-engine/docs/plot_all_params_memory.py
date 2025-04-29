@@ -12,7 +12,7 @@ import os
 import re
 import math
 import numpy as np
-
+import pdb
 def extract_tables(file_path):
     """Extract all tables from a Csound table file."""
     with open(file_path, 'r') as file:
@@ -161,7 +161,7 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
         output_filename: Nome base del file di output
         chunk_size: Dimensione del blocco standard per tabelle normali
     """
-    
+    #pdb.set_trace()
     # Cerca di leggere i nomi delle tabelle dal file .docs
     table_short_names = {}
     if docs_file:
@@ -178,44 +178,57 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
     
     # Identifica le tabelle con un numero di punti molto maggiore
     table_sizes = [(table_num, len(data)) for table_num, data in tables]
+    #tables = filter_empty_indices(tables)
     
     # Calcola la mediana delle dimensioni
     sizes = [size for _, size in table_sizes]
     sizes.sort()
     median_size = sizes[len(sizes) // 2]
     
-    # Classifica ogni tabella come "normale" o "grande"
-    large_tables_indices = []
+    # Calcola il numero massimo di punti tra tutte le tabelle
+    max_table_size = max(size for _, size in table_sizes)
     
-    # Definiamo una tabella come "grande" se è almeno 5 volte più grande della mediana
-    large_factor = 5
+    # Classifica le tabelle e calcola i fattori di scala in base alle loro dimensioni
+    table_scale_factors = []  # Memorizza il fattore di scala per ogni tabella
+    reference_table_size = None  # Tabella di riferimento (la più piccola non vuota)
     
-    for i, ((table_num, _), (_, size)) in enumerate(zip(tables, table_sizes)):
-        if size > median_size * large_factor:
-            # È una tabella grande
-            print(f"Table {table_num} identified as large table ({size} points)")
-            large_tables_indices.append(i)
+    # Trova la tabella più piccola con dati significativi come riferimento
+    min_size = float('inf')
+    for _, size in table_sizes:
+        if 0 < size < min_size:
+            min_size = size
     
-    # Determina il numero massimo di punti per tabelle normali
-    max_points_normal = 0
-    for i, (_, data) in enumerate(tables):
-        if i not in large_tables_indices:
-            max_points_normal = max(max_points_normal, len(data))
+    reference_table_size = min_size
+    print(f"Reference table size: {reference_table_size} points")
     
-    # Calcola quanti blocchi da chunk_size punti saranno necessari per tabelle normali
-    num_chunks_normal = math.ceil(max_points_normal / chunk_size)
+    # Calcola il fattore di scala per ogni tabella relativamente alla tabella di riferimento
+    for i, (table_num, size) in enumerate(table_sizes):
+        # Il fattore di scala è il rapporto tra la dimensione di questa tabella e quella di riferimento
+        scale_factor = size / reference_table_size if reference_table_size > 0 else 1
+        # Arrotonda il fattore di scala al più vicino intero per praticità
+        scale_factor = max(1, round(scale_factor))
+        
+        table_scale_factors.append(scale_factor)
+        
+        # Per scopi informativi, identifica le tabelle molto più grandi
+        if scale_factor > 5:
+            print(f"Table {table_num} identified as large table ({size} points, scale factor {scale_factor}x)")
     
-    # Calcola il numero massimo di blocchi necessari per le tabelle grandi
-    max_chunks_large = 0
-    for i in large_tables_indices:
-        _, data = tables[i]
-        table_chunks = math.ceil(len(data) / (chunk_size * 11))
-        max_chunks_large = max(max_chunks_large, table_chunks)
+    # Calcola il numero di chunks necessari per ogni tabella
+    table_chunks_needed = []
+    for i, ((table_num, data), scale_factor) in enumerate(zip(tables, table_scale_factors)):
+        # Calcola quanti punti mostrare per chunk per questa tabella
+        table_chunk_size = chunk_size * scale_factor
+        # Calcola quanti chunk sono necessari per questa tabella
+        chunks_needed = math.ceil(len(data) / table_chunk_size)
+        table_chunks_needed.append(chunks_needed)
+        
+        print(f"Table {table_num}: {len(data)} points, {table_chunk_size} points per chunk, {chunks_needed} chunks needed")
     
-    # Il numero totale di blocchi sarà il massimo tra quelli normali e quelli grandi
-    num_chunks = max(num_chunks_normal, max_chunks_large)
+    # Il numero totale di chunks necessari è il massimo tra tutti
+    num_chunks = max(table_chunks_needed) if table_chunks_needed else 0
     
-    print(f"Data will be split into {num_chunks} chunks")
+    print(f"Data will be split into {num_chunks} chunks (based on table scaling factors)")
     
     # Per ogni blocco, crea un grafico separato
     for chunk_idx in range(num_chunks):
@@ -242,18 +255,12 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
                 ax = axes[i]
                 color = colors[i % len(colors)]
                 
-                # Determina se questa è una tabella grande
-                is_large_table = i in large_tables_indices
+                # Calcola gli indici di inizio e fine in base al fattore di scala della tabella
+                scale_factor = table_scale_factors[i]
+                table_chunk_size = chunk_size * scale_factor
                 
-                # Calcola gli indici di inizio e fine in base al tipo di tabella
-                if is_large_table:
-                    # Per tabelle grandi, usa un passo di chunk_size*11
-                    start_idx = chunk_idx * (chunk_size * 11)
-                    end_idx = min((chunk_idx + 1) * (chunk_size * 11), len(data))
-                else:
-                    # Per tabelle normali, usa un passo di chunk_size
-                    start_idx = chunk_idx * chunk_size
-                    end_idx = min((chunk_idx + 1) * chunk_size, len(data))
+                start_idx = chunk_idx * table_chunk_size
+                end_idx = min((chunk_idx + 1) * table_chunk_size, len(data))
                 
                 # Estrai solo i dati per questo blocco
                 chunk_data = data[start_idx:end_idx] if start_idx < len(data) else []
@@ -266,12 +273,15 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
                     # Plot stem lines
                     ax.stem(chunk_indices, chunk_data, linefmt='-', markerfmt='.', basefmt=" ")
 
-                    max_labels = 20  # imposta un massimo di etichette da mostrare
+                    # Adatta il numero di etichette in base al fattore di scala della tabella
+                    base_labels = 20  # Numero base di etichette per tabella di riferimento
+                    max_labels = min(base_labels * scale_factor, 100)  # Limita a 100 etichette massime
+                    
                     step = max(1, len(chunk_data) // max_labels)
                     
-                    for i in range(0, len(chunk_data), step):
-                        idx = chunk_indices[i]
-                        val = chunk_data[i]
+                    for j in range(0, len(chunk_data), step):
+                        idx = chunk_indices[j]
+                        val = chunk_data[j]
                         # Formatta la label con il valore arrotondato a 2 decimali
                         ax.annotate(f"{val:.2f}", 
                                     (idx, val),
@@ -288,10 +298,11 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
                     if table_num in table_short_names:
                         table_title = f"{table_short_names[table_num]} (Table {table_num})"
                     
-                    if is_large_table:
-                        table_title += f" [LARGE TABLE - Points {start_idx}-{end_idx-1}]"
+                    # Aggiungi informazioni sul fattore di scala
+                    if scale_factor > 1:
+                        table_title += f" [Scale {scale_factor}x - Points {start_idx}-{end_idx-1} ({len(chunk_data)} points)]"
                     else:
-                        table_title += f" [Points {start_idx}-{end_idx-1}]"
+                        table_title += f" [Points {start_idx}-{end_idx-1} ({len(chunk_data)} points)]"
                     
                     ax.set_title(table_title, fontsize=18)
                     ax.set_xlabel("Index", fontsize=16)
@@ -315,15 +326,16 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
                             horizontalalignment='center', verticalalignment='center',
                             transform=ax.transAxes, fontsize=14)
                     
-                    if is_large_table:
-                        range_text = f"[LARGE TABLE - Range {start_idx}-{end_idx-1}]"
+                    # Mostra informazioni sul fattore di scala anche quando non ci sono dati
+                    if scale_factor > 1:
+                        range_text = f"[Scale {scale_factor}x - Range {start_idx}-{end_idx-1}]"
                     else:
                         range_text = f"[Range {start_idx}-{end_idx-1}]"
                     
                     ax.set_title(f"Table {table_num} {range_text}", fontsize=16)
         
         # Hide any unused subplots
-        for j in range(min(i+1, len(axes)), len(axes)):
+        for j in range(len(tables), len(axes)):
             axes[j].axis('off')
         
         # Adjust layout
@@ -346,9 +358,12 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
 
     # Esegui il comando pdfunite
     import subprocess
-    subprocess.run(f"pdfunite {pdf_files_str} {output_merged_pdf}", shell=True)
-    print(f"All PDF chunks merged into {output_merged_pdf}")
-    subprocess.run(f"rm {pdf_files_str}", shell=True)
+    try:
+        subprocess.run(f"pdfunite {pdf_files_str} {output_merged_pdf}", shell=True, check=True)
+        print(f"All PDF chunks merged into {output_merged_pdf}")
+        subprocess.run(f"rm {pdf_files_str}", shell=True)
+    except subprocess.CalledProcessError:
+        print(f"Failed to merge PDFs. Make sure 'pdfunite' is installed or use individual PDFs.")
 
 
 def main():
@@ -368,8 +383,7 @@ def main():
         tables = extract_tables(file_path)
         print(f"Extracted {len(tables)} tables from {file_path}")
         # Filtra gli indici vuoti
-        tables = filter_empty_indices(tables)
-    
+        if os.path.splitext(os.path.basename(file_path))[0] != 'compParams': tables = filter_empty_indices(tables)
         create_combined_plot_chunked(tables, file_path, output_dir, docs_file, output_filename, chunk_size)
 
     except Exception as e:

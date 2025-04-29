@@ -21,6 +21,8 @@ gi_debug init 4
 #include "../../udos/validator.udo"
 ; Include the instruments we're testing
 #include "../../orc/eventoSonoro.orc"
+;#include "../../orc/comportamento.orc"
+;#include "../../orc/behaviorWrapper.orc"
 #include "../../udos/saveFtablesBehavior.udo"
 #include "../../udos/tc_storeTransitionBehaviorParameters.udo"
 ; ==========================================================================
@@ -123,14 +125,18 @@ instr Comportamento
     ; -----------------------------------------------------------------------
     i_EventIdx = 0     ; Indice dell'evento corrente
     i_whileTime = 0  ; Tempo cumulativo per il ciclo
-
+    prints "i_RitmiTab dentro comportamento\n"
+    ftprint i_RitmiTab
     ; Continua a generare eventi finché non raggiungiamo la durata specificata
     while i_whileTime < i_Durata do
         ; -------- 3.1 GESTIONE RITMI --------
         ; Determina il ritmo corrente dalla tabella o genera un nuovo ritmo se necessario
         if i_EventIdx < i_LenRitmiTab then
-            ; Usa un ritmo esistente dalla tabella
+            ; Usa un ritmo esistente dalla tabella 
             i_RitmoCorrente tab_i i_EventIdx, i_TempRitmiTab
+            if i_RitmoCorrente == 0 then
+                igoto insideElse
+            endif
             $DEBUG_Comp4  ; Debug    
             ; Ottieni anche il ritmo precedente (per il calcolo dell'attacco)
             if i_EventIdx == 0 then
@@ -139,14 +145,15 @@ instr Comportamento
                 i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
             endif
         else
-           ; Genera un nuovo ritmo basato sull'ultimo ritmo utilizzato
-           i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
-           $DEBUG_Comp5  ; Debug    
-           ; Genera un nuovo ritmo usando la funzione non lineare
-           i_RitmoCorrente NonlinearFunc i_Vecchio_Ritmo
-           $DEBUG_Comp4  ; Debug    
-           ; Salva il nuovo ritmo nella tabella temporanea
-           tabw_i i_RitmoCorrente, i_EventIdx, i_TempRitmiTab
+            insideElse:
+            ; Genera un nuovo ritmo basato sull'ultimo ritmo utilizzato
+            i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
+            $DEBUG_Comp5  ; Debug    
+            ; Genera un nuovo ritmo usando la funzione non lineare
+            i_RitmoCorrente NonlinearFunc i_Vecchio_Ritmo
+            $DEBUG_Comp4  ; Debug    
+            ; Salva il nuovo ritmo nella tabella temporanea
+            tabw_i i_RitmoCorrente, i_EventIdx, i_TempRitmiTab
         endif
 
         ; -------- 3.2 CALCOLO TEMPO DI ATTACCO --------
@@ -155,7 +162,7 @@ instr Comportamento
            ; Il primo evento inizia all'inizio del comportamento
             i_EventAttack = i_CAttacco
         else
-           ; Gli eventi successivi dipendono dal ritmo precedente
+            ; Gli eventi successivi dipendono dal ritmo precedente
             i_RitmoNormalizzato = 1/i_Vecchio_Ritmo
             i_PreviousAttack tab_i gi_Index-1, gi_eve_attacco
             i_EventAttack = i_DurataArmonica * i_RitmoNormalizzato + i_PreviousAttack
@@ -228,6 +235,69 @@ instr Comportamento
 endin
 
 
+instr BehaviorWrapper
+    ; Input parameters
+    iIdComp = p4       ; Behavior ID (ora è l'unico parametro necessario)
+    
+    ; Leggi i parametri dalle tabelle globali usando l'ID del comportamento
+    ; Recupera i parametri principali
+    i_Attacco tab_i iIdComp, gi_comp_ATTACCO       ; Tempo di attacco
+    i_Durata tab_i iIdComp, gi_comp_DURATA         ; Durata complessiva
+    i_DurArmonica tab_i iIdComp, gi_comp_DURARMONICA ; Durata armonica
+    i_Ampiezza tab_i iIdComp, gi_comp_AMPIEZZA     ; Ampiezza in dB
+    i_Ottava tab_i iIdComp, gi_comp_OTTAVA         ; Ottava
+    i_Registro tab_i iIdComp, gi_comp_REGISTRO     ; Registro
+    
+    ; Calcola gli indici base per ritmi e posizioni (ogni blocco occupa 11 elementi)
+    i_RitmiBaseIndex = iIdComp * 11
+    i_PosBaseIndex = iIdComp * 11
+    
+    ; Leggi quanti ritmi e posizioni ci sono effettivamente
+    i_NumRitmi tab_i i_RitmiBaseIndex, gi_comp_RITMI
+    i_NumPos tab_i i_PosBaseIndex, gi_comp_POSIZIONI
+    
+    ; Crea tabelle temporanee per i ritmi e le posizioni
+    i_RitmiTab ftgen 0, 0, i_NumRitmi+1, -2, 0  ; +1 per sicurezza
+    i_PosTab ftgen 0, 0, i_NumPos+1, -2, 0      ; +1 per sicurezza
+    
+    ; Copia i valori nelle tabelle temporanee
+    i_Idx = 0
+    while (i_Idx < i_NumRitmi) do
+        i_Ritmo tab_i i_RitmiBaseIndex + 1 + i_Idx, gi_comp_RITMI  ; +1 perché il primo è la lunghezza
+        prints "i_Ritmo: %d, i_Idx: %d,i_RitmiTab len: %d, index real: %d\n", i_Ritmo, i_Idx, ftlen(i_RitmiTab), i_RitmiBaseIndex + 1 + i_Idx
+        tabw_i i_Ritmo, i_Idx, i_RitmiTab
+        i_Idx += 1
+    od
+    
+    i_Idx = 0
+    while (i_Idx < i_NumPos) do
+        i_Pos tab_i i_PosBaseIndex + 1 + i_Idx, gi_comp_POSIZIONI  ; +1 perché il primo è la lunghezza
+        tabw_i i_Pos, i_Idx, i_PosTab
+        i_Idx += 1
+    od
+    
+    ; Debug output se richiesto
+    if (gi_debug >= 2) then
+        prints "GeneraComportamenti: Comportamento %d\n", iIdComp
+        prints "  Parametri: Attacco=%.2f, Durata=%.2f, DurArmonica=%.2f\n", 
+               i_Attacco, i_Durata, i_DurArmonica
+        prints "  Ottava=%d, Registro=%d, Ampiezza=%.2f\n", 
+               i_Ottava, i_Registro, i_Ampiezza
+        prints "  Numero ritmi: %d, Numero posizioni: %d\n", 
+               i_NumRitmi, i_NumPos
+        prints "========\ni_RitmiTab\n"
+        ftprint i_RitmiTab
+        prints "--------"
+
+    endif
+    
+    ; Verifica la validità dei parametri (usando il Validator esistente)
+    ; i_Res = Validator(i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, iIdComp)
+    
+    ; Schedule del comportamento con i parametri validati
+    schedule "Comportamento", i_Attacco, i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, iIdComp
+endin
+
 instr Salvatore
     saveFtablesBehavior
     saveFtablesEvents
@@ -289,79 +359,25 @@ endin
 ; Schedules test behaviors with different parameters
 ; ==========================================================================
 instr TestGenerator
-    ; Schedule a context simulator
-    
-    ; Schedule test behaviors at different times
     schedule "ContextSimulator", 0, p3
-    ; Basic test behavior 1 (standard)
-    iAtt1 = 2
-    iDur1 = 60
-    iRitmitable1 ftgen 0, 0,4 , -2, 3, 4, 5, 6
-    iDurArm1 = 20
-    iAmp1 = -12
-    iOct1 = 7
-    iReg1 = 1
-    iPostable1 ftgen 0, 0, 4, -2, 0, 1, 2, 3
-    iRhythmArr[] init ftlen(iRitmitable1)
-    iPosArr[] init ftlen(iPostable1)
-    copyf2array iRhythmArr, iRitmitable1
-    copyf2array iPosArr, iPostable1
-    ; Schedule the first behavior
-    schedule "Comportamento", 0, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1, iPostable1, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2, iDur1, iDurArm1, iAmp1, iOct1, iReg1
-    schedule "Comportamento", 0+2, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1-1, iReg1, iPostable1, iComp
-    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+2, iDur1, iDurArm1, iAmp1, iOct1-1, iReg1
-    schedule "Comportamento", 0+7, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-7, iPostable1, iComp
-    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+7, iDur1, iDurArm1, iAmp1, iOct1, iReg1-7
-    schedule "Comportamento", 0+10, iDur1, iRitmitable1, iDurArm1, iAmp1, iOct1, iReg1-4, iPostable1, iComp
-    iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+10, iDur1, iDurArm1, iAmp1, iOct1, iReg1-4
-    ; Test behavior 2 (sparse, higher register)
-    iAtt2 = 12
-    iDur2 = 40
-    iRitmitable2 ftgen 0, 0, 4, -2, 10, 12, 15, 18
-    iDurArm2 = 8
-    iAmp2 = -12
-    iOct2 = 4
-    iReg2 = 3
-    iPostable2 ftgen 0, 0, 4, -2, 5, 6, 7, 8
-    iRhythmArr2[] init ftlen(iRitmitable2)
-    iPosArr2[] init ftlen(iPostable2)
-    copyf2array iRhythmArr2, iRitmitable2
-    copyf2array iPosArr2, iPostable2
-    
-    ; Schedule the second behavior
-    schedule "Comportamento", p2+iAtt2, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2, iPostable2, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr2, iPosArr2, p2+iAtt2, iDur2, iDurArm2, iAmp2, iOct2, iReg2
-    schedule "Comportamento", p2+iAtt2+5, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+2, iPostable2, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr2, iPosArr2, p2+iAtt2+5, iDur2, iDurArm2, iAmp2, iOct2, iReg2+2
-    schedule "Comportamento", p2+iAtt2+9, iDur2, iRitmitable2, iDurArm2, iAmp2, iOct2, iReg2+7, iPostable2, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr2, iPosArr2, p2+iAtt2+9, iDur2, iDurArm2, iAmp2, iOct2, iReg2+7
-
-    ; Test behavior 3 (dense, lower register)
-    iAtt3 = 22
-    iDur3 = 50
-    iRitmitable3 ftgen 0, 0, 4, -2, 2, 3, 4, 5
-    iDurArm3 = 15
-    iAmp3 = -9
-    iOct3 = 2
-    iReg3 = 8
-    iPostable3 ftgen 0, 0, 4, -2, 1, 2, 1, 2
-    iRhythmArr3[] init ftlen(iRitmitable3)
-    iPosArr3[] init ftlen(iPostable3)
-    copyf2array iRhythmArr3, iRitmitable3
-    copyf2array iPosArr3, iPostable3
-    
-    ; Schedule the third behavior
-    schedule "Comportamento", p2+iAtt3, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3, iPostable3, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3, iDur3, iDurArm3, iAmp3, iOct3, iReg3
-    schedule "Comportamento", p2+iAtt3+4, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3+1, iPostable3, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3+4, iDur3, iDurArm3, iAmp3, iOct3, iReg3+1
-    schedule "Comportamento", p2+iAtt3+10, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3, iPostable3, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3+10, iDur3, iDurArm3, iAmp3, iOct3+1, iReg3
-    schedule "Comportamento", p2+iAtt3+7, iDur3, iRitmitable3, iDurArm3, iAmp3, iOct3, iReg3-2, iPostable3, gi_compId
-    iComp storeTransitionBehaviorParameters iRhythmArr3, iPosArr3, p2+iAtt3+7, iDur3, iDurArm3, iAmp3, iOct3, iReg3-2
-
-
+    i_time=0
+    while i_time < p3 do
+        iAtt = 2 + i_time
+        iDur = 60 - i_time/2
+        iRitmitable ftgen 0, 0,4 , -2, 3, 4, 5, 6
+        iDurArm = 20 - i_time/2
+        iAmp = -12 - i_time/4
+        iOct = 9 - int(i_time/10)
+        iReg = 1
+        iPostable ftgen 0, 0, 4, -2, 0, 1, 2, 3
+        iRhythmArr[] init ftlen(iRitmitable)
+        iPosArr[] init ftlen(iPostable)
+        copyf2array iRhythmArr, iRitmitable
+        copyf2array iPosArr, iPostable
+        iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+iAtt, iDur, iDurArm, iAmp, iOct, iReg
+        schedule "BehaviorWrapper", 0, 1, iComp
+        i_time+=5
+    od
 endin
 
 </CsInstruments>
@@ -371,9 +387,10 @@ f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
 ; Test each context mode sequentially
 i "initial" 0 3
 i "TestGenerator" 0 60 ; Test with dense context
+i "Salvatore" 180 1
+e
 i "TestGenerator" 60 60 ; Test with sparse context
 i "TestGenerator" 120 60 ; Test with fluctuating context
-i "Salvatore" 180 1
 
 e 20
 </CsScore>

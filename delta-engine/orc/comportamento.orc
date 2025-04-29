@@ -99,7 +99,7 @@ instr Comportamento
             else
                 i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
             endif
-        else 
+        else
            ; Genera un nuovo ritmo basato sull'ultimo ritmo utilizzato
            i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
            $DEBUG_Comp5  ; Debug    
@@ -175,13 +175,20 @@ instr Comportamento
         tabw_i i_Freq2,          gi_Index, gi_eve_frequenza2 
         tabw_i i_Pos,            gi_Index, gi_eve_posizione
         tabw_i i_RitmoCorrente,  gi_Index, gi_eve_hr
-        tabw_i i_Freq2,          gi_Index, gi_eve_ifn
+        tabw_i 2,                gi_Index, gi_eve_ifn
         tabw_i i_IdComp,         gi_Index, gi_eve_comportamento
         iLastStr = (i_whileTime+(i_DurataArmonica/NonlinearFunc(i_RitmoCorrente)) >= i_Durata ? 1 : 0)
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
         ; Schedula l'evento sonoro con tutti i parametri calcolati
         schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, 
                 i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp,iLastStr
+        /*
+        SentireSco sprintf "%sAll.sco", gSdirSco
+        fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\tid_comp:\tiLastStr:"
+        fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d\t\t\t%d\t\t\t%d", i_EventAttack, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp, iLastStr 
+        fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\tid_comp:\tiLastStr:", i_IdComp
+        fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d\t\t\t%d\t\t\t%d", i_EventAttack, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp, iLastStr 
+        */
 
         ; -------- 3.7 AGGIORNAMENTO DEGLI INDICI E DEL TEMPO --------
         i_EventIdx += 1          ; Prossimo evento

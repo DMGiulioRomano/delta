@@ -2,20 +2,20 @@ instr BehaviorWrapper
     ; Input parameters
     i_attacco = p4          ; Start time
     i_durata = p5           ; Duration
-    i_which_comp = p6       ; Behavior ID (ora è l'unico parametro necessario)
+    iIdComp = p6       ; Behavior ID (ora è l'unico parametro necessario)
     
     ; Leggi i parametri dalle tabelle globali usando l'ID del comportamento
     ; Recupera i parametri principali
-    i_Attacco tab_i i_which_comp, gi_comp_ATTACCO       ; Tempo di attacco
-    i_Durata tab_i i_which_comp, gi_comp_DURATA         ; Durata complessiva
-    i_DurArmonica tab_i i_which_comp, gi_comp_DURARMONICA ; Durata armonica
-    i_Ampiezza tab_i i_which_comp, gi_comp_AMPIEZZA     ; Ampiezza in dB
-    i_Ottava tab_i i_which_comp, gi_comp_OTTAVA         ; Ottava
-    i_Registro tab_i i_which_comp, gi_comp_REGISTRO     ; Registro
+    i_Attacco tab_i iIdComp, gi_comp_ATTACCO       ; Tempo di attacco
+    i_Durata tab_i iIdComp, gi_comp_DURATA         ; Durata complessiva
+    i_DurArmonica tab_i iIdComp, gi_comp_DURARMONICA ; Durata armonica
+    i_Ampiezza tab_i iIdComp, gi_comp_AMPIEZZA     ; Ampiezza in dB
+    i_Ottava tab_i iIdComp, gi_comp_OTTAVA         ; Ottava
+    i_Registro tab_i iIdComp, gi_comp_REGISTRO     ; Registro
     
     ; Calcola gli indici base per ritmi e posizioni (ogni blocco occupa 11 elementi)
-    i_RitmiBaseIndex = i_which_comp * 11
-    i_PosBaseIndex = i_which_comp * 11
+    i_RitmiBaseIndex = iIdComp * 11
+    i_PosBaseIndex = iIdComp * 11
     
     ; Leggi quanti ritmi e posizioni ci sono effettivamente
     i_NumRitmi tab_i i_RitmiBaseIndex, gi_comp_RITMI
@@ -42,7 +42,7 @@ instr BehaviorWrapper
     
     ; Debug output se richiesto
     if (gi_debug >= 2) then
-        prints "GeneraComportamenti: Comportamento %d\n", i_which_comp
+        prints "GeneraComportamenti: Comportamento %d\n", iIdComp
         prints "  Parametri: Attacco=%.2f, Durata=%.2f, DurArmonica=%.2f\n", 
                i_Attacco, i_Durata, i_DurArmonica
         prints "  Ottava=%d, Registro=%d, Ampiezza=%.2f\n", 
@@ -52,8 +52,8 @@ instr BehaviorWrapper
     endif
     
     ; Verifica la validità dei parametri (usando il Validator esistente)
-    ; i_Res = Validator(i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, i_which_comp)
+    ; i_Res = Validator(i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, iIdComp)
     
     ; Schedule del comportamento con i parametri validati
-    schedule "Comportamento", i_Attacco, i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, i_which_comp
+    schedule "Comportamento", i_Attacco, i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, iIdComp
 endin

@@ -3,6 +3,7 @@ opcode saveFtablesBehavior, 0, 0
         i_tmp_res system_i 1, sprintf("mkdir -p %s",gSdirTables)
         i_tmp_res system_i 1, sprintf("mkdir -p %s",gSdirResults)
         ; Genera il nome del file
+        ; questi nomi sono legati a python. Se vengono cambiati si perdono dei componenti.
         StableData sprintf "%s/compParams.table",gSdirTables
         StableName sprintf "%s/compParams.docs",gSdirTables
         ; Salva i dati del comportamento per analisi
@@ -28,6 +29,6 @@ opcode saveFtablesEvents, 0, 0
         ftsave StableData, 1, gi_eve_attacco, gi_eve_durata, gi_eve_ampiezza, 
                gi_eve_frequenza1, gi_eve_posizione, gi_eve_hr, gi_eve_frequenza2, gi_eve_ifn, gi_eve_comportamento
         ; Esegui lo script Python di visualizzazione
-        i_tmp_res system_i 1, sprintf("python3.11 docs/plot_all_params_memory.py %s %s %s eventAll %d", StableData, StableName, gSdirResults, 100)
+        i_tmp_res system_i 1, sprintf("python3.11 docs/plot_all_params_memory.py %s %s %s eventAll %d", StableData, StableName, gSdirResults, gi_NUMEVENTI*.1)
     endif
 endop
