@@ -2,15 +2,13 @@
 ; OPCODE PER GENERAZIONE RITMI NON LINEARE
 ; ===========================================================================
 opcode NonlinearFunc, i, i
-  iX xin
-  iPI = 4*taninv(1.0)  ; Calcolo preciso di PI
-  
-  ; Formula non lineare per generare nuovi ritmi basati sui precedenti
-  ; Produce un comportamento pseudo-caotico per varietà ritmica
-  iResult = abs(iX*2 * sin(iX * iPI/2 + iX) + 1/(iX+0.001))
-  iResult = round(iResult)
-  
-  xout iResult
+    iX xin
+    iPI = 4*taninv(1.0)  ; Calcolo preciso di PI
+    ; Formula non lineare per generare nuovi ritmi basati sui precedenti
+    ; Produce un comportamento pseudo-caotico per varietà ritmica
+    iResult = abs(iX*2 * sin(iX * iPI/2 + iX) + 1/(iX+0.001))
+    iResult = round(iResult)
+    xout iResult
 endop
 
 
@@ -25,10 +23,12 @@ instr Comportamento
     ; -----------------------------------------------------------------------
     ; 1. INIZIALIZZAZIONE E ACQUISIZIONE PARAMETRI
     ; -----------------------------------------------------------------------
-    ;i_debug = gi_debug
-    i_debug = 0
-    prints "===========================================\n"
-    prints "\t\t INSTR Comportamento *init-pass*\n"
+    i_debug = gi_debug
+    ;i_debug = 0
+    prints "\n========================== open Comportamento *INIT-PASS*\n\n"
+    Sindent = "\t"
+    iCurrentTime times
+    prints "\tk-cycle: %d and a-cycle: %d at abs time: %f\n", iCurrentTime*kr, iCurrentTime*sr, iCurrentTime
 
     ; Parametri di input
     i_CAttacco = p2             ; Tempo di attacco del comportamento
@@ -59,10 +59,6 @@ instr Comportamento
     fprints Snamefile, "; - Atk\t\t\tDur\t\t\tRhythmtab\t\tDurataArmonica\tAmpiezza\tOttava\tRegistro\tPositiontab\n"
     fprints Snamefile, "; - %.3f\t\t%.3f\t\t[%s]\t\t%.3f\t\t\t%.3f\t\t%d\t\t%d\t\t\t[%s]\t\t", p2, p3, Srhythms, p5, p6, p7, p8, Spos
     ; Mostra informazioni debug iniziali se richiesto
-    if int(i_debug) >= 1 then
-        prints "\n\t\t=========================================\n"
-        prints "\t\t\tdentro comportamento %d\n", i_IdComp
-    endif
     ; -----------------------------------------------------------------------
     ; 2. PREPARAZIONE DELLE SEQUENZE RITMICHE E POSIZIONALI
     ; -----------------------------------------------------------------------
@@ -72,8 +68,7 @@ instr Comportamento
     ; Creiamo una tabella temporanea abbastanza grande da contenere 
     ; anche i ritmi che verranno generati algoritmicamente. perché ne ho bisogno?
     ; perché devo dare in pasto alla dnl il ritmo precedente per generare il successivo
-    i_TempRitmiTab ftgen 0, 0, i_LenRitmiTab + 100, -2, 0
-
+    i_TempRitmiTab ftgen 0, 0, i_LenRitmiTab + 10000, -2, 0
     ; Copiamo i ritmi dalla tabella di input nella tabella temporanea
     i_IndexCopy = 0
     while i_IndexCopy < i_LenRitmiTab do
@@ -136,7 +131,6 @@ instr Comportamento
         ; Calcola la frequenza basata su ottava, registro e ritmo
         i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
         i_Freq2 = i_Freq1  ; Frequenza finale uguale all'iniziale per ora
-
         ; Determina la posizione - prova a usare la tabella delle posizioni se disponibile,
         ; altrimenti genera casualmente
         if i_EventIdx < ftlen(i_PosTab) then
@@ -157,7 +151,7 @@ instr Comportamento
         ; Gestione della fase iniziale (bootstrap)
         if gi_Index < 10 then
             if i_debug >= 1 then
-                prints "MODALITÀ BOOTSTRAP: Forzatura durata evento\n"
+                prints "%s%sMODALITÀ BOOTSTRAP: Forzatura durata evento\n", Sindent,Sindent
             endif
             i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * 3.0
         else
@@ -167,9 +161,9 @@ instr Comportamento
 
         ; Debug dell'adattamento della durata
         if i_debug >= 2 then
-            prints  "Evento %d:\n", i_EventIdx
-            printks "Sovrapposizione=%.3f ",0, gk_current_overlap
-            prints  "Ritmo=%d, Fattore=%.2f, Durata=%.2f\n", 
+            prints  "%s%sEvento %d:\n", Sindent, Sindent, i_EventIdx
+            printsk "%s%sSovrapposizione=%.3f ",0, Sindent, Sindent,gk_current_overlap
+            prints  "%s%sRitmo=%d, Fattore=%.2f, Durata=%.2f\n\n", Sindent, Sindent,
                 i_RitmoCorrente, i_OverlapFactor, i_EventDuration
         endif
 
@@ -187,8 +181,7 @@ instr Comportamento
         iLastStr = (i_whileTime+(i_DurataArmonica/NonlinearFunc(i_RitmoCorrente)) >= i_Durata ? 1 : 0)
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
         ; Schedula l'evento sonoro con tutti i parametri calcolati
-        schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, 
-                i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp,iLastStr
+        schedule "eventoSonoro", i_EventAttack-p2, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index, i_IdComp,iLastStr
         /*
         SentireSco sprintf "%sAll.sco", gSdirSco
         fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\tid_comp:\tiLastStr:"
@@ -202,6 +195,9 @@ instr Comportamento
         gi_Index += 1            ; Incrementa l'indice globale degli eventi
         i_whileTime += (i_DurataArmonica/i_RitmoCorrente)  ; Aggiorna il tempo corrente
     od
-    $DEBUG_CompEND
-    prints "\n===========================================\n\n"
+    ;prints "gi_Index: %d\n", gi_Index
+    ftfree i_PosTab, 0
+    ftfree i_RitmiTab, 0
+    ftfree i_TempRitmiTab,0
+    prints "\n========================== close Comportamento *INIT-PASS*\n\n\n"
 endin

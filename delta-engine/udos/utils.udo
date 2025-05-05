@@ -128,111 +128,95 @@ opcode setMatrixValue, 0, kki
   tabw kValue, kIdx, iTab
 endop
 
-opcode printMatrix, 0, iiiSo
-    iMatrix, iRows, iCols, STitle, iPrecision xin
-    
-    ; Valori di default
-    STitle = (strcmp(STitle, "") == 0) ? "Matrix" : STitle
-    iPrecision = (iPrecision == 0) ? 2 : iPrecision
-    
-    ; Format string per valori
-    
-    ; Stampa titolo
-    prints "\n=== %s ===\n", STitle
-    
-    ; Determina larghezza colonne basata sulla precisione
-    iWidth = iPrecision + 5  ; 5 caratteri + punto decimale + cifre decimali
-    
-    ; Stampa header delle colonne
-    prints "    |"
+opcode printMatrixI, 0, iiiSiS
+    ; iMatrix, iRows, iCols, STitle, iPrec, SIndent
+    iMatrix, iRows, iCols, STitle, iPrecision, SIndent xin
+
+    ; default title
+    STitle    = (strcmp(STitle, "") == 0) ? "Matrix" : STitle
+    iPrecision = (iPrecision == 0) ? 2 : iPrecision    ; default precision
+
+    ; default indent
+    SIndent = (strcmp(SIndent, "") == 0) ? "" : SIndent
+
+    ; format string for numbers
+    Sfmt sprintf  " %%.%df ", iPrecision
+
+    ; print title
+    prints "%s=== %s ===\n", SIndent, STitle
+
+    ; header row
+    prints "%s    |", SIndent
     iCol = 0
     while iCol < iCols do
-        if iCol < 10 then
-            prints "   %d   |", iCol  ; Spaziatura per numeri a singola cifra
-        else
-            prints "  %d   |", iCol   ; Spaziatura per numeri a doppia cifra
-        endif
+        prints "  %2d   |", SIndent, iCol
         iCol += 1
     od
     prints "\n"
-    
-    ; Stampa riga separatrice
-    prints "----+"
-    iCol = 0
-    while iCol < iCols do
-        prints "-------+"
-        iCol += 1
+    ; separator
+    iSepLen = 4 + iCols * (iPrecision + 5)
+    iIdx = 0
+    while iIdx < iSepLen do
+        Ssep = "-"
+        prints(iIdx != 0? Ssep : strcat(SIndent,Ssep))
+;        prints "%s-", SIndent
+        iIdx += 1
     od
     prints "\n"
-    
-    ; Stampa righe della matrice
+
+    ; each matrix row
     iRow = 0
     while iRow < iRows do
-        if iRow < 10 then
-            prints " %d  |", iRow     ; Spaziatura per numeri a singola cifra
-        else
-            prints " %d |", iRow      ; Spaziatura per numeri a doppia cifra
-        endif
-        
+        prints "%s%3d |", SIndent, iRow
         iCol = 0
         while iCol < iCols do
-            ; Calcola indice nella tabella (indexing in riga maggiore)
-            iIndex = iRow * iCols + iCol
-            
-            ; Leggi valore dalla tabella
-            iValue tab_i iIndex, iMatrix
-            
-            ; Formatta e stampa valore con spazi fissi
-            SValueStr =sprintf("%6.4f", iValue)
-            
-            ; Aggiusta spaziatura in base alla lunghezza del valore
-            iLen strlen SValueStr
-            if iLen <= 3 then
-                prints "  %s  |", SValueStr
-            elseif iLen == 4 then
-                prints " %s  |", SValueStr
-            elseif iLen == 5 then
-                prints " %s |", SValueStr
-            else
-                prints "%s|", SValueStr
-            endif
-            
+            iDx  = iRow * iCols + iCol
+            iVal = table(iDx, iMatrix)         ; init‑time table read
+            Sval = sprintf(Sfmt, iVal)
+            prints "%s|", Sval
             iCol += 1
         od
-        
         prints "\n"
         iRow += 1
     od
-    
-    ; Stampa riga separatrice finale
-    prints "----+"
-    iCol = 0
-    while iCol < iCols do
-        prints "-------+"
-        iCol += 1
+
+    ; final separator
+    iIdx = 0
+    while iIdx < iSepLen do
+        Ssep = "-"
+        prints(iIdx != 0? Ssep : strcat(SIndent,Ssep))
+;        prints "%s-", SIndent
+        iIdx += 1
     od
     prints "\n"
 endop
 
 
-
-opcode printMatrixK, 0, kkkSo
-    kMatrix, kRows, kCols, STitle, iPrecision xin
+opcode printMatrixK, 0, kkkSiS
+    kMatrix, kRows, kCols, STitle, iPrecision, SIndent xin
 
     ; default
     STitle    = (strcmp(STitle, "") == 0) ? "Matrix" : STitle
     iPrecision = (iPrecision == 0) ? 2 : iPrecision
 
+    ; default indent
+    SIndent = (strcmp(SIndent, "") == 0) ? "" : SIndent
+    
     ; format per valori a k-rate
-    Sfmt sprintfk " %%.%df ", iPrecision            ; :contentReference[oaicite:6]{index=6}
-
-    ; titolo
-    printsk "\n=== %s ===\n", STitle                  ; :contentReference[oaicite:7]{index=7}
+    Sfmt sprintfk " %%.%df ", iPrecision            
+    SHeader = ""
+    kCount init 0
+    while kCount < ((kCols)*(iPrecision+5)/2) do
+      SHeader strcatk SHeader,"="
+      kCount+=1
+    od 
+    SsubHeader strsubk SHeader, 0, strlenk(SHeader)-int(strlenk(STitle)/2)
+    println "%s%s %s %s", SIndent, SsubHeader,STitle,SsubHeader
 
     ; header colonne
-    printsk "    |"
+    printsk "%s    |", SIndent
     kCol = 0
-    while kCol < kCols do                            ; :contentReference[oaicite:8]{index=8}
+    while kCol < kCols do                            
         printsk "  %2d   |", kCol
         kCol += 1
     od
@@ -241,8 +225,9 @@ opcode printMatrixK, 0, kkkSo
     ; separatore
     kSepLen = 4 + kCols * (iPrecision + 5)
     kI = 0
-    while kI < kSepLen do                            ; :contentReference[oaicite:9]{index=9}
-        printsk "-"
+    while kI < kSepLen do                            
+        Ssep = "-"
+        printsk(kI != 0? Ssep : strcat(SIndent,Ssep))
         kI += 1
     od
     printsk "\n"
@@ -250,7 +235,7 @@ opcode printMatrixK, 0, kkkSo
     ; righe matrice
     kRow = 0
     while kRow < kRows do
-        printsk "%3d |", kRow
+        printsk "%s%3d |", SIndent, kRow
         kCol = 0
         while kCol < kCols do
             kdx   = kRow * kCols + kCol
@@ -266,8 +251,20 @@ opcode printMatrixK, 0, kkkSo
     ; linea finale (stesso loop di sopra)
     kI = 0
     while kI < kSepLen do
-        printsk "-"
+        Ssep = "-"
+        printsk(kI != 0? Ssep : strcat(SIndent,Ssep))
         kI += 1
     od
     printsk "\n"
+endop
+
+opcode PrintOctReg2x2, 0,S
+    Ssep xin
+    ; Header ASCII
+    printsk  "%s           registro →\n",Ssep
+    printsk  "%s          ┌─────────┬─────────┐\n",Ssep
+    printsk  "%s ottava 1 │ reg 0   │ reg 1   │\n",Ssep
+    printsk  "%s ↓        ├─────────┼─────────┤\n",Ssep
+    printsk  "%s          │ reg 0   │ reg 1   │\n",Ssep
+    printsk  "%s          └─────────┴─────────┘\n",Ssep
 endop

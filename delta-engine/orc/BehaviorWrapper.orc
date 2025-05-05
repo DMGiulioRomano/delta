@@ -1,11 +1,12 @@
 instr BehaviorWrapper
-    prints "===========================================\n"
-    prints "\t\t INSTR BehaviorWrapper *init-pass*\n"
+    prints "\n========================== open BehaviorWrapper *INIT-PASS*\n\n\n"
     ; Input parameters
     iIdComp = p4       ; Behavior ID (ora è l'unico parametro necessario)
+    iCurrentTime times
+    prints "\tk-cycle: %d and a-cycle: %d at abs time: %f\n", iCurrentTime*kr, iCurrentTime*sr, iCurrentTime
     
-    ;i_debug = gi_debug
-    i_debug = 0
+    i_debug = gi_debug
+    ;i_debug = 0
     
     ; Leggi i parametri dalle tabelle globali usando l'ID del comportamento
     ; Recupera i parametri principali
@@ -45,16 +46,14 @@ instr BehaviorWrapper
     
     ; Debug output se richiesto
     if (i_debug >= 2) then
-        prints "GeneraComportamenti: Comportamento %d\n", iIdComp
-        prints "  Parametri: Attacco=%.2f, Durata=%.2f, DurArmonica=%.2f\n", 
+        prints "\t\tComportamento %d\n", iIdComp
+        prints "\t\tParametri: Attacco=%.2f, Durata=%.2f, DurArmonica=%.2f\n", 
                i_Attacco, i_Durata, i_DurArmonica
-        prints "  Ottava=%d, Registro=%d, Ampiezza=%.2f\n", 
+        prints "\t\tOttava=%d, Registro=%d, Ampiezza=%.2f\n", 
                i_Ottava, i_Registro, i_Ampiezza
-        prints "  Numero ritmi: %d, Numero posizioni: %d\n", 
+        prints "\t\tNumero ritmi: %d, Numero posizioni: %d\n", 
                i_NumRitmi, i_NumPos
-        prints "========\ni_RitmiTab\n"
-        ftprint i_RitmiTab
-        prints "--------"
+        printMatrixI i_RitmiTab, 1, ftlen(i_RitmiTab), "i_RitmiTab", 3, "\t\t"
     endif
     
     ; Verifica la validità dei parametri (usando il Validator esistente)
@@ -62,5 +61,5 @@ instr BehaviorWrapper
     
     ; Schedule del comportamento con i parametri validati
     schedule "Comportamento", i_Attacco, i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, iIdComp
-    prints "\n===========================================\n\n"
+    prints "\n========================== close BehaviorWrapper *INIT-PASS*\n\n\n"
 endin

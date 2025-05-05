@@ -12,6 +12,9 @@
 ; p9 - function table number for position
 ;==================================================================
 instr eventoSonoro
+    prints "\n========================== open eventoSonoro *INIT-PASS*\n\n"
+    iCurrentTime times
+    prints "\tk-cycle: %d and a-cycle: %d at abs time: %f\n", iCurrentTime*kr, iCurrentTime*sr, iCurrentTime
     id_evento=p10
     id_comportamento=p11
     i_debug=gi_debug
@@ -97,5 +100,6 @@ instr eventoSonoro
     aR = (aMid - aSide) / $SQRT2
     
     outs aL, aR
+    prints "\n========================== open eventoSonoro *INIT-PASS*\n\n"
 
 endin

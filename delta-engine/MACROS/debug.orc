@@ -11,20 +11,14 @@
 
 #define DEBUG_Comp4 #
    if int(i_debug) >= 4 then
-      prints "___\nritmo corrente: %d\nad index:%d\n",i_RitmoCorrente,i_EventIdx
+      prints "%s%sritmo corrente: %d\n%s%sad index:%d\n",Sindent, Sindent,i_RitmoCorrente,Sindent, Sindent,i_EventIdx
    endif#
 
 #define DEBUG_Comp5 #
    if int(i_debug) >= 4 then
-      prints "___\nvecchio ritmo: %d\nad index:%d\n",i_Vecchio_Ritmo,i_EventIdx
+      prints "%s%svecchio ritmo: %d\n%s%sad index:%d\n",Sindent, Sindent,i_Vecchio_Ritmo,Sindent, Sindent,i_EventIdx
    endif#
 
-#define DEBUG_CompEND #
-   if int(i_debug) >= 1 then
-      ; Print useful debug info
-      prints "\tComportamento %d completed.\n\tGenerated %d events.\n", i_IdComp, i_EventIdx
-      prints "=========================================\n\n"
-   endif#
 
 #define DEBUG_Evento_print_Pfields #
    if (int(i_debug) >=2) then

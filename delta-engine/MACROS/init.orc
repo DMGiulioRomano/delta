@@ -40,7 +40,7 @@ gi_Intonazione ftgen 0, 0, gi_PythagSysSize, -2, 0
 ; DIMENSIONAMENTO DEL SISTEMA
 ; --------------------------------------------------------------------
 ; Numero massimo di eventi e comportamenti
-gi_NUMEVENTI init 10000          ; Capacità massima di eventi sonori
+gi_NUMEVENTI init 2^20          ; Capacità massima di eventi sonori
 gi_NUMComportamenti init 300    ; Capacità massima di comportamenti
 
 ; --------------------------------------------------------------------
@@ -87,7 +87,7 @@ gi_comp_REGISTRO    ftgen 0, 0, gi_NUMComportamenti, -2, 4       ; Registro
 ; I dati raccolti influenzano la generazione dei nuovi eventi in "Comportamento" e
 ; costituiscono la base per le visualizzazioni generate da "AnalisiFinale".
 ;
-gi_analysis_buffer_size = 100000  ; Dimensione buffer per rendering offline
+gi_analysis_buffer_size = 2^20 ; Dimensione buffer per rendering offline
 gi_analysis_active_events ftgen 0, 0, gi_analysis_buffer_size, -2, 0  ; Eventi attivi
 gi_analysis_timepoints ftgen 0, 0, gi_analysis_buffer_size, -2, 0     ; Tempi di analisi
 gk_analysis_index init 0          ; Indice corrente nel buffer

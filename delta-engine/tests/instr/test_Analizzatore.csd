@@ -1,7 +1,7 @@
 <CsoundSynthesizer>
 <CsOptions>
--n 
-;-o "analizzatore.wav" -W
+;-n 
+-o "analizzatore.wav" -W
 -d
 
 </CsOptions>
@@ -22,14 +22,14 @@ gi_debug init 4
 #include "../../udos/calcDurationFactor.udo"
 #include "../../udos/validator.udo"
 ; Include the instruments we're testing
-#include "../../orc/eventoSonoro.orc"
-#include "../../orc/comportamento.orc"
-#include "../../orc/behaviorWrapper.orc"
-#include "../../udos/saveFtablesBehavior.udo"
+#include "../../orc/eventoSonoro.orc"                               ; instr 1
+#include "../../orc/comportamento.orc"                              ; instr 2
+#include "../../orc/behaviorWrapper.orc"                            ; instr 3
+#include "../../udos/saveFtablesBehavior.udo"                       
 #include "../../udos/tc_storeTransitionBehaviorParameters.udo"
 #include "../../udos/determineCurrentState.udo"
 
-instr Analizzatore
+/*instr Analizzatore
     prints "===========================================\n"
     prints "\t\tINSTR AnalizzatoreArmonico *init-pass*\n"
     ; Ottieni tempo corrente
@@ -60,7 +60,7 @@ instr Analizzatore
         ;println "cleaned tab %d", kfn
             if gi_debug >= 4 then
                 println "\t\tSEEING CLEAR! of tab %s --->\t(at index ... value ...)", SfnName
-                printMatrixK kfn, (kIdxBC<2?1:$OTTAVE), (kIdxBC<1?$OTTAVE:$REGISTRI), SfnName, 3
+                printMatrixK kfn, (kIdxBC<2?1:$OTTAVE), (kIdxBC<1?$OTTAVE:$REGISTRI), SfnName, 3, "\t\t"
                 println ""
             endif
         loop_lt kIdxBC, 1, kLenBigClear, BigClear  ; ripeti finché kidx < ksize        
@@ -209,14 +209,18 @@ instr Analizzatore
         printks "Tempo: %.2fs - Eventi attivi: %d\n", 0, kCurrentTime, kActiveEvents
     endif
 endin
+*/
 
 
 instr Salvatore
+    prints "\n========================== open Salvatore *INIT-PASS*\n\n"
     saveFtablesBehavior
     saveFtablesEvents
+    prints "\n========================== close Salvatore *INIT-PASS*\n\n"
 endin
 
 instr AnalizzatoreConteggio
+    prints "\n========================== open initial *INIT-PASS*\n\n"
     kCurrentTime times
     kTrig metro 10
     if kTrig == 1 then
@@ -236,11 +240,11 @@ instr AnalizzatoreConteggio
         
         printks "Tempo: %.2fs - Eventi attivi: %d\n", 0, kCurrentTime, kActiveEventsCount
     endif
+    prints "\n========================== close initial *INIT-PASS*\n\n"
 endin
 
 instr initial
-    prints "===========================================\n"
-    prints "\t\tINSTR initial *init-pass\n"
+    prints "\n========================== open initial *INIT-PASS*\n\n"
     gi_compId = 0
     ipino system_i 1, "mkdir -p ./sco"
     ; Initialize generator for Pythagorean frequencies
@@ -270,8 +274,7 @@ instr initial
     printMatrixI gi_active_octaves, 1, 10, "gi_active_octaves", 3, "\t\t\t"
     printMatrixI gi_active_registers, 1, 10, "gi_active_registers", 3, "\t\t\t"
     printMatrixI gi_octave_register_matrix, 10, 10, "gi_octave_register_matrix", 3, "\t\t\t"
-    prints "\n===========================================\n\n"
-
+    prints "\n========================== close initial *INIT-PASS*\n\n"
 endin
 
 instr AnalizzatoreArmonico
@@ -298,7 +301,7 @@ instr AnalizzatoreArmonico
             kIdxC = 0         ; indice di loop a k-rate
         ;println "cleaned tab %d", kfn
             println "\t\tSEEING CLEAR! of tab %s --->\t(at index ... value ...)", SfnName
-            printMatrixK kfn, (kIdxBC<2?1:10), 10, SfnName, 3
+            printMatrixK kfn, (kIdxBC<2?1:10), 10, SfnName, 3, "\t\t"
             println ""
         loop_lt kIdxBC, 1, kLenBigClear, BigClear  ; ripeti finché kidx < ksize        
 
@@ -339,26 +342,167 @@ instr AnalizzatoreArmonico
             println "\t\tSEEING WRITE! of tab %s --->\t(at index ... value ...)", SfnName
             kfn = iArr[kIdxBC]
             SfnName = SArr[kIdxBC] 
-            printMatrixK kfn, (kIdxBC<2?1:10), 10, SfnName, 3
+            printMatrixK kfn, (kIdxBC<2?1:10), 10, SfnName, 3, "\t\t"
         loop_lt kIdxBC, 1, lenarray(iArr), PrintMatrix 
-
     endif
-    
     prints "\n===========================================\n\n"
 endin
 
+instr Analizzatore
+    prints "\n========================== open instr Analizzatore *INIT-PASS*\n"
+    kTrig metro 1
+    kCurrentTime times
+    SArr[] = fillarray("matrice tmp", "matrice cumulativa")
+    iArr[] = fillarray(gi_octave_register_matrix, gi_cumulative_octave_register_matrix)  
+    kLenBigClear=lenarray(iArr)-1
+    if kTrig == 1 then
+        printsk "\n========================== open instr Analizzatore *PERF-PASS*\n"
+        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
+        ; Calcolo eventi attivi in questo momento
+        kActiveEventsCount = 0
+        ; Calcolo del movimento spaziale
+        kSumInverseRhythms = 0
+
+        PrintOctReg2x2, "\t\t\t"
+        println ""
+        kIdxBC = 0
+        println "\t\tSEEING CLEAR! on tabs \n"
+        BigClear:
+            kfn = iArr[kIdxBC]
+            kLenTab = tableng(kfn)
+            SfnName = SArr[kIdxBC]
+            kIdxC = 0         ; indice di loop a k-rate
+            Clear:
+                tablewkt 0, kIdxC, kfn 
+            loop_lt kIdxC, 1, kLenTab, Clear  ; ripeti finché kidx < ksize 
+            printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
+            println ""
+        loop_lt kIdxBC, 1, kLenBigClear, BigClear  ; ripeti finché kidx < ksize        
+
+        kEventIdx = 0
+        while kEventIdx < gi_Index do
+            kAttackTime tab kEventIdx, gi_eve_attacco
+            kDuration tab kEventIdx, gi_eve_durata
+            printks "\t\tmid k-cycle: %d and a-cycle: %d at abs time: %f\n",0, kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
+            ; Verifica se l'evento è attualmente attivo
+            if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
+                kActiveEventsCount += 1
+
+                ; Raccogli il valore ritmico per il calcolo del movimento spaziale
+                kRhythm tab kEventIdx, gi_eve_hr
+                kSumInverseRhythms += (1/kRhythm)
+
+                ; Identifica ottava e registro dell'evento attivo
+                kBehaviorId tab kEventIdx, gi_eve_comportamento
+                if kBehaviorId >= 0 && kBehaviorId < gi_NUMComportamenti then
+                    k_octReg[] fillarray table(kBehaviorId, gi_comp_OTTAVA),table(kBehaviorId, gi_comp_REGISTRO)
+                    ; Stampa per debug
+                    println "\t\t\t\tEvento %d attivo: Ottava=%d, Registro=%d", kEventIdx, k_octReg[0], k_octReg[1]
+                    ; Incrementa i contatori
+                    kIdxBC = 0
+                    Matrix: ; aggiorna gli indici su gi_octave_register_matrix e su gi_cumulative_octave_register_matrix
+                        kfn = iArr[kIdxBC]
+                        kM_idx= k_octReg[0] * $REGISTRI + k_octReg[1]
+                        tablewkt(tablekt(kM_idx, kfn) + ((k_octReg[0] >= 0 && k_octReg[1] >=0) ? 1 : 0), k_octReg[0] * $REGISTRI + k_octReg[1], kfn)
+                    loop_lt kIdxBC, 1, lenarray(iArr), Matrix  
+                endif
+            endif
+            kEventIdx += 1
+        od
+
+        kIdxBC = 0
+        println "\t\tSEEING WRITE on tabs!\n"
+        PrintMatrix:
+            kfn = iArr[kIdxBC]
+            SfnName strcpyk SArr[kIdxBC] 
+            printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
+        loop_lt kIdxBC, 1, lenarray(iArr), PrintMatrix 
+
+        ; Inizializza variabili di conteggio e somma pesata
+        kActiveOctaves        = 0    ; quante ottave hanno almeno un evento
+        kActiveRegisters      = 0    ; conteggio totale di celle (ottava×registro) attive
+        kWeightedRegisterSum  = 0    ; somma pesata degli indici ottava×registro per il centroide
+        kTotalRegisterEvents  = 0    ; somma di tutti gli eventi (valori) nella matrice
+
+        kOctIdx = 0
+        while kOctIdx < $OTTAVE do
+            kOctHasActivity = 0
+            kRegIdx = 0
+            while kRegIdx < $REGISTRI do
+                kVal tab (kOctIdx * $REGISTRI + kRegIdx), gi_octave_register_matrix
+                if kVal > 0 then
+                    kActiveRegisters += 1
+                    kWeightedRegisterSum += (kOctIdx * $REGISTRI + kRegIdx) * kVal
+                    kTotalRegisterEvents += kVal
+                    kOctHasActivity = 1
+                endif
+                kRegIdx += 1
+            if gi_debug >=5 then
+                println "\t\t\tkRegIdx:%d \tkOctIdx:%d\tkOctHasActivity: %d\tkActiveRegisters: %d",kRegIdx,kOctIdx,kOctHasActivity, kActiveRegisters
+            endif
+            od
+            kActiveOctaves += kOctHasActivity
+            kOctIdx += 1
+        od
+
+        if kTotalRegisterEvents > 0 then
+            kHarmonicDensity = kActiveRegisters / ($OTTAVE * $REGISTRI)
+            kOctaveSpread = 1 - (kActiveOctaves / $OTTAVE)
+            kSpectralCentroid = (kWeightedRegisterSum / kTotalRegisterEvents)/($OTTAVE*$REGISTRI)
+        else
+            kHarmonicDensity = 0
+            kOctaveSpread = 0
+            kSpectralCentroid = 0
+        endif
+        Sspace = "\t\t\t"
+        println "\t\tSEEING HARMONIC METRICS!\n"
+        println "%skHarmonicDensity: %f\n%skOctaveSpread:%f\n%skSpectralCentroid:%f",Sspace,kHarmonicDensity,Sspace,kOctaveSpread,Sspace,kSpectralCentroid
+
+        ; Calcola il movimento spaziale medio
+        kCurrentSpatialMovement = (kActiveEventsCount > 0) ? kSumInverseRhythms / kActiveEventsCount : 0
+
+        ; Aggiorna variabili globali
+        gk_current_overlap = kActiveEventsCount
+        gk_current_harmonic_density = kHarmonicDensity
+        gk_current_octave_spread = kOctaveSpread
+        gk_current_spectral_centroid = kSpectralCentroid
+        gk_current_spatial_movement = kCurrentSpatialMovement  
+        ; Memorizza il conteggio degli eventi attivi e il timestamp
+        tabw kActiveEventsCount, gk_analysis_index, gi_analysis_active_events
+        tabw kCurrentTime, gk_analysis_index, gi_analysis_timepoints
+        
+        ; Avanzamento ciclico nell'indice della tabella
+        gk_analysis_index = (gk_analysis_index + 1) % gi_analysis_buffer_size
+
+        printsk "\n========================== close instr Analizzatore *PERF-PASS*\n\n\n"
+    endif
+    prints "\n========================== close instr Analizzatore *INIT-PASS*\n\n\n"
+endin
+
+instr CurrentGlobalVariables
+    prints "\n========================== open CurrentGlobalVariables *INIT-PASS*\n\n"
+    printsk "\n========================== open AnalizzatoreArmonicoEmetriche *PERF-PASS*\n"
+
+    println "\t\tgk_current_overlap: %f", gk_current_overlap
+    println "\t\tgk_current_harmonic_density: %f", gk_current_harmonic_density
+    println "\t\tgk_current_octave_spread: %f", gk_current_octave_spread
+    println "\t\tgk_current_spectral_centroid: %f", gk_current_spectral_centroid
+    println "\t\tgk_current_spatial_movement: %f", gk_current_spatial_movement
+
+    printsk "\n========================== close CurrentGlobalVariables *PERF-PASS*\n\n\n"
+    prints "\n========================== close CurrentGlobalVariables *INIT-PASS*\n\n\n"
+endin
 
 instr TestGenerator
-    prints "===========================================\n"
-    prints "\t\tINSTR TestGenerator *init-pass*\n"
+    prints "\n========================== open TestGenerator *INIT-PASS*\n\n"
     i_time=0
     while i_time < p3 do
         iAtt = 2 + i_time
-        iDur = 60 - i_time/2
+        iDur = max(2,60 - i_time/2)
         iRitmitable ftgen 0, 0,4 , -2, 3, 4, 5, 6
-        iDurArm = 20 - i_time/2
+        iDurArm = max(1,20 - i_time/2)
         iAmp = -12 - i_time/4
-        iOct = 9 - int(i_time/10)
+        iOct = 8 - int(i_time/10)
         iReg = 1
         iPostable ftgen 0, 0, 4, -2, 0, 1, 2, 3
         iRhythmArr[] init ftlen(iRitmitable)
@@ -369,12 +513,7 @@ instr TestGenerator
         schedule "BehaviorWrapper", 0, 1, iComp
         i_time+=5
     od
-    prints "\n===========================================\n"
-endin
-
-instr Curiosone
-    prints "la matrice cumulativaaaa (da leggere cantando)\n"
-    ftprint gi_cumulative_octave_register_matrix
+    prints "\n========================== close TestGenerator *INIT-PASS*\n\n"
 endin
 
 </CsInstruments>
@@ -384,11 +523,10 @@ f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
 ; Test each context mode sequentially
 i "initial" 0 1
 
-i "TestGenerator" 0 5 ; Test with dense context
+i "TestGenerator" 0 60 ; Test with dense context
 ;i "AnalizzatoreConteggio" 0 60
-i "AnalizzatoreArmonico" 0 60
+i "Analizzatore" 0 60
 ;i "Salvatore" 60 1
-i "Curiosone" 60 2
 e
 
 i "TestGenerator" 60 60 ; Test with sparse context

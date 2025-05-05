@@ -76,12 +76,13 @@ opcode storeTransitionBehaviorParameters, i, i[]i[]iiiiii
     
     ; Debug output se richiesto
     if (gi_debug >= 2) then
-        prints "\tComportamento %d memorizzato nelle tabelle:\n", iIdComp
-        prints "\t\tAttacco: %.2f, Durata: %.2f, DurArmonica: %.2f\n", 
+        prints "\t--- open storeTransitionBehaviorParameters\n"
+        prints "\t\tComportamento %d memorizzato nelle tabelle:\n", iIdComp
+        prints "\t\t\tAttacco: %.2f, Durata: %.2f, DurArmonica: %.2f\n", 
                iAttacco, iDuration, iHarmonicDuration
-        prints "\t\tAmpiezza: %.2f, Ottava: %d, Registro: %d\n",
+        prints "\t\t\tAmpiezza: %.2f, Ottava: %d, Registro: %d\n",
                iAmplitude, iOctave, iRegister
-        prints "\t\tRitmi (%d): ", iNumRitmi
+        prints "\t\t\tRitmi (%d): ", iNumRitmi
         
         iIdx = 0
         while (iIdx < iNumRitmi) do
@@ -95,6 +96,7 @@ opcode storeTransitionBehaviorParameters, i, i[]i[]iiiiii
             iIdx += 1
         od
         prints "\n"
+        prints "\t--- close storeTransitionBehaviorParameters\n\n"
     endif
     
     xout iIdComp
