@@ -25,7 +25,10 @@ instr Comportamento
     ; -----------------------------------------------------------------------
     ; 1. INIZIALIZZAZIONE E ACQUISIZIONE PARAMETRI
     ; -----------------------------------------------------------------------
-    i_debug = gi_debug
+    ;i_debug = gi_debug
+    i_debug = 0
+    prints "===========================================\n"
+    prints "\t\t INSTR Comportamento *init-pass*\n"
 
     ; Parametri di input
     i_CAttacco = p2             ; Tempo di attacco del comportamento
@@ -92,6 +95,9 @@ instr Comportamento
         if i_EventIdx < i_LenRitmiTab then
             ; Usa un ritmo esistente dalla tabella
             i_RitmoCorrente tab_i i_EventIdx, i_TempRitmiTab
+            if i_RitmoCorrente == 0 then
+                igoto insideElse
+            endif
             $DEBUG_Comp4  ; Debug    
             ; Ottieni anche il ritmo precedente (per il calcolo dell'attacco)
             if i_EventIdx == 0 then
@@ -100,6 +106,7 @@ instr Comportamento
                 i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
             endif
         else
+            insideElse:
            ; Genera un nuovo ritmo basato sull'ultimo ritmo utilizzato
            i_Vecchio_Ritmo tab_i i_EventIdx-1, i_TempRitmiTab
            $DEBUG_Comp5  ; Debug    
@@ -196,4 +203,5 @@ instr Comportamento
         i_whileTime += (i_DurataArmonica/i_RitmoCorrente)  ; Aggiorna il tempo corrente
     od
     $DEBUG_CompEND
+    prints "\n===========================================\n\n"
 endin

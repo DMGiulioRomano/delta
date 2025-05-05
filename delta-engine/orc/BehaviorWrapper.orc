@@ -1,8 +1,11 @@
 instr BehaviorWrapper
+    prints "===========================================\n"
+    prints "\t\t INSTR BehaviorWrapper *init-pass*\n"
     ; Input parameters
-    i_attacco = p4          ; Start time
-    i_durata = p5           ; Duration
-    iIdComp = p6       ; Behavior ID (ora è l'unico parametro necessario)
+    iIdComp = p4       ; Behavior ID (ora è l'unico parametro necessario)
+    
+    ;i_debug = gi_debug
+    i_debug = 0
     
     ; Leggi i parametri dalle tabelle globali usando l'ID del comportamento
     ; Recupera i parametri principali
@@ -41,7 +44,7 @@ instr BehaviorWrapper
     od
     
     ; Debug output se richiesto
-    if (gi_debug >= 2) then
+    if (i_debug >= 2) then
         prints "GeneraComportamenti: Comportamento %d\n", iIdComp
         prints "  Parametri: Attacco=%.2f, Durata=%.2f, DurArmonica=%.2f\n", 
                i_Attacco, i_Durata, i_DurArmonica
@@ -49,6 +52,9 @@ instr BehaviorWrapper
                i_Ottava, i_Registro, i_Ampiezza
         prints "  Numero ritmi: %d, Numero posizioni: %d\n", 
                i_NumRitmi, i_NumPos
+        prints "========\ni_RitmiTab\n"
+        ftprint i_RitmiTab
+        prints "--------"
     endif
     
     ; Verifica la validità dei parametri (usando il Validator esistente)
@@ -56,4 +62,5 @@ instr BehaviorWrapper
     
     ; Schedule del comportamento con i parametri validati
     schedule "Comportamento", i_Attacco, i_Durata, i_RitmiTab, i_DurArmonica, i_Ampiezza, i_Ottava, i_Registro, i_PosTab, iIdComp
+    prints "\n===========================================\n\n"
 endin
