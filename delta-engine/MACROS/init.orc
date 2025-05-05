@@ -117,6 +117,7 @@ gi_memory_events ftgen 0, 0, gi_memory_size, -2, 0   ; Numero eventi attivi
 gi_active_octaves ftgen 0, 0, $OTTAVE, -2, 0        ; Eventi per ottava
 gi_active_registers ftgen 0, 0, $REGISTRI, -2, 0    ; Eventi per registro
 gi_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice ottava/registro
+gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0
 
 ; Memoria storica armonica utilizzata per tracciare l'evoluzione armonica nel tempo
 gi_memory_harmonic_density ftgen 0, 0, gi_memory_size, -2, 0   ; Densità armonica
@@ -124,15 +125,13 @@ gi_memory_octave_spread ftgen 0, 0, gi_memory_size, -2, 0      ; Dispersione ott
 gi_memory_spectral_centroid ftgen 0, 0, gi_memory_size, -2, 0  ; Centroide spettrale
 gi_memory_spatial_movement ftgen 0, 0, gi_memory_size, -2, 0   ; Movimento spaziale
 
-; Tracciamento cumulativo per l'analisi statistica globale
-gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0
 
 ; Variabili globali per accesso immediato ai valori correnti
-gi_current_overlap init 1         ; Livello di sovrapposizione attuale
-gi_current_harmonic_density init 0    ; Densità armonica corrente
-gi_current_octave_spread init 0       ; Dispersione ottave corrente
-gi_current_spectral_centroid init 0   ; Centroide spettrale corrente
-gi_current_spatial_movement init 0    ; Movimento spaziale corrente
+gk_current_overlap init 1         ; Livello di sovrapposizione attuale
+gk_current_harmonic_density init 0    ; Densità armonica corrente
+gk_current_octave_spread init 0       ; Dispersione ottave corrente
+gk_current_spectral_centroid init 0   ; Centroide spettrale corrente
+gk_current_spatial_movement init 0    ; Movimento spaziale corrente
 
 ; --------------------------------------------------------------------
 ; SISTEMA DI CLASSIFICAZIONE DEGLI STATI

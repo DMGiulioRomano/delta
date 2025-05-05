@@ -101,3 +101,173 @@ opcode minTableNonZero, i, i
     
     xout iMin
 endop
+
+; Funzioni di accesso alla matrice
+opcode getMatrixValue, k, kki
+  kOctave, kRegister, iTab xin
+  kIdx = kOctave * $REGISTRI + kRegister
+  kVal tab kIdx, iTab
+  xout kVal
+endop
+
+opcode getMatrixValue, kk, kki
+  kOctave, kRegister, iTab xin
+  kIdx = kOctave * $REGISTRI + kRegister
+  kVal tab kIdx, iTab
+  xout kVal, kIdx
+endop
+
+opcode setMatrixValue, 0, kkki
+  kOctave, kRegister, kValue, iTab xin
+  kIdx = kOctave * $REGISTRI + kRegister
+  tabw kValue, kIdx, iTab
+endop
+
+opcode setMatrixValue, 0, kki
+  kIdx, kValue, iTab xin
+  tabw kValue, kIdx, iTab
+endop
+
+opcode printMatrix, 0, iiiSo
+    iMatrix, iRows, iCols, STitle, iPrecision xin
+    
+    ; Valori di default
+    STitle = (strcmp(STitle, "") == 0) ? "Matrix" : STitle
+    iPrecision = (iPrecision == 0) ? 2 : iPrecision
+    
+    ; Format string per valori
+    
+    ; Stampa titolo
+    prints "\n=== %s ===\n", STitle
+    
+    ; Determina larghezza colonne basata sulla precisione
+    iWidth = iPrecision + 5  ; 5 caratteri + punto decimale + cifre decimali
+    
+    ; Stampa header delle colonne
+    prints "    |"
+    iCol = 0
+    while iCol < iCols do
+        if iCol < 10 then
+            prints "   %d   |", iCol  ; Spaziatura per numeri a singola cifra
+        else
+            prints "  %d   |", iCol   ; Spaziatura per numeri a doppia cifra
+        endif
+        iCol += 1
+    od
+    prints "\n"
+    
+    ; Stampa riga separatrice
+    prints "----+"
+    iCol = 0
+    while iCol < iCols do
+        prints "-------+"
+        iCol += 1
+    od
+    prints "\n"
+    
+    ; Stampa righe della matrice
+    iRow = 0
+    while iRow < iRows do
+        if iRow < 10 then
+            prints " %d  |", iRow     ; Spaziatura per numeri a singola cifra
+        else
+            prints " %d |", iRow      ; Spaziatura per numeri a doppia cifra
+        endif
+        
+        iCol = 0
+        while iCol < iCols do
+            ; Calcola indice nella tabella (indexing in riga maggiore)
+            iIndex = iRow * iCols + iCol
+            
+            ; Leggi valore dalla tabella
+            iValue tab_i iIndex, iMatrix
+            
+            ; Formatta e stampa valore con spazi fissi
+            SValueStr =sprintf("%6.4f", iValue)
+            
+            ; Aggiusta spaziatura in base alla lunghezza del valore
+            iLen strlen SValueStr
+            if iLen <= 3 then
+                prints "  %s  |", SValueStr
+            elseif iLen == 4 then
+                prints " %s  |", SValueStr
+            elseif iLen == 5 then
+                prints " %s |", SValueStr
+            else
+                prints "%s|", SValueStr
+            endif
+            
+            iCol += 1
+        od
+        
+        prints "\n"
+        iRow += 1
+    od
+    
+    ; Stampa riga separatrice finale
+    prints "----+"
+    iCol = 0
+    while iCol < iCols do
+        prints "-------+"
+        iCol += 1
+    od
+    prints "\n"
+endop
+
+
+
+opcode printMatrixK, 0, kkkSo
+    kMatrix, kRows, kCols, STitle, iPrecision xin
+
+    ; default
+    STitle    = (strcmp(STitle, "") == 0) ? "Matrix" : STitle
+    iPrecision = (iPrecision == 0) ? 2 : iPrecision
+
+    ; format per valori a k-rate
+    Sfmt sprintfk " %%.%df ", iPrecision            ; :contentReference[oaicite:6]{index=6}
+
+    ; titolo
+    printsk "\n=== %s ===\n", STitle                  ; :contentReference[oaicite:7]{index=7}
+
+    ; header colonne
+    printsk "    |"
+    kCol = 0
+    while kCol < kCols do                            ; :contentReference[oaicite:8]{index=8}
+        printsk "  %2d   |", kCol
+        kCol += 1
+    od
+    printsk "\n"
+
+    ; separatore
+    kSepLen = 4 + kCols * (iPrecision + 5)
+    kI = 0
+    while kI < kSepLen do                            ; :contentReference[oaicite:9]{index=9}
+        printsk "-"
+        kI += 1
+    od
+    printsk "\n"
+
+    ; righe matrice
+    kRow = 0
+    while kRow < kRows do
+        printsk "%3d |", kRow
+        kCol = 0
+        while kCol < kCols do
+            kdx   = kRow * kCols + kCol
+            kVal  = tablekt(kdx, kMatrix)           ; :contentReference[oaicite:10]{index=10}
+            Sval  sprintfk Sfmt, kVal               ; :contentReference[oaicite:11]{index=11}
+            printsk "%s|", Sval
+            kCol += 1
+        od
+        printsk "\n"
+        kRow += 1
+    od
+
+    ; linea finale (stesso loop di sopra)
+    kI = 0
+    while kI < kSepLen do
+        printsk "-"
+        kI += 1
+    od
+    printsk "\n"
+endop

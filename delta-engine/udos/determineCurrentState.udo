@@ -30,10 +30,10 @@ opcode determineCurrentState, iii, 0
     iRegisterThresholdLen = ftlen(gi_register_thresholds)
     iMovementThresholdLen = ftlen(gi_movement_thresholds)
     ; IMPROVED: Check if input is below lowest threshold
-    if gi_current_overlap < tab_i(0, gi_density_thresholds) then
+    if gk_current_overlap < tab_i(0, gi_density_thresholds) then
         iDensityState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gi_current_overlap >= tab_i(iDensityThresholdLen-1, gi_density_thresholds) then
+    elseif gk_current_overlap >= tab_i(iDensityThresholdLen-1, gi_density_thresholds) then
         iDensityState = iDensityThresholdLen - 2 ; Last valid state index
     else
         ; Determine density state by checking each threshold pair
@@ -42,7 +42,7 @@ opcode determineCurrentState, iii, 0
             iLowerBound tab_i iDensityIdx, gi_density_thresholds
             iUpperBound tab_i iDensityIdx+1, gi_density_thresholds
             
-            if gi_current_overlap >= iLowerBound && gi_current_overlap < iUpperBound then
+            if gk_current_overlap >= iLowerBound && gk_current_overlap < iUpperBound then
                 iDensityState = iDensityIdx
                 igoto density_done
             endif
@@ -53,10 +53,10 @@ opcode determineCurrentState, iii, 0
     density_done:
     
     ; IMPROVED: Check if input is below lowest threshold
-    if gi_current_octave_spread < tab_i(0, gi_register_thresholds) then
+    if gk_current_octave_spread < tab_i(0, gi_register_thresholds) then
         iRegisterState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gi_current_octave_spread >= tab_i(iRegisterThresholdLen-1, gi_register_thresholds) then
+    elseif gk_current_octave_spread >= tab_i(iRegisterThresholdLen-1, gi_register_thresholds) then
         iRegisterState = iRegisterThresholdLen - 2 ; Last valid state index
     else
         ; Determine register state by checking each threshold pair
@@ -65,7 +65,7 @@ opcode determineCurrentState, iii, 0
             iLowerBound tab_i iRegisterIdx, gi_register_thresholds
             iUpperBound tab_i iRegisterIdx+1, gi_register_thresholds
             
-            if gi_current_octave_spread >= iLowerBound && gi_current_octave_spread < iUpperBound then
+            if gk_current_octave_spread >= iLowerBound && gk_current_octave_spread < iUpperBound then
                 iRegisterState = iRegisterIdx
                 igoto register_done
             endif
@@ -76,10 +76,10 @@ opcode determineCurrentState, iii, 0
     register_done:
     
     ; IMPROVED: Check if input is below lowest threshold
-    if gi_current_spatial_movement < tab_i(0, gi_movement_thresholds) then
+    if gk_current_spatial_movement < tab_i(0, gi_movement_thresholds) then
         iMovementState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gi_current_spatial_movement >= tab_i(iMovementThresholdLen-1, gi_movement_thresholds) then
+    elseif gk_current_spatial_movement >= tab_i(iMovementThresholdLen-1, gi_movement_thresholds) then
         iMovementState = iMovementThresholdLen - 2 ; Last valid state index
     else
         ; Determine movement state by checking each threshold pair
@@ -88,7 +88,7 @@ opcode determineCurrentState, iii, 0
             iLowerBound tab_i iMovementIdx, gi_movement_thresholds
             iUpperBound tab_i iMovementIdx+1, gi_movement_thresholds
             
-            if gi_current_spatial_movement >= iLowerBound && gi_current_spatial_movement < iUpperBound then
+            if gk_current_spatial_movement >= iLowerBound && gk_current_spatial_movement < iUpperBound then
                 iMovementState = iMovementIdx
                 igoto movement_done
             endif
@@ -101,7 +101,7 @@ opcode determineCurrentState, iii, 0
     ; Debug output if requested
     if gi_debug >= 3 then
         prints "determineCurrentState: Input [%.2f, %.2f, %.2f] -> State [%d, %d, %d]\n",
-               gi_current_overlap, gi_current_octave_spread, gi_current_spatial_movement,
+               gk_current_overlap, gk_current_octave_spread, gk_current_spatial_movement,
                iDensityState, iRegisterState, iMovementState
     endif
     xout iDensityState, iRegisterState, iMovementState
