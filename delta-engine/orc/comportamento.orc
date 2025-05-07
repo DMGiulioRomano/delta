@@ -143,11 +143,11 @@ instr Comportamento
         ; -------- 3.4 CALCOLO DURATA ADATTATIVA --------
         ; Calcola la durata dell'evento in base al contesto musicale
         i_GlobalTime = i_whileTime + i_CAttacco
-        i_LookbackTime = max(0, i_GlobalTime - 30)  ; Analizza gli ultimi 30 secondi
+        i_LookbackTime = max(0, i_GlobalTime - 5)  ; Analizza gli ultimi 30 secondi
 
         ; Ottieni un fattore di durata basato sulla sovrapposizione di eventi nel contesto
         i_OverlapFactor = suggestDurationFactor(i_LookbackTime, i_GlobalTime, i_RitmoCorrente)
-
+        print i_OverlapFactor
         ; Gestione della fase iniziale (bootstrap)
         if gi_Index < 10 then
             if i_debug >= 1 then
@@ -158,7 +158,7 @@ instr Comportamento
             ; Calcola la durata adattativa dell'evento
             i_EventDuration = (i_DurataArmonica/i_RitmoCorrente) * i_OverlapFactor
         endif
-
+        
         ; Debug dell'adattamento della durata
         if i_debug >= 2 then
             prints  "%s%sEvento %d:\n", Sindent, Sindent, i_EventIdx

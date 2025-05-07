@@ -1,4 +1,3 @@
-
 ; Opcode per analizzare la memoria compositiva in un range temporale
 opcode analyzeMemoryXoverlappDensity, iiii, ii
     iStartTime, iEndTime xin
@@ -45,7 +44,7 @@ opcode suggestDurationFactor, i, iii
     
     ; Analizza la memoria compositiva nel range specificato
     iAvgOverlap, iMaxOverlap, iDensity, iSampleCount = analyzeMemoryXoverlappDensity(iStartTime, iEndTime)
-    
+
     ; Se non abbiamo abbastanza dati o il range è vuoto, usa valori predefiniti
     if iSampleCount < 2 || iDensity < 0.05 then
         iSuggestedFactor = 1.0  ; Valore neutro
@@ -54,8 +53,8 @@ opcode suggestDurationFactor, i, iii
     
     ; Altrimenti, suggerisci un fattore basato sull'analisi
     ; Valori di riferimento calibrati per il sistema
-    iMaxReference = 200  ; Livello di riferimento per la sovrapposizione massima
-    iAvgReference = 15  ; Livello di riferimento per la sovrapposizione media
+    iMaxReference = 500  ; Livello di riferimento per la sovrapposizione massima
+    iAvgReference = 40  ; Livello di riferimento per la sovrapposizione media
     
     ; Calcola un fattore basato sia sul massimo che sulla media
     ; Coefficienti AUMENTATI per rendere l'algoritmo più reattivo

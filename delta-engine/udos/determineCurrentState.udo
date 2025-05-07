@@ -1,108 +1,110 @@
 ; determineCurrentState opcode
-opcode determineCurrentState, iii, 0    
+opcode determineCurrentState, kkk, 0    
+	println "\t\t\t--- open determineCurrentState"
     
     ; Print threshold tables for debugging
-    prints "Density thresholds: [%f, %f, %f, %f]\n",
-           tab_i(0, gi_density_thresholds),
-           tab_i(1, gi_density_thresholds),
-           tab_i(2, gi_density_thresholds),
-           tab_i(3, gi_density_thresholds)
+    printsk "\t\t\t\tDensity thresholds: [%f, %f, %f, %f]\n",
+           tab:k(0, gi_density_thresholds),
+           tab:k(1, gi_density_thresholds),
+           tab:k(2, gi_density_thresholds),
+           tab:k(3, gi_density_thresholds)
     
-    prints "Register thresholds: [%f, %f, %f, %f]\n",
-           tab_i(0, gi_register_thresholds),
-           tab_i(1, gi_register_thresholds),
-           tab_i(2, gi_register_thresholds),
-           tab_i(3, gi_register_thresholds)
+    printsk "\t\t\t\tRegister thresholds: [%f, %f, %f, %f]\n",
+           tab:k(0, gi_register_thresholds),
+           tab:k(1, gi_register_thresholds),
+           tab:k(2, gi_register_thresholds),
+           tab:k(3, gi_register_thresholds)
     
-    prints "Movement thresholds: [%f, %f, %f, %f]\n",
-           tab_i(0, gi_movement_thresholds),
-           tab_i(1, gi_movement_thresholds),
-           tab_i(2, gi_movement_thresholds),
-           tab_i(3, gi_movement_thresholds)
+    printsk "\t\t\t\tMovement thresholds: [%f, %f, %f, %f]\n",
+           tab:k(0, gi_movement_thresholds),
+           tab:k(1, gi_movement_thresholds),
+           tab:k(2, gi_movement_thresholds),
+           tab:k(3, gi_movement_thresholds)
         
     ; Initialize output states
-    iDensityState = 0
-    iRegisterState = 0
-    iMovementState = 0
+    kDensityState = 0
+    kRegisterState = 0
+    kMovementState = 0
     
     ; Get number of threshold points (should be 4 in our case, defining 3 regions)
-    iDensityThresholdLen = ftlen(gi_density_thresholds)
-    iRegisterThresholdLen = ftlen(gi_register_thresholds)
-    iMovementThresholdLen = ftlen(gi_movement_thresholds)
+    kDensityThresholdLen = ftlen(gi_density_thresholds)
+    kRegisterThresholdLen = ftlen(gi_register_thresholds)
+    kMovementThresholdLen = ftlen(gi_movement_thresholds)
     ; IMPROVED: Check if input is below lowest threshold
-    if gk_current_overlap < tab_i(0, gi_density_thresholds) then
-        iDensityState = 0
+    if gk_current_overlap < tab:k(0, gi_density_thresholds) then
+        kDensityState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gk_current_overlap >= tab_i(iDensityThresholdLen-1, gi_density_thresholds) then
-        iDensityState = iDensityThresholdLen - 2 ; Last valid state index
+    elseif gk_current_overlap >= tab:k(kDensityThresholdLen-1, gi_density_thresholds) then
+        kDensityState = kDensityThresholdLen - 2 ; Last valid state index
     else
         ; Determine density state by checking each threshold pair
-        iDensityIdx = 0
-        while iDensityIdx < iDensityThresholdLen-1 do
-            iLowerBound tab_i iDensityIdx, gi_density_thresholds
-            iUpperBound tab_i iDensityIdx+1, gi_density_thresholds
+        kDensityIdx = 0
+        while kDensityIdx < kDensityThresholdLen-1 do
+            kLowerBound tab kDensityIdx, gi_density_thresholds
+            kUpperBound tab kDensityIdx+1, gi_density_thresholds
             
-            if gk_current_overlap >= iLowerBound && gk_current_overlap < iUpperBound then
-                iDensityState = iDensityIdx
-                igoto density_done
+            if gk_current_overlap >= kLowerBound && gk_current_overlap < kUpperBound then
+                kDensityState = kDensityIdx
+                kgoto density_done
             endif
             
-            iDensityIdx += 1
+            kDensityIdx += 1
         od
     endif
     density_done:
     
     ; IMPROVED: Check if input is below lowest threshold
-    if gk_current_octave_spread < tab_i(0, gi_register_thresholds) then
-        iRegisterState = 0
+    if gk_current_octave_spread < tab:k(0, gi_register_thresholds) then
+        kRegisterState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gk_current_octave_spread >= tab_i(iRegisterThresholdLen-1, gi_register_thresholds) then
-        iRegisterState = iRegisterThresholdLen - 2 ; Last valid state index
+    elseif gk_current_octave_spread >= tab:k(kRegisterThresholdLen-1, gi_register_thresholds) then
+        kRegisterState = kRegisterThresholdLen - 2 ; Last valid state index
     else
         ; Determine register state by checking each threshold pair
-        iRegisterIdx = 0
-        while iRegisterIdx < iRegisterThresholdLen-1 do
-            iLowerBound tab_i iRegisterIdx, gi_register_thresholds
-            iUpperBound tab_i iRegisterIdx+1, gi_register_thresholds
+        kRegisterIdx = 0
+        while kRegisterIdx < kRegisterThresholdLen-1 do
+            kLowerBound tab kRegisterIdx, gi_register_thresholds
+            kUpperBound tab kRegisterIdx+1, gi_register_thresholds
             
-            if gk_current_octave_spread >= iLowerBound && gk_current_octave_spread < iUpperBound then
-                iRegisterState = iRegisterIdx
-                igoto register_done
+            if gk_current_octave_spread >= kLowerBound && gk_current_octave_spread < kUpperBound then
+                kRegisterState = kRegisterIdx
+                kgoto register_done
             endif
             
-            iRegisterIdx += 1
+            kRegisterIdx += 1
         od
     endif
     register_done:
     
     ; IMPROVED: Check if input is below lowest threshold
-    if gk_current_spatial_movement < tab_i(0, gi_movement_thresholds) then
-        iMovementState = 0
+    if gk_current_spatial_movement < tab:k(0, gi_movement_thresholds) then
+        kMovementState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gk_current_spatial_movement >= tab_i(iMovementThresholdLen-1, gi_movement_thresholds) then
-        iMovementState = iMovementThresholdLen - 2 ; Last valid state index
+    elseif gk_current_spatial_movement >= tab:k(kMovementThresholdLen-1, gi_movement_thresholds) then
+        kMovementState = kMovementThresholdLen - 2 ; Last valid state index
     else
         ; Determine movement state by checking each threshold pair
-        iMovementIdx = 0
-        while iMovementIdx < iMovementThresholdLen-1 do
-            iLowerBound tab_i iMovementIdx, gi_movement_thresholds
-            iUpperBound tab_i iMovementIdx+1, gi_movement_thresholds
+        kMovementIdx = 0
+        while kMovementIdx < kMovementThresholdLen-1 do
+            kLowerBound tab kMovementIdx, gi_movement_thresholds
+            kUpperBound tab kMovementIdx+1, gi_movement_thresholds
             
-            if gk_current_spatial_movement >= iLowerBound && gk_current_spatial_movement < iUpperBound then
-                iMovementState = iMovementIdx
-                igoto movement_done
+            if gk_current_spatial_movement >= kLowerBound && gk_current_spatial_movement < kUpperBound then
+                kMovementState = kMovementIdx
+                kgoto movement_done
             endif
             
-            iMovementIdx += 1
+            kMovementIdx += 1
         od
     endif
     movement_done:
     
     ; Debug output if requested
     if gi_debug >= 3 then
-        prints "determineCurrentState: Input [%.2f, %.2f, %.2f] -> State [%d, %d, %d]\n",
+        printsk "\t\t\t\tdetermineCurrentState: Input [%.2f, %.2f, %.2f] -> State [%d, %d, %d]\n",
                gk_current_overlap, gk_current_octave_spread, gk_current_spatial_movement,
-               iDensityState, iRegisterState, iMovementState
+               kDensityState, kRegisterState, kMovementState
     endif
-    xout iDensityState, iRegisterState, iMovementState
+	println "\t\t\t--- close determineCurrentState"
+    xout kDensityState, kRegisterState, kMovementState
 endop

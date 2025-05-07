@@ -28,6 +28,7 @@ gi_debug init 4
 #include "../../udos/saveFtablesBehavior.udo"                       
 #include "../../udos/tc_storeTransitionBehaviorParameters.udo"
 #include "../../udos/determineCurrentState.udo"
+alwayson "Analizzatore"
 
 /*instr Analizzatore
     prints "===========================================\n"
@@ -168,45 +169,24 @@ gi_debug init 4
             tabw gk_current_spatial_movement, kMemIdx, gi_memory_spatial_movement  
             ; Determina lo stato corrente
             
-            iDensityState, iRegisterState, iMovementState determineCurrentState 
+            kDensityState, kRegisterState, kMovementState determineCurrentState 
             
             ; Aggiorna la cronologia degli stati usando il buffer circolare
             kNextIndex = (gk_state_history_index + 1) % gi_state_history_size
             
             ; Memorizza il nuovo stato nella posizione corrente del buffer
-            tabw iDensityState, kNextIndex, gi_state_history_density
-            tabw iRegisterState, kNextIndex, gi_state_history_register
-            tabw iMovementState, kNextIndex, gi_state_history_movement
+            tabw kDensityState, kNextIndex, gi_state_history_density
+            tabw kRegisterState, kNextIndex, gi_state_history_register
+            tabw kMovementState, kNextIndex, gi_state_history_movement
             
             ; Aggiorna l'indice globale del buffer
             gk_state_history_index = kNextIndex
             
             ; Memorizza lo stato nella cronologia temporale completa
-            tabw iDensityState, kMemIdx, gi_memory_state_density
-            tabw iRegisterState, kMemIdx, gi_memory_state_register
-            tabw iMovementState, kMemIdx, gi_memory_state_movement
+            tabw kDensityState, kMemIdx, gi_memory_state_density
+            tabw kRegisterState, kMemIdx, gi_memory_state_register
+            tabw kMovementState, kMemIdx, gi_memory_state_movement
         endif
-    endif
-
-    ; Stampa info di debug (opzionale)
-    kDebugTrig metro 1  ; Stampa ogni secondo
-    if kDebugTrig == 1 && gi_debug >= 1 then
-        kCurrentTime timeinsts
-        kActiveEvents = 0
-
-        kEventIdx = 0
-        while kEventIdx < gi_Index do
-            kAttackTime tab kEventIdx, gi_eve_attacco
-            kDuration tab kEventIdx, gi_eve_durata
-            
-            if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
-                kActiveEvents += 1
-            endif
-            
-            kEventIdx += 1
-        od
-        
-        printks "Tempo: %.2fs - Eventi attivi: %d\n", 0, kCurrentTime, kActiveEvents
     endif
 endin
 */
@@ -271,9 +251,9 @@ instr initial
         icnt+=1
     od
     prints "\n\t[let's observe the tables at init-pass]\n\n"
-    printMatrixI gi_active_octaves, 1, 10, "gi_active_octaves", 3, "\t\t\t"
-    printMatrixI gi_active_registers, 1, 10, "gi_active_registers", 3, "\t\t\t"
-    printMatrixI gi_octave_register_matrix, 10, 10, "gi_octave_register_matrix", 3, "\t\t\t"
+    printMatrixI gi_active_octaves, 1, 10, "gi_active_octaves", 3, "\t\t"
+    printMatrixI gi_active_registers, 1, 10, "gi_active_registers", 3, "\t\t"
+    printMatrixI gi_octave_register_matrix, 10, 10, "gi_octave_register_matrix", 3, "\t\t"
     prints "\n========================== close initial *INIT-PASS*\n\n"
 endin
 
@@ -348,15 +328,65 @@ instr AnalizzatoreArmonico
     prints "\n===========================================\n\n"
 endin
 
+opcode CURR2CSV, 0, 0
+    Sfile = "docs/current_var.csv"
+    kArr[] fillarray gk_current_overlap, gk_current_harmonic_density, gk_current_octave_spread, gk_current_spectral_centroid, gk_current_spatial_movement
+    SArr[] = fillarray("timepoint","curr_overlap", "curr_harm_dens", "curr_oct_spread", "curr_spect_centr", "curr_spat_mov")  
+    i_idx = 0
+    while i_idx < lenarray(SArr) do
+        Svar strcpy (i_idx+1!=lenarray(SArr)?"%s,":"%s\n")
+        fprints Sfile, (i_idx+1!=lenarray(SArr)?"%s,":"%s\n"), SArr[i_idx]
+        i_idx+=1
+    od
+    k_idx=0
+    klen = lenarray:k(kArr)
+    while k_idx < klen+1 do
+        kval = k_idx<1?tab:k(gk_analysis_index,gi_analysis_timepoints):kArr[k_idx-1]
+        if k_idx!=klen then 
+            fprintks Sfile,"%f,",kval
+        else
+            fprintks Sfile,"%f\n",kval
+        endif
+        k_idx+=1
+    od 
+endop
+
+opcode STATE_MEM_2CSV, 0, k
+    kCurrentTime xin
+    kMemIdx = int(kCurrentTime / gi_memory_resolution)
+    Sfile = "docs/mem_state.csv"
+    kArr[] = fillarray(gi_memory_state_density, gi_memory_state_register, gi_memory_state_movement)
+    SArr[] = fillarray("timepoint","mem_state_dens", "mem_state_reg", "mem_state_mov")  
+    i_idx = 0
+    while i_idx < lenarray(SArr) do
+        Svar strcpy (i_idx+1!=lenarray(SArr)?"%s,":"%s\n")
+        fprints Sfile, (i_idx+1!=lenarray(SArr)?"%s,":"%s\n"), SArr[i_idx]
+        i_idx+=1
+    od
+    k_idx=0
+    klen = lenarray:k(kArr)
+    while k_idx < klen+1 do
+        kval = k_idx<1?kCurrentTime:tablekt:k(kMemIdx,kArr[k_idx-1])
+        if k_idx!=klen then 
+            fprintks Sfile,"%f,",kval
+        else
+            fprintks Sfile,"%f\n",kval
+        endif
+        k_idx+=1
+    od 
+
+endop
+
+
 instr Analizzatore
     prints "\n========================== open instr Analizzatore *INIT-PASS*\n"
-    kTrig metro 1
+    kTrig metro 5
     kCurrentTime times
     SArr[] = fillarray("matrice tmp", "matrice cumulativa")
     iArr[] = fillarray(gi_octave_register_matrix, gi_cumulative_octave_register_matrix)  
     kLenBigClear=lenarray(iArr)-1
     if kTrig == 1 then
-        printsk "\n========================== open instr Analizzatore *PERF-PASS*\n"
+        printsk "\n========================== open instr Analizzatore if Speedy *PERF-PASS*\n"
         println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
         ; Calcolo eventi attivi in questo momento
         kActiveEventsCount = 0
@@ -383,7 +413,7 @@ instr Analizzatore
         while kEventIdx < gi_Index do
             kAttackTime tab kEventIdx, gi_eve_attacco
             kDuration tab kEventIdx, gi_eve_durata
-            printks "\t\tmid k-cycle: %d and a-cycle: %d at abs time: %f\n",0, kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
+            printks "\t\t\tmid k-cycle: %d and a-cycle: %d at abs time: %f\n",0, kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
             ; Verifica se l'evento è attualmente attivo
             if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
                 kActiveEventsCount += 1
@@ -438,7 +468,7 @@ instr Analizzatore
                 endif
                 kRegIdx += 1
             if gi_debug >=5 then
-                println "\t\t\tkRegIdx:%d \tkOctIdx:%d\tkOctHasActivity: %d\tkActiveRegisters: %d",kRegIdx,kOctIdx,kOctHasActivity, kActiveRegisters
+                println "\t\t\t\tkRegIdx:%d \tkOctIdx:%d\tkOctHasActivity: %d\tkActiveRegisters: %d",kRegIdx,kOctIdx,kOctHasActivity, kActiveRegisters
             endif
             od
             kActiveOctaves += kOctHasActivity
@@ -454,7 +484,7 @@ instr Analizzatore
             kOctaveSpread = 0
             kSpectralCentroid = 0
         endif
-        Sspace = "\t\t\t"
+        Sspace = "\t\t"
         println "\t\tSEEING HARMONIC METRICS!\n"
         println "%skHarmonicDensity: %f\n%skOctaveSpread:%f\n%skSpectralCentroid:%f",Sspace,kHarmonicDensity,Sspace,kOctaveSpread,Sspace,kSpectralCentroid
 
@@ -468,29 +498,86 @@ instr Analizzatore
         gk_current_spectral_centroid = kSpectralCentroid
         gk_current_spatial_movement = kCurrentSpatialMovement  
         ; Memorizza il conteggio degli eventi attivi e il timestamp
-        tabw kActiveEventsCount, gk_analysis_index, gi_analysis_active_events
         tabw kCurrentTime, gk_analysis_index, gi_analysis_timepoints
         
+        printks2 "\t\tgi_analysis_timepoints: %f\n", tab:k(gk_analysis_index,gi_analysis_timepoints)
+        printks2 "\t\tgk_current_overlap: %f\n", gk_current_overlap
+        printks2 "\t\tgk_current_harmonic_density: %f\n", gk_current_harmonic_density
+        printks2 "\t\tgk_current_octave_spread: %f\n", gk_current_octave_spread
+        printks2 "\t\tgk_current_spectral_centroid: %f\n", gk_current_spectral_centroid
+        printks2 "\t\tgk_current_spatial_movement: %f\n", gk_current_spatial_movement
+        CURR2CSV
         ; Avanzamento ciclico nell'indice della tabella
         gk_analysis_index = (gk_analysis_index + 1) % gi_analysis_buffer_size
-
-        printsk "\n========================== close instr Analizzatore *PERF-PASS*\n\n\n"
+        printsk "\n========================== close instr Analizzatore if Speedy*PERF-PASS*\n\n\n"
     endif
+
+    ; Aggiornamento memoria compositiva
+    kMemTrig metro 1/gi_memory_resolution
+    if kMemTrig == 1 then
+        printsk "\n========================== open instr Analizzatore if MemRes *PERF-PASS*\n"
+        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
+
+        kMemIdx = int(kCurrentTime / gi_memory_resolution)
+        if kMemIdx < gi_memory_size then
+            tabw gk_current_overlap, kMemIdx, gi_memory_overlap            
+            tabw gk_current_harmonic_density, kMemIdx, gi_memory_harmonic_density
+            tabw gk_current_octave_spread, kMemIdx, gi_memory_octave_spread
+            tabw gk_current_spectral_centroid, kMemIdx, gi_memory_spectral_centroid
+            tabw gk_current_spatial_movement, kMemIdx, gi_memory_spatial_movement  
+            ; Determina lo stato corrente
+            printks2 "\t\t\tkMemIdx: %f\n",kMemIdx
+            printks2 "\t\t\tgi_memory_overlap: %f\n", tab:k(kMemIdx,gi_memory_overlap)
+            printks2 "\t\t\tgi_memory_harmonic_density: %f\n",  tab:k(kMemIdx,gi_memory_harmonic_density)
+            printks2 "\t\t\tgi_memory_octave_spread: %f\n",  tab:k(kMemIdx,gi_memory_octave_spread)
+            printks2 "\t\t\tgi_memory_spectral_centroid: %f\n",  tab:k(kMemIdx,gi_memory_spectral_centroid)
+            printks2 "\t\t\tgi_memory_spatial_movement: %f\n",  tab:k(kMemIdx,gi_memory_spatial_movement)
+            
+            kDensityState, kRegisterState, kMovementState determineCurrentState 
+            
+            ; Questi qui sotto servono per :
+            ; - Fornire accesso rapido agli stati recenti per rilevare pattern a breve termine
+            ; - Permettere al sistema di rilevare e reagire a comportamenti ciclici o ripetitivi 
+            ; - Consentire decisioni basate sulla "storia recente" senza dover analizzare l'intera cronologia
+            ; Aggiorna la cronologia degli stati usando il buffer circolare
+            kNextIndex = (gk_state_history_index + 1) % gi_state_history_size
+            ; Memorizza il nuovo stato nella posizione corrente del buffer
+            tabw kDensityState, kNextIndex, gi_state_history_density
+            tabw kRegisterState, kNextIndex, gi_state_history_register
+            tabw kMovementState, kNextIndex, gi_state_history_movement
+            ; Aggiorna l'indice globale del buffer
+            gk_state_history_index = kNextIndex
+            ; Memorizza lo stato nella cronologia temporale completa
+            tabw kDensityState, kMemIdx, gi_memory_state_density
+            tabw kRegisterState, kMemIdx, gi_memory_state_register
+            tabw kMovementState, kMemIdx, gi_memory_state_movement
+            println "\t\t\tSTATE INSIDE MEMRES"
+            println "\t\t\tkDensityState: %d",kDensityState
+            println "\t\t\tkRegisterState: %d",kRegisterState
+            println "\t\t\tkMovementState: %d",kMovementState
+            STATE_MEM_2CSV kCurrentTime            
+        endif
+        printsk "\n========================== close instr Analizzatore if MemRes *PERF-PASS*\n"
+    endif
+
+
     prints "\n========================== close instr Analizzatore *INIT-PASS*\n\n\n"
 endin
 
+
 instr CurrentGlobalVariables
+    kpino metro 10
+    if kpino == 1 then
     prints "\n========================== open CurrentGlobalVariables *INIT-PASS*\n\n"
-    printsk "\n========================== open AnalizzatoreArmonicoEmetriche *PERF-PASS*\n"
-
-    println "\t\tgk_current_overlap: %f", gk_current_overlap
-    println "\t\tgk_current_harmonic_density: %f", gk_current_harmonic_density
-    println "\t\tgk_current_octave_spread: %f", gk_current_octave_spread
-    println "\t\tgk_current_spectral_centroid: %f", gk_current_spectral_centroid
-    println "\t\tgk_current_spatial_movement: %f", gk_current_spatial_movement
-
+    printsk "\n========================== open CurrentGlobalVariables *PERF-PASS*\n"
+    printks2 "\t\tgk_current_harmonic_density: %f\n", gk_current_harmonic_density
+    printks2 "\t\tgk_current_octave_spread: %f\n", gk_current_octave_spread
+    printks2 "\t\tgk_current_spectral_centroid: %f\n", gk_current_spectral_centroid
+    printks2 "\t\tgk_current_spatial_movement: %f\n", gk_current_spatial_movement
     printsk "\n========================== close CurrentGlobalVariables *PERF-PASS*\n\n\n"
+    endif
     prints "\n========================== close CurrentGlobalVariables *INIT-PASS*\n\n\n"
+
 endin
 
 instr TestGenerator
@@ -516,6 +603,40 @@ instr TestGenerator
     prints "\n========================== close TestGenerator *INIT-PASS*\n\n"
 endin
 
+instr Curiosone
+    prints "\n========================== open instr Curiosone *INIT-PASS*\n\n\n"
+    iArr[] = fillarray(gi_memory_overlap, gi_memory_harmonic_density, gi_memory_octave_spread, gi_memory_spectral_centroid, gi_memory_spatial_movement)  
+    SArr[] = fillarray("mem_overlap", "mem_harm_dens", "mem_oct_spread", "mem_spect_centr", "mem_spat_mov")  
+    i_idx = 0
+    while i_idx < lenarray(iArr) do
+        SfnName strcpy SArr[i_idx]
+        ifn = iArr[i_idx]
+        printMatrixI ifn, 10, $REGISTRI, SfnName, 3, "\t\t\t"
+        i_idx+=1
+    od
+    i_idx=0
+
+    while i_idx < lenarray(SArr) do
+        Svar strcpy (i_idx+1!=lenarray(SArr)?"%s,":"%s\n")
+        fprints gSdebugCSV, (i_idx+1!=lenarray(SArr)?"%s,":"%s\n"), SArr[i_idx]
+        i_idx+=1
+    od
+
+    i_IIdx=0
+    while i_IIdx < gi_memory_size do
+        i_idx=0        
+        while i_idx < lenarray(iArr) do
+            ifn = iArr[i_idx]
+            ival tab_i i_IIdx, ifn
+            fprints gSdebugCSV, (i_idx+1!=lenarray(iArr)?"%.4f,":"%.4f\n"), ival
+            i_idx+=1
+        od
+        i_IIdx+=1
+    od
+
+    prints "\n========================== close instr Curiosone *INIT-PASS*\n\n\n"
+endin
+
 </CsInstruments>
 <CsScore>
 f1 0 4096 10 1
@@ -525,8 +646,10 @@ i "initial" 0 1
 
 i "TestGenerator" 0 60 ; Test with dense context
 ;i "AnalizzatoreConteggio" 0 60
-i "Analizzatore" 0 60
+
 ;i "Salvatore" 60 1
+i "CurrentGlobalVariables" 0 120
+i "Curiosone" 130 1
 e
 
 i "TestGenerator" 60 60 ; Test with sparse context
