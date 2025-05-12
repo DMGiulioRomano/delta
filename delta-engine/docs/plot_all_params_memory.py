@@ -178,7 +178,6 @@ def create_combined_plot_chunked(tables, file_path, output_dir, docs_file=None, 
     
     # Identifica le tabelle con un numero di punti molto maggiore
     table_sizes = [(table_num, len(data)) for table_num, data in tables]
-    #tables = filter_empty_indices(tables)
     
     # Calcola la mediana delle dimensioni
     sizes = [size for _, size in table_sizes]
@@ -382,7 +381,7 @@ def main():
     try:
         tables = extract_tables(file_path)
         print(f"Extracted {len(tables)} tables from {file_path}")
-        # Filtra gli indici vuoti
+        # Filtra gli indici vuoti  # ''
         if os.path.splitext(os.path.basename(file_path))[0] != 'compParams': tables = filter_empty_indices(tables)
         create_combined_plot_chunked(tables, file_path, output_dir, docs_file, output_filename, chunk_size)
 

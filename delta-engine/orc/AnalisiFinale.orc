@@ -88,11 +88,10 @@ instr AnalisiFinale
     while iIdx < gi_memory_size do
         iTime = iIdx * gi_memory_resolution
         iOverlap tab_i iIdx, gi_memory_overlap
-        iEvents tab_i iIdx, gi_memory_events
         
         ; Esporta solo punti con dati validi
         if iOverlap > 0 || iEvents > 0 then
-            fprints SMemoryFile, "%.2f,%d,%d\n", iTime, iOverlap, iEvents
+            fprints SMemoryFile, "%.2f,%d\n", iTime, iOverlap
             iValidPoints += 1
         endif
         

@@ -268,3 +268,53 @@ opcode PrintOctReg2x2, 0,S
     printsk  "%s          │ reg 0   │ reg 1   │\n",Ssep
     printsk  "%s          └─────────┴─────────┘\n",Ssep
 endop
+
+
+opcode CURR2CSV, 0, 0
+    Sfile = "docs/current_var.csv"
+    kArr[] fillarray gk_current_overlap, gk_current_harmonic_density, gk_current_octave_spread, gk_current_spectral_centroid, gk_current_spatial_movement
+    SArr[] = fillarray("timepoint","curr_overlap", "curr_harm_dens", "curr_oct_spread", "curr_spect_centr", "curr_spat_mov")  
+    i_idx = 0
+    while i_idx < lenarray(SArr) do
+        Svar strcpy (i_idx+1!=lenarray(SArr)?"%s,":"%s\n")
+        fprints Sfile, (i_idx+1!=lenarray(SArr)?"%s,":"%s\n"), SArr[i_idx]
+        i_idx+=1
+    od
+    k_idx=0
+    klen = lenarray:k(kArr)
+    while k_idx < klen+1 do
+        kval = k_idx<1?tab:k(gk_analysis_index,gi_analysis_timepoints):kArr[k_idx-1]
+        if k_idx!=klen then 
+            fprintks Sfile,"%f,",kval
+        else
+            fprintks Sfile,"%f\n",kval
+        endif
+        k_idx+=1
+    od 
+endop
+
+opcode STATE_MEM_2CSV, 0, k
+    kCurrentTime xin
+    kMemIdx = int(kCurrentTime / gi_memory_resolution)
+    Sfile = "docs/mem_state.csv"
+    kArr[] = fillarray(gi_memory_state_density, gi_memory_state_register, gi_memory_state_movement)
+    SArr[] = fillarray("timepoint","mem_state_dens", "mem_state_reg", "mem_state_mov")  
+    i_idx = 0
+    while i_idx < lenarray(SArr) do
+        Svar strcpy (i_idx+1!=lenarray(SArr)?"%s,":"%s\n")
+        fprints Sfile, (i_idx+1!=lenarray(SArr)?"%s,":"%s\n"), SArr[i_idx]
+        i_idx+=1
+    od
+    k_idx=0
+    klen = lenarray:k(kArr)
+    while k_idx < klen+1 do
+        kval = k_idx<1?kCurrentTime:tablekt:k(kMemIdx,kArr[k_idx-1])
+        if k_idx!=klen then 
+            fprintks Sfile,"%f,",kval
+        else
+            fprintks Sfile,"%f\n",kval
+        endif
+        k_idx+=1
+    od 
+
+endop

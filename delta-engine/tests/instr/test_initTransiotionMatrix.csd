@@ -1,4 +1,74 @@
-instr AnalizzatoreMod
+<CsoundSynthesizer>
+<CsOptions>
+;-n 
+-o "analizzatore.wav" -W
+-d
+
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps= 32
+nchnls = 2
+0dbfs = 1
+; Debug mode
+gi_debug init 5
+
+; Include necessary UDOs and macros
+#include "../../MACROS/init.orc"
+#include "../../MACROS/debug.orc"
+#include "../../udos/utils.udo"
+#include "../../udos/GenPythagFreqs.udo"
+#include "../../udos/pfield_comp.udo"
+#include "../../udos/calcDurationFactor.udo"
+#include "../../udos/validator.udo"
+#include "../../udos/initTransitionMatrix.udo"
+; Include the instruments we're testing
+#include "../../orc/eventoSonoro.orc"                               ; instr 1
+#include "../../orc/comportamento.orc"                              ; instr 2
+#include "../../orc/behaviorWrapper.orc"                            ; instr 3
+#include "../../udos/saveFtablesBehavior.udo"                       
+#include "../../udos/tc_storeTransitionBehaviorParameters.udo"
+#include "../../udos/determineCurrentState.udo"
+
+alwayson "Analizzatore"
+
+instr initial
+    prints "\n========================== open initial *INIT-PASS*\n\n"
+    gi_compId = 0
+    ipino system_i 1, "mkdir -p ./sco"
+    ; Initialize generator for Pythagorean frequencies
+    i_Res GenPythagFreqs $FONDAMENTALE, $INTERVALLI, $OTTAVE, gi_Intonazione
+    if i_Res == 1 then
+        prints "\t- GenPythagFreqs: Success!\n"
+    else
+        prints "x GenPythagFreqs failed: %d\n", i_Res
+        turnoff
+    endif
+    icnt=0
+    while icnt < ftlen(gi_active_octaves) do
+        tabw_i random(1,10), icnt, gi_active_octaves
+        icnt+=1
+    od
+    icnt=0
+    while icnt < ftlen(gi_active_registers) do
+        tabw_i random(1,10), icnt, gi_active_registers
+        icnt+=1
+    od
+    icnt=0
+    while icnt < ftlen(gi_octave_register_matrix) do
+        tabw_i random(1,10), icnt, gi_octave_register_matrix
+        icnt+=1
+    od
+    prints "\n\t[let's observe the tables at init-pass]\n\n"
+    printMatrixI gi_active_octaves, 1, 10, "gi_active_octaves", 3, "\t\t"
+    printMatrixI gi_active_registers, 1, 10, "gi_active_registers", 3, "\t\t"
+    printMatrixI gi_octave_register_matrix, 10, 10, "gi_octave_register_matrix", 3, "\t\t"
+    prints "\n========================== close initial *INIT-PASS*\n\n"
+    initTransitionMatrix
+endin
+
+
+instr Analizzatore
     prints "\n========================== open instr Analizzatore *INIT-PASS*\n"
     kTrig metro 5
     kCurrentTime times
@@ -171,3 +241,65 @@ instr AnalizzatoreMod
 
     prints "\n========================== close instr Analizzatore *INIT-PASS*\n\n\n"
 endin
+
+
+
+instr CurrentGlobalVariables
+    kpino metro 10
+    if kpino == 1 then
+    prints "\n========================== open CurrentGlobalVariables *INIT-PASS*\n\n"
+    printsk "\n========================== open CurrentGlobalVariables *PERF-PASS*\n"
+    printks2 "\t\tgk_current_harmonic_density: %f\n", gk_current_harmonic_density
+    printks2 "\t\tgk_current_octave_spread: %f\n", gk_current_octave_spread
+    printks2 "\t\tgk_current_spectral_centroid: %f\n", gk_current_spectral_centroid
+    printks2 "\t\tgk_current_spatial_movement: %f\n", gk_current_spatial_movement
+    printsk "\n========================== close CurrentGlobalVariables *PERF-PASS*\n\n\n"
+    endif
+    prints "\n========================== close CurrentGlobalVariables *INIT-PASS*\n\n\n"
+
+endin
+
+instr TestGenerator
+    prints "\n========================== open TestGenerator *INIT-PASS*\n\n"
+    i_time=0
+    while i_time < p3 do
+        iAtt = 2 + i_time
+        iDur = max(2,60 - i_time/2)
+        iRitmitable ftgen 0, 0,4 , -2, 3, 4, 5, 6
+        iDurArm = max(1,20 - i_time/2)
+        iAmp = -12 - i_time/4
+        iOct = 8 - int(i_time/10)
+        iReg = 1
+        iPostable ftgen 0, 0, 4, -2, 0, 1, 2, 3
+        iRhythmArr[] init ftlen(iRitmitable)
+        iPosArr[] init ftlen(iPostable)
+        copyf2array iRhythmArr, iRitmitable
+        copyf2array iPosArr, iPostable
+        iComp storeTransitionBehaviorParameters iRhythmArr, iPosArr, p2+iAtt, iDur, iDurArm, iAmp, iOct, iReg
+        schedule "BehaviorWrapper", 0, 1, iComp
+        i_time+=5
+    od
+    prints "\n========================== close TestGenerator *INIT-PASS*\n\n"
+endin
+
+</CsInstruments>
+<CsScore>
+f1 0 4096 10 1
+f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
+; Test each context mode sequentially
+i "initial" 0 1
+
+i "TestGenerator" 0 60 ; Test with dense context
+;i "AnalizzatoreConteggio" 0 60
+
+;i "Salvatore" 60 1
+i "CurrentGlobalVariables" 0 120
+i "Curiosone" 130 1
+e
+
+
+i "TestGenerator" 60 60 ; Test with sparse context
+i "TestGenerator" 120 60 ; Test with fluctuating context
+e 20
+</CsScore>
+</CsoundSynthesizer>
