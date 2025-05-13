@@ -355,7 +355,7 @@ instr AnalizzatoreMod
                         kAttackTimeEve =tab:k(kTrueIndex, gi_eve_attacco)
                         kDurationEve = tab:k(kTrueIndex, gi_eve_durata)
                         if kAttackTimeEve <= kCurrentTime && kAttackTimeEve + kDurationEve >= kCurrentTime then
-                            println "kAttackTimeEve %d kDurationEve %d", kAttackTimeEve, kDurationEve
+                            println "\t\t\t\t\tkAttackTimeEve %d kDurationEve %d", kAttackTimeEve, kDurationEve
                             kActiveEventsCount+=1
                             kSumInverseRhythms+= 1/(tab:k(kTrueIndex, gi_eve_hr))
                         endif

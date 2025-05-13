@@ -6,8 +6,8 @@ opcode selectNextState, iii, 0
     
     ; Genera un numero casuale
     iRand random 0, 1
-    
     ; Seleziona il prossimo stato in base alla probabilità cumulativa
+    print iRand
     iCumulativeProb = 0
     iNextStateIdx = 0
     

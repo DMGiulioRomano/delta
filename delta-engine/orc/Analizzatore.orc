@@ -1,13 +1,12 @@
 instr Analizzatore
     prints "\n========================== open instr Analizzatore *INIT-PASS*\n"
-    kTrig metro 5
-    kCurrentTime times
+    kTrig metro 10
     SArr[] = fillarray("matrice tmp", "matrice cumulativa")
     iArr[] = fillarray(gi_octave_register_matrix, gi_cumulative_octave_register_matrix)  
     kLenBigClear=lenarray(iArr)-1
     if kTrig == 1 then
         printsk "\n========================== open instr Analizzatore if Speedy *PERF-PASS*\n"
-        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
+        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", gk_current_time*kr, gk_current_time*sr, gk_current_time
         ; Calcolo eventi attivi in questo momento
         kActiveCompsCount = 0
         ; Calcolo del movimento spaziale
@@ -34,7 +33,7 @@ instr Analizzatore
             kAttackTime tab kCompIdx, gi_comp_ATTACCO
             kDuration tab kCompIdx, gi_comp_DURATA
 
-            if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
+            if kAttackTime <= gk_current_time && kAttackTime + kDuration >= gk_current_time then
                 kActiveCompsCount += 1
                 k_octReg[] fillarray table(kCompIdx, gi_comp_OTTAVA),table(kCompIdx, gi_comp_REGISTRO)
                 kIdxBC = 0
@@ -50,7 +49,7 @@ instr Analizzatore
                     if kTrueIndex > 0 then
                         kAttackTimeEve =tab:k(kTrueIndex, gi_eve_attacco)
                         kDurationEve = tab:k(kTrueIndex, gi_eve_durata)
-                        if kAttackTimeEve <= kCurrentTime && kAttackTimeEve + kDurationEve >= kCurrentTime then
+                        if kAttackTimeEve <= gk_current_time && kAttackTimeEve + kDurationEve >= gk_current_time then
                             println "kAttackTimeEve %d kDurationEve %d", kAttackTimeEve, kDurationEve
                             kActiveEventsCount+=1
                             kSumInverseRhythms+= 1/(tab:k(kTrueIndex, gi_eve_hr))
@@ -89,15 +88,15 @@ instr Analizzatore
                     kOctHasActivity = 1
                 endif
                 kRegIdx += 1
-            if gi_debug >=5 then
+            if gi_debug >=6 then
                 println "\t\t\tkRegIdx:%d \tkOctIdx:%d\tkOctHasActivity: %d\tkActiveRegisters: %d",kRegIdx,kOctIdx,kOctHasActivity, kActiveRegisters
             endif
             od
             kActiveOctaves += kOctHasActivity
             kOctIdx += 1
         od
-        if gi_debug >=5 then
-            println "\t\tkRegIdx:%d \tkOctIdx:%d\tkOctHasActivity: %d\tkActiveRegisters: %d",kRegIdx,kOctIdx,kOctHasActivity, kActiveRegisters
+        if gi_debug >=6 then
+            println "\t\t last kRegIdx:%d \tkOctIdx:%d\tkOctHasActivity: %d\tkActiveRegisters: %d",kRegIdx,kOctIdx,kOctHasActivity, kActiveRegisters
         endif
 
         if kTotalRegisterComp > 0 then
@@ -123,7 +122,7 @@ instr Analizzatore
         gk_current_spectral_centroid = kSpectralCentroid
         gk_current_spatial_movement = kCurrentSpatialMovement  
         ; Memorizza il conteggio degli eventi attivi e il timestamp
-        tabw kCurrentTime, gk_analysis_index, gi_analysis_timepoints
+        tabw gk_current_time, gk_analysis_index, gi_analysis_timepoints
         
         printks2 "\t\tgi_analysis_timepoints: %f\n", tab:k(gk_analysis_index,gi_analysis_timepoints)
         printks2 "\t\tgk_current_overlap: %f\n", gk_current_overlap
@@ -141,9 +140,9 @@ instr Analizzatore
     kMemTrig metro 1/gi_memory_resolution
     if kMemTrig == 1 then
         printsk "\n========================== open instr Analizzatore if MemRes *PERF-PASS*\n"
-        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", kCurrentTime*kr, kCurrentTime*sr, kCurrentTime
+        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", gk_current_time*kr, gk_current_time*sr, gk_current_time
 
-        kMemIdx = int(kCurrentTime / gi_memory_resolution)
+        kMemIdx = int(gk_current_time / gi_memory_resolution)
         if kMemIdx < gi_memory_size then
             tabw gk_current_overlap, kMemIdx, gi_memory_overlap            
             tabw gk_current_harmonic_density, kMemIdx, gi_memory_harmonic_density
@@ -180,7 +179,7 @@ instr Analizzatore
             println "\t\t\tkDensityState: %d",kDensityState
             println "\t\t\tkRegisterState: %d",kRegisterState
             println "\t\t\tkMovementState: %d",kMovementState
-            STATE_MEM_2CSV kCurrentTime            
+            STATE_MEM_2CSV gk_current_time            
         endif
         printsk "\n========================== close instr Analizzatore if MemRes *PERF-PASS*\n"
     endif

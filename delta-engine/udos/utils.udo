@@ -340,7 +340,7 @@ opcode findIndices, i, ik
         kindex += 1
     od
     if gi_debug >= 5 then
-        println "for comportamento %d", kValueToFind
+        println "\t\t\tfor comportamento %d", kValueToFind
         printMatrixK iOutputTable, 10, 10, "iOutputTable", 3, "\t\t\t"
     endif
     xout iOutputTable
