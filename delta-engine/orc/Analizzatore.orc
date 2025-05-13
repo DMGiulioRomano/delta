@@ -1,4 +1,4 @@
-instr AnalizzatoreMod
+instr Analizzatore
     prints "\n========================== open instr Analizzatore *INIT-PASS*\n"
     kTrig metro 5
     kCurrentTime times
@@ -12,7 +12,7 @@ instr AnalizzatoreMod
         kActiveCompsCount = 0
         ; Calcolo del movimento spaziale
         kSumInverseRhythms = 0
-
+        kActiveEventsCount = 0
         PrintOctReg2x2, "\t\t\t"
         println ""
         kIdxBC = 0
@@ -28,11 +28,12 @@ instr AnalizzatoreMod
             printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
             println ""
         loop_lt kIdxBC, 1, kLenBigClear, BigClear  ; ripeti finché kidx < ksize        
-        kCompIdx = 0
+        kCompIdx = 1
 
         while kCompIdx < gi_compId do
             kAttackTime tab kCompIdx, gi_comp_ATTACCO
             kDuration tab kCompIdx, gi_comp_DURATA
+
             if kAttackTime <= kCurrentTime && kAttackTime + kDuration >= kCurrentTime then
                 kActiveCompsCount += 1
                 k_octReg[] fillarray table(kCompIdx, gi_comp_OTTAVA),table(kCompIdx, gi_comp_REGISTRO)
@@ -41,7 +42,23 @@ instr AnalizzatoreMod
                     kfn = iArr[kIdxBC]
                     kM_idx= k_octReg[0] * $REGISTRI + k_octReg[1]
                     tablewkt(tablekt(kM_idx, kfn) + ((k_octReg[0] >= 0 && k_octReg[1] >=0) ? 1 : 0), k_octReg[0] * $REGISTRI + k_octReg[1], kfn)
-                loop_lt kIdxBC, 1, lenarray(iArr), Matrix  
+                loop_lt kIdxBC, 1, lenarray(iArr), Matrix
+                iTmpTable findIndices gi_eve_comportamento, kCompIdx
+                k_iter = 0
+                while k_iter < ftlen(iTmpTable) do 
+                    kTrueIndex = tablekt:k(k_iter,iTmpTable)
+                    if kTrueIndex > 0 then
+                        kAttackTimeEve =tab:k(kTrueIndex, gi_eve_attacco)
+                        kDurationEve = tab:k(kTrueIndex, gi_eve_durata)
+                        if kAttackTimeEve <= kCurrentTime && kAttackTimeEve + kDurationEve >= kCurrentTime then
+                            println "kAttackTimeEve %d kDurationEve %d", kAttackTimeEve, kDurationEve
+                            kActiveEventsCount+=1
+                            kSumInverseRhythms+= 1/(tab:k(kTrueIndex, gi_eve_hr))
+                        endif
+                    endif
+                    k_iter+=1
+                od
+
             endif
             kCompIdx+=1
         od
@@ -97,7 +114,7 @@ instr AnalizzatoreMod
         println "%skHarmonicDensity: %f\n%skOctaveSpread:%f\n%skSpectralCentroid:%f",Sspace,kHarmonicDensity,Sspace,kOctaveSpread,Sspace,kSpectralCentroid
 
         ; Calcola il movimento spaziale medio
-        kCurrentSpatialMovement = (kActiveCompsCount > 0) ? kSumInverseRhythms / kActiveCompsCount : 0
+        kCurrentSpatialMovement = (kActiveCompsCount > 0) ? kSumInverseRhythms / kActiveEventsCount : 0
 
         ; Aggiorna variabili globali
         gk_current_overlap = kActiveCompsCount

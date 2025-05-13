@@ -10,10 +10,10 @@ opcode determineCurrentState, kkk, 0
            tab:k(3, gi_density_thresholds)
     
     printsk "\t\t\t\tRegister thresholds: [%f, %f, %f, %f]\n",
-           tab:k(0, gi_register_thresholds),
-           tab:k(1, gi_register_thresholds),
-           tab:k(2, gi_register_thresholds),
-           tab:k(3, gi_register_thresholds)
+           tab:k(0, gi_harmony_thresholds),
+           tab:k(1, gi_harmony_thresholds),
+           tab:k(2, gi_harmony_thresholds),
+           tab:k(3, gi_harmony_thresholds)
     
     printsk "\t\t\t\tMovement thresholds: [%f, %f, %f, %f]\n",
            tab:k(0, gi_movement_thresholds),
@@ -28,7 +28,7 @@ opcode determineCurrentState, kkk, 0
     
     ; Get number of threshold points (should be 4 in our case, defining 3 regions)
     kDensityThresholdLen = ftlen(gi_density_thresholds)
-    kRegisterThresholdLen = ftlen(gi_register_thresholds)
+    kRegisterThresholdLen = ftlen(gi_harmony_thresholds)
     kMovementThresholdLen = ftlen(gi_movement_thresholds)
     ; IMPROVED: Check if input is below lowest threshold
     if gk_current_overlap < tab:k(0, gi_density_thresholds) then
@@ -54,17 +54,17 @@ opcode determineCurrentState, kkk, 0
     density_done:
     
     ; IMPROVED: Check if input is below lowest threshold
-    if gk_current_octave_spread < tab:k(0, gi_register_thresholds) then
+    if gk_current_octave_spread < tab:k(0, gi_harmony_thresholds) then
         kRegisterState = 0
     ; IMPROVED: Check if input is above highest threshold
-    elseif gk_current_octave_spread >= tab:k(kRegisterThresholdLen-1, gi_register_thresholds) then
+    elseif gk_current_octave_spread >= tab:k(kRegisterThresholdLen-1, gi_harmony_thresholds) then
         kRegisterState = kRegisterThresholdLen - 2 ; Last valid state index
     else
         ; Determine register state by checking each threshold pair
         kRegisterIdx = 0
         while kRegisterIdx < kRegisterThresholdLen-1 do
-            kLowerBound tab kRegisterIdx, gi_register_thresholds
-            kUpperBound tab kRegisterIdx+1, gi_register_thresholds
+            kLowerBound tab kRegisterIdx, gi_harmony_thresholds
+            kUpperBound tab kRegisterIdx+1, gi_harmony_thresholds
             
             if gk_current_octave_spread >= kLowerBound && gk_current_octave_spread < kUpperBound then
                 kRegisterState = kRegisterIdx

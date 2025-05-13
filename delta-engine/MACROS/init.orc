@@ -7,10 +7,15 @@
 ; INDICI E CONTATORI GLOBALI
 ; --------------------------------------------------------------------
 ; Indice che rappresenta eventi sonori nelle tabelle globali
-gi_Index init 0
+gi_Index init 1
 ; Condizioni iniziali
 gi_init_cond init 10
-gi_compId init 0
+
+gi_compId init 1
+;il comportamento deve partire per forza da 1
+;poiché ho findIndices UDO
+
+
 ; --------------------------------------------------------------------
 ; COSTANTI MATEMATICHE E AUDIO
 ; --------------------------------------------------------------------
@@ -88,8 +93,8 @@ gi_NUMComportamenti init 300    ; Capacità massima di comportamenti
 ; I dati raccolti influenzano la generazione dei nuovi eventi in "Comportamento" e
 ; costituiscono la base per le visualizzazioni generate da "AnalisiFinale".
 ;
-    gi_active_octaves ftgen 0, 0, $OTTAVE, -2, 0        ; Eventi per ottava
-    gi_active_registers ftgen 0, 0, $REGISTRI, -2, 0    ; Eventi per registro
+    ;gi_active_octaves ftgen 0, 0, $OTTAVE, -2, 0        ; Eventi per ottava
+    ;gi_active_registers ftgen 0, 0, $REGISTRI, -2, 0    ; Eventi per registro
     gi_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0  ; Matrice ottava/registro
     gi_cumulative_octave_register_matrix ftgen 0, 0, $OTTAVE * $REGISTRI, -2, 0
 
@@ -129,7 +134,7 @@ gi_NUMComportamenti init 300    ; Capacità massima di comportamenti
 ; tra diversi stati musicali, mentre le tabelle di storia memorizzano l'evoluzione degli stati.
 ;
     gi_density_thresholds ftgen 0, 0, 4, -2, 0, 30, 100, 300    ; Sparse, Medium, Dense
-    gi_register_thresholds ftgen 0, 0, 4, -2, 0, 0.3, 0.7, 1.001 ; Low, Mid, High
+    gi_harmony_thresholds ftgen 0, 0, 4, -2, 0, 0.3, 0.7, 1.001 ; Low, Mid, High
     gi_movement_thresholds ftgen 0, 0, 4, -2, 0, 0.2, 0.5, 1.001 ; Static, Moderate, Dynamic
 
     ; Sistema di memoria degli stati per il controllo della transizione

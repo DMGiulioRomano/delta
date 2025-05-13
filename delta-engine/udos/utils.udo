@@ -318,3 +318,30 @@ opcode STATE_MEM_2CSV, 0, k
     od 
 
 endop
+
+
+; Opcode per trovare tutti gli indici con un valore specifico
+; Restituisce una tabella con gli indici trovati e il conteggio
+opcode findIndices, i, ik
+    iTableNum, kValueToFind xin
+    ; Crea una tabella temporanea per memorizzare gli indici trovati
+    iOutputTable ftgen 0, 0, 100, -2, 0
+    kCount = 0
+    ; Cerca in tutta la tabella
+    kindex = 0
+    iTableSize = ftlen(iOutputTable)
+    while kindex < iTableSize do
+        kValue tab kindex, iTableNum
+        if kValue == kValueToFind then
+        ; Memorizza l'indice trovato nella tabella di output
+        tabw kindex, kCount, iOutputTable
+        kCount += 1
+        endif
+        kindex += 1
+    od
+    if gi_debug >= 5 then
+        println "for comportamento %d", kValueToFind
+        printMatrixK iOutputTable, 10, 10, "iOutputTable", 3, "\t\t\t"
+    endif
+    xout iOutputTable
+endop

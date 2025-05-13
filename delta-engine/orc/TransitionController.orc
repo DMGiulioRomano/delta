@@ -19,15 +19,6 @@ instr TransitionController
         initTransitionMatrix   ; Initialize state transition probability matrix
         ; Initialize adaptive learning system
         initializeAdaptiveSystem   
-
-        ; Initialize adaptive learning system
-        if (gi_debug >= 1) then
-            prints "Initializing adaptive learning system for transitions\n"
-        endif
-        
-        ; Record the initial musical state
-        recordCurrentState 
-        
         ; Start in a stable state - no active transition initially
         gi_tc_transition_active = 0
         gi_tc_next_behavior_time = 0
