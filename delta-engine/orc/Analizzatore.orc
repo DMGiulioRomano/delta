@@ -12,10 +12,12 @@ instr Analizzatore
         ; Calcolo del movimento spaziale
         kSumInverseRhythms = 0
         kActiveEventsCount = 0
-        PrintOctReg2x2, "\t\t\t"
+        if gi_debug >= 10 then 
+            PrintOctReg2x2, "\t\t\t"
+        endif
         println ""
         kIdxBC = 0
-        println "\t\tSEEING CLEAR! on tabs \n"
+        println(gi_debug >= 10?"\t\tSEEING CLEAR! on tabs \n":"")
         BigClear:
             kfn = iArr[kIdxBC]
             kLenTab = tableng(kfn)
@@ -24,8 +26,10 @@ instr Analizzatore
             Clear:
                 tablewkt 0, kIdxC, kfn 
             loop_lt kIdxC, 1, kLenTab, Clear  ; ripeti finché kidx < ksize 
-            printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
-            println ""
+            if gi_debug >= 10 then 
+                printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
+                println ""
+            endif
         loop_lt kIdxBC, 1, kLenBigClear, BigClear  ; ripeti finché kidx < ksize        
         kCompIdx = 1
 
@@ -62,11 +66,13 @@ instr Analizzatore
             kCompIdx+=1
         od
         kIdxBC = 0
-        println "\t\tSEEING WRITE on tabs!\n"
+        println(gi_debug >= 10?"\t\tSEEING WRITE on tabs!\n":"")
         PrintMatrix:
             kfn = iArr[kIdxBC]
             SfnName strcpyk SArr[kIdxBC] 
-            printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
+            if gi_debug >= 10 then 
+                printMatrixK kfn, $OTTAVE, $REGISTRI, SfnName, 3, "\t\t\t"
+            endif
         loop_lt kIdxBC, 1, lenarray(iArr), PrintMatrix 
 
         ; Inizializza variabili di conteggio e somma pesata
@@ -109,9 +115,10 @@ instr Analizzatore
             kSpectralCentroid = 0
         endif
         Sspace = "\t\t"
-        println "\t\tSEEING HARMONIC METRICS!\n"
-        println "%skHarmonicDensity: %f\n%skOctaveSpread:%f\n%skSpectralCentroid:%f",Sspace,kHarmonicDensity,Sspace,kOctaveSpread,Sspace,kSpectralCentroid
-
+        println(gi_debug >= 6?"\t\tSEEING HARMONIC METRICS!\n":"")
+        if gi_debug >= 6 then
+            println "%skHarmonicDensity: %f\n%skOctaveSpread:%f\n%skSpectralCentroid:%f",Sspace,kHarmonicDensity,Sspace,kOctaveSpread,Sspace,kSpectralCentroid
+        endif
         ; Calcola il movimento spaziale medio
         kCurrentSpatialMovement = (kActiveCompsCount > 0) ? kSumInverseRhythms / kActiveEventsCount : 0
 
@@ -123,7 +130,13 @@ instr Analizzatore
         gk_current_spatial_movement = kCurrentSpatialMovement  
         ; Memorizza il conteggio degli eventi attivi e il timestamp
         tabw gk_current_time, gk_analysis_index, gi_analysis_timepoints
-        
+
+        kDensityState, kRegisterState, kMovementState determineCurrentState 
+
+        gk_tc_current_density = kDensityState
+        gk_tc_current_register = kRegisterState
+        gk_tc_current_movement = kMovementState
+
         printks2 "\t\tgi_analysis_timepoints: %f\n", tab:k(gk_analysis_index,gi_analysis_timepoints)
         printks2 "\t\tgk_current_overlap: %f\n", gk_current_overlap
         printks2 "\t\tgk_current_harmonic_density: %f\n", gk_current_harmonic_density
@@ -157,7 +170,6 @@ instr Analizzatore
             printks2 "\t\t\tgi_memory_spectral_centroid: %f\n",  tab:k(kMemIdx,gi_memory_spectral_centroid)
             printks2 "\t\t\tgi_memory_spatial_movement: %f\n",  tab:k(kMemIdx,gi_memory_spatial_movement)
             
-            kDensityState, kRegisterState, kMovementState determineCurrentState 
             
             ; Questi qui sotto servono per :
             ; - Fornire accesso rapido agli stati recenti per rilevare pattern a breve termine
