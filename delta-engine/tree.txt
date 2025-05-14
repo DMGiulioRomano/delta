@@ -1,0 +1,140 @@
+.
+├── EnhancedSaveTransitionMatrix.orc
+├── MACROS
+│   ├── debug.orc
+│   └── init.orc
+├── Makefile
+├── README.md
+├── docs
+│   ├── analysis
+│   │   ├── learning_events.csv
+│   │   ├── memoryRAM.csv
+│   │   ├── plots
+│   │   ├── transition_quality_log.csv
+│   │   └── transitions
+│   ├── diagrams
+│   │   ├── current_diagram.md
+│   │   ├── diagramma_relazioni_tabelle_strumenti.txt
+│   │   └── harmonic_analysis.md
+│   ├── memoryRAMxMyTables.py
+│   ├── plot_all_params_memory.py
+│   ├── plot_overlap.py
+│   ├── visualize_harmony.py
+│   ├── visualize_memory.py
+│   ├── visualize_spatial_movement.py
+│   └── visualize_transition_matrix.py
+├── main2.csd
+├── orc
+│   ├── AnalisiFinale.orc
+│   ├── Analizzatore.orc
+│   ├── BehaviorWrapper.orc
+│   ├── Birth.orc
+│   ├── SaveTransitionMatrix.orc
+│   ├── TransitionAnalyzer.orc
+│   ├── TransitionController.orc
+│   ├── comportamento.orc
+│   └── eventoSonoro.orc
+├── requirements.txt
+├── tests
+│   ├── MACROS
+│   │   └── test_initDotOrc.csd
+│   ├── instr
+│   │   ├── Makefile
+│   │   ├── analizzatore.wav
+│   │   ├── docs
+│   │   ├── test_Analizzatore.csd
+│   │   ├── test_behaviorGenerator.csd
+│   │   ├── test_behaviorWrapper.csd
+│   │   ├── test_birth.csd
+│   │   ├── test_comportamento.csd
+│   │   └── test_eventoSonoro.csd
+│   ├── log.log
+│   ├── test_chaotic.py
+│   ├── test_nonLinearFunc.csd
+│   ├── udos
+│   │   ├── plot_interpolation.py
+│   │   ├── test_adaptLearningRate.csd
+│   │   ├── test_adaptTransitionParameters.csd
+│   │   ├── test_analyzeHarmonicMemory.csd
+│   │   ├── test_analyzeLearningSystem.csd
+│   │   ├── test_analyzeMemoryXoverlappDensity.csd
+│   │   ├── test_array_append.csd
+│   │   ├── test_assessTransitionQuality.csd
+│   │   ├── test_calculateTransitionDuration.csd
+│   │   ├── test_detectPatternsAndAdapt.csd
+│   │   ├── test_determineCurrentState.csd
+│   │   ├── test_explainNextState.csd
+│   │   ├── test_exportLearningHistory.csd
+│   │   ├── test_generateRhythmsForState.csd
+│   │   ├── test_improved_prediction.csd
+│   │   ├── test_improved_similarity.csd
+│   │   ├── test_initTransitionMatrix.csd
+│   │   ├── test_initializeAdaptiveSystem.csd
+│   │   ├── test_interpolateBehaviorTiming.csd
+│   │   ├── test_interpolateParameter.csd
+│   │   ├── test_interpolation.csd
+│   │   ├── test_mapDensityToHarmonicDuration.csd
+│   │   ├── test_mapParameterToState.csd
+│   │   ├── test_pfield_2.csd
+│   │   ├── test_pfield_amp.csd
+│   │   ├── test_pfield_freq.csd
+│   │   ├── test_predictNextState.csd
+│   │   ├── test_recordCurrentState.csd
+│   │   ├── test_recordTransition.csd
+│   │   ├── test_selectNextState.csd
+│   │   ├── test_storeTransitionBehaviorParameters.csd
+│   │   ├── test_suggestDurationFactor.csd
+│   │   ├── test_updateContextFeatures.csd
+│   │   ├── test_updateTransitionMatrix.csd
+│   │   ├── test_validator.csd
+│   │   ├── test_visualizeTransitionMatrix.csd
+│   │   └── visualize_interpolation.py
+│   └── utils
+│       ├── test_asciPrintMatrix.csd
+│       ├── test_bigClear.csd
+│       ├── test_follow.csd
+│       ├── test_fprints.csd
+│       ├── test_ftsave.csd
+│       ├── test_globalWithMacros.csd
+│       ├── test_tab2array2tempTab.csd
+│       ├── test_tab_tab.csd
+│       ├── test_table.csd
+│       ├── test_tableToArray.csd
+│       └── test_udo_0_argumetns.csd
+├── tree.txt
+└── udos
+    ├── GenPythagFreqs.udo
+    ├── asp_adaptLearningRate.udo
+    ├── asp_analyzeLearningSystem.udo
+    ├── asp_calculateContextSimilarity.udo
+    ├── asp_detectPatternsAndAdapt.udo
+    ├── asp_explainNextState.udo
+    ├── asp_exportLearningHistory.udo
+    ├── asp_initializeAdaptiveSystem.udo
+    ├── asp_predictNextState.udo
+    ├── asp_recordTransition.udo
+    ├── asp_updateContextFeatures.udo
+    ├── asp_updateTransitionMatrix.udo
+    ├── assessTransitionQuality.udo
+    ├── calcDurationFactor.udo
+    ├── determineCurrentState.udo
+    ├── initTransitionMatrix.udo
+    ├── interpolations.udo
+    ├── mapStateToParameter.udo
+    ├── nonLinearFunc.udo
+    ├── parameterInterpolation.udo
+    ├── pfield_comp.udo
+    ├── saveFtablesBehavior.udo
+    ├── selectNextState.udo
+    ├── tc_calculateTransitionduration.udo
+    ├── tc_generateTransitionBehavior.udo
+    ├── tc_interpolateBehaviorTiming.udo
+    ├── tc_interpolateParameter.udo
+    ├── tc_recordCurrentState.udo
+    ├── tc_storeTransitionBehaviorParameters.udo
+    ├── transControllerUtils.udo
+    ├── utils.udo
+    ├── validator.udo
+    └── visualizeTransitionMatrix.udo
+
+15 directories, 123 files
