@@ -2,15 +2,15 @@
 ; BEHAVIOR GENERATION WITH INTERPOLATED PARAMETERS - VERSIONE RISTRUTTURATA
 ; -----------------------------------------------------------------------
 opcode generateTransitionBehavior, 0, i
-    iProgress xin
+    kProgress xin
     
     ; Limitazione esplicita del progresso tra 0 e 1 per prevenire valori nan
-    iProgress = limit(iProgress, 0, 1)
+    kProgress = limit(kProgress, 0, 1)
     
     ; Interpolate between source and target states
-    iInterpolatedDensity interpolateParameter gi_tc_source_density, gi_tc_target_density, iProgress, 0.3
-    iInterpolatedRegister interpolateParameter gi_tc_source_register, gi_tc_target_register, iProgress, 0
-    iInterpolatedMovement interpolateParameter gi_tc_source_movement, gi_tc_target_movement, iProgress, -0.3
+    iInterpolatedDensity interpolateParameter gi_tc_source_density, gi_tc_target_density, kProgress, 0.3
+    iInterpolatedRegister interpolateParameter gi_tc_source_register, gi_tc_target_register, kProgress, 0
+    iInterpolatedMovement interpolateParameter gi_tc_source_movement, gi_tc_target_movement, kProgress, -0.3
 
     ; Limita esplicitamente i valori interpolati nel range [0,2]
     iInterpolatedDensity = limit(iInterpolatedDensity, 0, 2)
@@ -65,20 +65,20 @@ opcode generateTransitionBehavior, 0, i
     schedule "BehaviorWrapper", 0, 5, 0, iDuration, iIdComp
     
     ; Debug output
-    if (gi_debug >= 2) then
-        prints "Generated transition behavior at progress %.2f (ID %d):\n", iProgress, iIdComp
-        prints "  Density: %.2f, Register: %.2f, Movement: %.2f\n", 
+    if (gi_debug >= 6) then
+        println "Generated transition behavior at progress %.2f (ID %d):\n", kProgress, iIdComp
+        println "  Density: %.2f, Register: %.2f, Movement: %.2f\n", 
                iInterpolatedDensity, iInterpolatedRegister, iInterpolatedMovement
-        prints "  Duration: %.1f, Harmonic Duration: %.1f\n", 
+        println "  Duration: %.1f, Harmonic Duration: %.1f\n", 
                iDuration, iHarmonicDuration
-        prints "  Octave: %d, Register: %d, Amplitude: %.1f\n", 
+        println "  Octave: %d, Register: %d, Amplitude: %.1f\n", 
                iOctave, iRegister, iAmplitude
         iIdx = 0
         while (iIdx < iRhythmSize) do
-            prints "Rhythm val: %d for idx %d", iRhythms[iIdx], iIdx
+            println "Rhythm val: %d for idx %d", iRhythms[iIdx], iIdx
         od
         while (iIdx < iRhythmSize) do
-            prints "Positions val: %d for idx %d", iPositions[iIdx], iIdx
+            println "Positions val: %d for idx %d", iPositions[iIdx], iIdx
         od
     endif
 endop

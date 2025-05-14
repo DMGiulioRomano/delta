@@ -3,7 +3,7 @@ opcode updateContextFeatures, 0, 0
     ; Extract current musical context features
     
     ; Normalize context features with safety bounds checking
-    iNormOverlap = limit(gi_current_overlap / 10, 0, 1)  ; Assuming max overlap of 10
+    iNormOverlap = limit(gi_current_overlap / 100, 0, 1)  ; Assuming max overlap of 10
     iNormSpread = limit(gi_current_octave_spread, 0, 1)        ; Already 0-1
     iNormCentroid = limit(gi_current_spectral_centroid / 10, 0, 1) ; Normalized to 0-1
     iNormDynamism = limit(gi_current_spatial_movement, 0, 1)     ; Assuming 0-1 range
