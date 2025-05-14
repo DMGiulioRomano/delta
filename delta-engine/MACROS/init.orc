@@ -160,8 +160,8 @@ gi_NUMComportamenti init 300    ; Capacità massima di comportamenti
 ; -----------------------------------------------------------------------
 ; GLOBAL VARIABLES FOR TRANSITION CONTROLLER
 ; -----------------------------------------------------------------------
-gi_tc_transition_active init 0      ; Flag indicating if transition is active (0=no, 1=yes)
-gi_tc_transition_progress init 0    ; Progress of current transition (0.0 to 1.0)
+gk_tc_transition_active init 0      ; Flag indicating if transition is active (0=no, 1=yes)
+gk_tc_transition_progress init 0    ; Progress of current transition (0.0 to 1.0)
 gi_tc_transition_duration init 0    ; Duration of current transition in seconds
 gi_tc_transition_start_time init 0  ; Start time of current transition
 gi_tc_transition_count init 0       ; Counter for completed transitions
@@ -177,12 +177,12 @@ gi_tc_target_register init 0
 gi_tc_target_movement init 0
 
 ; Current interpolated state parameters
-gi_tc_current_density init 0
-gi_tc_current_register init 0 
-gi_tc_current_movement init 0
+gk_tc_current_density init 0
+gk_tc_current_register init 0 
+gk_tc_current_movement init 0
 
 ; Transition type parameters
-gi_tc_transition_mode init 1      ; 0.0=sudden, 1.0=gradual
+gk_tc_transition_mode init 0      ; 0.0=sudden, 1.0=gradual
 gi_tc_transition_randomness init 0.2  ; Randomness factor (0.0-1.0)
 
 ; Memory of past states for trend analysis and avoiding repetition
@@ -208,9 +208,9 @@ gi_tc_deviation_movement ftgen 0, 0, 100, -2, 0       ; New table
 gi_tc_transition_quality init 1.0                  ; Measure of transition effectiveness (0.0-1.0)
 
 ; Behavior scheduling control
-gi_tc_next_behavior_time init 0    ; Time to schedule next behavior
-gi_tc_min_behavior_interval init 3 ; Minimum time between behaviors in seconds
-gi_tc_max_behavior_interval init 10 ; Maximum time between behaviors in seconds
+gk_tc_next_behavior_time init 0    ; Time to schedule next behavior
+gi_tc_min_behavior_interval init .02 ; Minimum time between behaviors in seconds
+gi_tc_max_behavior_interval init 30 ; Maximum time between behaviors in seconds
 
 ; Transition stability control
 gi_tc_stability_threshold init 0.7  ; Threshold for considering a state stable
