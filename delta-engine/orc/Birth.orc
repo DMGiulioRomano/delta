@@ -17,13 +17,14 @@ instr Birth
     endif
 
     ; Calcola la distanza euclidea dallo stato zero
+    ; d = √[(x₂-x₁)² + (y₂-y₁)² + (z₂-z₁)²] --> x₁,y₁,z₁ sono tutti = 0
     iDistance = sqrt((iTargetDensity^2) + (iTargetRegister^2) + (iTargetMovement^2))
     iMaxDistance = sqrt(12)  ; √(2²+2²+2²)
     iNormalizedDistance = iDistance / iMaxDistance  ; 0-1 range
 
     ; Calcola la durata della transizione con RELAZIONE INVERSA
-    iMinDuration = 3    ; Durata minima (secondi)
-    iMaxDuration = 20   ; Durata massima (secondi)
+    iMinDuration = 3.0    ; Durata minima (secondi)
+    iMaxDuration = 20.0   ; Durata massima (secondi)
     
     ; Formula inversa: maggiore distanza = minore durata
     iDuration = iMaxDuration * (1 - iNormalizedDistance) + iMinDuration
@@ -37,11 +38,11 @@ instr Birth
     gi_tc_target_register = iTargetRegister
     gi_tc_target_movement = iTargetMovement
     
-    gi_tc_transition_active = 1
+    gk_tc_transition_active = 1
     gi_tc_transition_duration = iDuration
     gi_tc_transition_start_time times
-    gi_tc_transition_progress = 0
-    gi_tc_transition_mode = 1        ; Modalità graduale per l'inizio
+    gk_tc_transition_progress = 0
+    gk_tc_transition_mode = 1        ; Modalità graduale per l'inizio
     gi_tc_transition_randomness = 0.1 ; Poca randomizzazione all'inizio
  
     ; Inizializza il percorso di stato atteso
@@ -74,7 +75,7 @@ instr Birth
     endif
     
     ; Avvia immediatamente il generatore di behavior
-    ;event_i "i", "BehaviorGenerator", 0, 0.1
+    event_i "i", "BehaviorGenerator", 0, gi_tc_transition_duration
     
     ; Schedula il primo TransitionDecider dopo questa transizione
     ;event_i "i", "TransitionDecider", iDuration + 5, 0.1
