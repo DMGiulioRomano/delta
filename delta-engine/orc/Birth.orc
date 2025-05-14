@@ -8,8 +8,9 @@ instr Birth
     ; Inizializza sistema di transizione se necessario
     initTransitionMatrix
     ; Seleziona il primo stato attraverso la matrice di transizione
-    iTargetDensity, iTargetRegister, iTargetMovement selectNextState
-
+    iTargetDens, iTargetRegist, iTargetMovem selectNextState
+    iTargetDensity, iTargetRegister, iTargetMovement instantiate iTargetDens, iTargetRegist, iTargetMovem
+    
     ; Stampa lo stato selezionato per debug
     if (i_debug >= 1) then
         prints "Birth: Stato iniziale selezionato [%d,%d,%d]\n", 

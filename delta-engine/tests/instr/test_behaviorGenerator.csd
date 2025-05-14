@@ -85,13 +85,13 @@ instr BehaviorGenerator
             kExpectedRegister = tab(kProgressIndex, gi_tc_expected_state_register)
             kExpectedMovement = tab(kProgressIndex, gi_tc_expected_state_movement) 
             ; Calculate deviation
-            iDensityDeviation = abs(gk_tc_current_density - kExpectedDensity)
+            kDensityDeviation = abs(gk_tc_current_density - kExpectedDensity)
             kRegisterDeviation = abs(gk_tc_current_register - kExpectedRegister)
             kMovementDeviation = abs(gk_tc_current_movement - kExpectedMovement)
 
-            iMaxDeviation = max(iDensityDeviation, max(iRegisterDeviation, iMovementDeviation))
+            kMaxDeviation = max(kDensityDeviation, max(kRegisterDeviation, kMovementDeviation))
 
-            if (k_progress >= 0.15 && i_elapsed_time >= gi_tc_last_adjustment_time + 5 && iMaxDeviation >= 1) then
+            if (k_progress >= 0.15 && k_elapsed_time >= gi_tc_last_adjustment_time + 5 && kMaxDeviation >= 1) then
                 ; in generale c'è il problema che gk_tc_current_* è un int discreto mentre kExpected* 
                 ; si basa sui valori dell'interpolazione cubica. bisogna trovare un modo per descrivere
                 ; in maniera interpolata la transizione.
