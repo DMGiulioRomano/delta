@@ -46,6 +46,7 @@ instr Analizzatore
                     kM_idx= k_octReg[0] * $REGISTRI + k_octReg[1]
                     tablewkt(tablekt(kM_idx, kfn) + ((k_octReg[0] >= 0 && k_octReg[1] >=0) ? 1 : 0), k_octReg[0] * $REGISTRI + k_octReg[1], kfn)
                 loop_lt kIdxBC, 1, lenarray(iArr), Matrix
+                ; OSSERVIAMO LO SPOSTAMENTO IN FUNZIONE DEGLI HR DI OGNI EVENTO SONORO ATTIVO.
                 iTmpTable findIndices gi_eve_comportamento, kCompIdx
                 k_iter = 0
                 while k_iter < ftlen(iTmpTable) do 
@@ -79,7 +80,7 @@ instr Analizzatore
         kActiveOctaves        = 0    ; quante ottave hanno almeno un evento
         kActiveRegisters      = 0    ; conteggio totale di celle (ottava×registro) attive
         kWeightedRegisterSum  = 0    ; somma pesata degli indici ottava×registro per il centroide
-        kTotalRegisterComp  = 0    ; somma di tutti gli eventi (valori) nella matrice
+        kTotalRegisterComp  = 0    ; somma di tutti i registri (valori) nella matrice
 
         kOctIdx = 0
         while kOctIdx < $OTTAVE do
