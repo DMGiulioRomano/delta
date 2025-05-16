@@ -1,22 +1,22 @@
 ; Linear interpolation with optional curve shaping
-opcode interpolateParameter, i, iiii
-    iSourceValue, iTargetValue, iProgress, iCurve xin
+opcode interpolateParameter, k, iikk
+    iSourceValue, iTargetValue, kProgress, kCurve xin
     
     ; Apply transition curve if specified (default is linear)
-    iMappedProgress = iProgress
-    if (iCurve != 0) then
+    kMappedProgress = kProgress
+    if (kCurve != 0) then
         ; Positive curve = slow start, fast end (ease-in)
         ; Negative curve = fast start, slow end (ease-out)
-        if (iCurve > 0) then
-            iMappedProgress = pow(iProgress, 1 + iCurve)
+        if (kCurve > 0) then
+            kMappedProgress = pow(kProgress, 1 + kCurve)
         else
-            iMappedProgress = 1 - pow(1 - iProgress, 1 - iCurve)
+            kMappedProgress = 1 - pow(1 - kProgress, 1 - kCurve)
         endif
     endif
     
     ; Perform the interpolation
-    iResult = iSourceValue + (iTargetValue - iSourceValue) * iMappedProgress
+    kResult = iSourceValue + (iTargetValue - iSourceValue) * kMappedProgress
     
-    xout iResult
+    xout kResult
 endop
 
