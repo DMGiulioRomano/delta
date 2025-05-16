@@ -1,32 +1,32 @@
 ; Versione continua e rivista di mapDensityToHarmonicDuration
-opcode mapDensityToHarmonicDuration, i, i
-    iDensityState xin
+opcode mapDensityToHarmonicDuration, k, k
+    kDensityState xin
     
-    ; Range continuo per durata armonica
-    ; Sparse (0) = durate lunghe (40-70 sec)
-    ; Medium (1) = durate medie (20-40 sec)
-    ; Dense (2) = durate brevi (5-10 sec)
+    ; Range continuo per durata armonica su spettro continuo di densità
+    ; Densità 0.0-0.5 (molto sparsa) = durate lunghe (50-70 sec)
+    ; Densità 0.5-1.5 (media) = durate medie (15-50 sec)
+    ; Densità 1.5-2.999 (densa) = durate brevi (5-15 sec)
     
     ; Normalizza lo stato di densità in un valore continuo da 0 a 1
-    iNormalizedDensity = limit:i(iDensityState / 2.0, 0, 1)
+    kNormalizedDensity = limit:k(kDensityState / 2.999, 0, 1)
     
     ; Calcola durata usando una curva esponenziale inversa
     ; Più denso = durata più breve (relazione inversa)
-    iMaxDuration = 70  ; Durata massima per stato sparso
-    iMinDuration = 5   ; Durata minima per stato denso
+    kMaxDuration = 70  ; Durata massima per stato sparso
+    kMinDuration = 5   ; Durata minima per stato denso
 
     ; Curva esponenziale per transizione più naturale
-    iExponentialFactor = 1 - (pow(iNormalizedDensity, 1.5))  ; Più pronunciata verso il denso
-    iBaseDuration = iMinDuration + (iMaxDuration - iMinDuration) * iExponentialFactor
+    kExponentialFactor = 1 - (pow(kNormalizedDensity, 1.5))  ; Più pronunciata verso il denso
+    kBaseDuration = kMinDuration + (kMaxDuration - kMinDuration) * kExponentialFactor
     
     ; Aggiungi variazione casuale proporzionale alla durata di base
-    iVariationRange = iBaseDuration * 0.15  ; 15% di variazione
-    iDuration = iBaseDuration + random(-iVariationRange, iVariationRange)
+    kVariationRange = kBaseDuration * 0.1  ; 10% di variazione
+    kDuration = kBaseDuration + random(-kVariationRange, kVariationRange)
     
     ; Assicurati che la durata resti entro limiti ragionevoli
-    iDuration = limit:i(iDuration, iMinDuration, iMaxDuration)
+    kDuration = limit:k(kDuration, kMinDuration, kMaxDuration)
     
-    xout iDuration
+    xout kDuration
 endop
 
 ; Fixed version of the complex generateRhythmsForState function
