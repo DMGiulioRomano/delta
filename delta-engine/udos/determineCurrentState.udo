@@ -27,7 +27,7 @@ opcode determineCurrentState, kkk, 0
     kInvertedSpread = 1 - gk_current_octave_spread
     
     ;octave spread va da .1 a .9 poerché è ott_attive/$OTTAVE
-    kMinRegMap = 10           ; Minimo valore rimappato
+    kMinRegMap = 1           ; Minimo valore rimappato
     kMaxRegMap = 90         ; Massimo valore rimappato
     
     ; Rimappa octave_spread invertito da [0,1] a [kMinRegMap,kMaxRegMap]
@@ -43,7 +43,7 @@ opcode determineCurrentState, kkk, 0
     ; ----------------------------------------------
     kMinMovMap = 1           ; Minimo valore rimappato
     kMaxMovMap = 35         ; Massimo valore rimappato
-    
+
     ; Rimappa spatial_movement da [0,1] a [kMinMovMap,kMaxMovMap]
     kMappedMovement = kMinMovMap + gk_current_spatial_movement * (kMaxMovMap - kMinMovMap)
     

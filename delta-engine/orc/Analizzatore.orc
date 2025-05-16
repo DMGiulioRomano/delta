@@ -187,10 +187,9 @@ instr Analizzatore
             tabw kDensityState, kMemIdx, gi_memory_state_density
             tabw kRegisterState, kMemIdx, gi_memory_state_register
             tabw kMovementState, kMemIdx, gi_memory_state_movement
-            println "\t\t\tSTATE INSIDE MEMRES"
-            println "\t\t\tkDensityState: %d",kDensityState
-            println "\t\t\tkRegisterState: %d",kRegisterState
-            println "\t\t\tkMovementState: %d",kMovementState
+            println "\t\t\tkDensityState: %f",kDensityState
+            println "\t\t\tkRegisterState: %f",kRegisterState
+            println "\t\t\tkMovementState: %f",kMovementState
             STATE_MEM_2CSV gk_current_time            
         endif
         printsk "\n========================== close instr Analizzatore if MemRes *PERF-PASS*\n"

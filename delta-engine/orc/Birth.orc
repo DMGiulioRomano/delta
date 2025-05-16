@@ -9,18 +9,18 @@ instr Birth
     initTransitionMatrix
     ; Seleziona il primo stato attraverso la matrice di transizione
     iTargetDens, iTargetRegist, iTargetMovem selectNextState
-    iTargetDensity, iTargetRegister, iTargetMovement instantiate iTargetDens, iTargetRegist, iTargetMovem
+    iTargetDensity, iTargetRegister, iTargetMovement instantiateState iTargetDens, iTargetRegist, iTargetMovem
     
     ; Stampa lo stato selezionato per debug
     if (i_debug >= 1) then
         prints "Birth: Stato iniziale selezionato [%d,%d,%d]\n", 
-               iTargetDensity, iTargetRegister, iTargetMovement
+               iTargetDens, iTargetRegist, iTargetMovem
     endif
 
     ; Calcola la distanza euclidea dallo stato zero
     ; d = √[(x₂-x₁)² + (y₂-y₁)² + (z₂-z₁)²] --> x₁,y₁,z₁ sono tutti = 0
     iDistance = sqrt((iTargetDensity^2) + (iTargetRegister^2) + (iTargetMovement^2))
-    iMaxDistance = sqrt(12)  ; √(2²+2²+2²)
+    iMaxDistance = sqrt((2.999^2)+(2.999^2)+(2.999^2))  ; √(2²+2²+2²)
     iNormalizedDistance = iDistance / iMaxDistance  ; 0-1 range
 
     ; Calcola la durata della transizione con RELAZIONE INVERSA
@@ -45,7 +45,7 @@ instr Birth
     gk_tc_transition_progress = 0
     gk_tc_transition_mode = 1        ; Modalità graduale per l'inizio
     gi_tc_transition_randomness = 0.1 ; Poca randomizzazione all'inizio
- 
+
     ; Inizializza il percorso di stato atteso
     iIdx = 0
     while (iIdx < 100) do
@@ -68,7 +68,7 @@ instr Birth
     ; Stampa informazioni sulla transizione
     if (i_debug >= 1) then
         prints "Birth: Inizializzata transizione con durata %.1f secondi\n", iDuration
-        prints "Birth: Distanza calcolata: %.2f (max: %.2f)\n", iDistance, iMaxDistance
+        prints "Birth: iDistance: %f (iMaxDistance: %f)\n", iDistance, iMaxDistance
         prints "risultati dell'interpolazione:\n"
         printMatrixI gi_tc_expected_state_density, ftlen(gi_tc_expected_state_density)/10, ftlen(gi_tc_expected_state_density)/10, "gi_tc_expected_state_density", 3, "\t"
         printMatrixI gi_tc_expected_state_register, ftlen(gi_tc_expected_state_register)/10, ftlen(gi_tc_expected_state_register)/10, "gi_tc_expected_state_register", 3, "\t"
