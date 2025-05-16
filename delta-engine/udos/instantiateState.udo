@@ -36,7 +36,7 @@ opcode instantiateState, iii, iii
     
     ; Output per debug se necessario
     if gi_debug >= 2 then
-        prints "instantiateState: Classe [%d,%d,%d] → Istanza [%.3f,%.3f,%.3f]",
+        prints "instantiateState: Classe [%d,%d,%d] → Istanza [%.3f,%.3f,%.3f]\n",
                iDensityClass, iRegisterClass, iMovementClass,
                iDensityContinuous, iRegisterContinuous, iMovementContinuous
     endif
