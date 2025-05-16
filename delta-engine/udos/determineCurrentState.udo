@@ -21,23 +21,23 @@ opcode determineCurrentState, kkk, 0
     kDensityState = (log(kSafeOverlap) - kLogMin) / kLogRange * 2.999
     kDensityState = limit(kDensityState, 0, 2.999)
     
-    ; CALCOLO STATO REGISTRO (CONTINUO, LOGARITMICO CON RIMAPPATURA)
+    ; CALCOLO STATO ARMONICO (CONTINUO, LOGARITMICO CON RIMAPPATURA)
     ; ----------------------------------------------
     ; INVERSIONE DEL VALORE DI SPREAD (alto->basso, basso->alto)
     kInvertedSpread = 1 - gk_current_octave_spread
-    
-    ;octave spread va da .1 a .9 poerché è ott_attive/$OTTAVE
-    kMinRegMap = 1           ; Minimo valore rimappato
-    kMaxRegMap = 90         ; Massimo valore rimappato
-    
+
+    ; Usa un range più ristretto per la rimappatura
+    kMinRegMap = 2           ; Minimo valore rimappato
+    kMaxRegMap = 30          ; Massimo valore rimappato (ridotto da 90)
+
     ; Rimappa octave_spread invertito da [0,1] a [kMinRegMap,kMaxRegMap]
     kMappedSpread = kMinRegMap + kInvertedSpread * (kMaxRegMap - kMinRegMap)
-    
+
     ; Applica trasformazione logaritmica al valore rimappato
     kLogMin = log(kMinRegMap)
     kLogMax = log(kMaxRegMap)
     kLogRange = kLogMax - kLogMin
-    kRegisterState = (log(kMappedSpread) - kLogMin) / kLogRange * 2.999
+    kHarmonicState = (log(kMappedSpread) - kLogMin) / kLogRange * 2.999
     
     ; CALCOLO STATO MOVIMENTO (CONTINUO, LOGARITMICO CON RIMAPPATURA)
     ; ----------------------------------------------
@@ -67,5 +67,5 @@ opcode determineCurrentState, kkk, 0
     endif
     
     println "\t\t\t--- close determineCurrentState"
-    xout kDensityState, kRegisterState, kMovementState
+    xout kDensityState, kHarmonicState, kMovementState
 endop
