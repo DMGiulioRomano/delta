@@ -16,7 +16,8 @@ opcode generateTransitionBehavior, 0, k
     kInterpolatedMovement = limit:k(kInterpolatedMovement, 0, 2.999)
 
     if gi_debug >=5 then 
-        println "\t\t\t\t\tkInterpolatedDensity %f\n\t\t\t\t\tkInterpolatedRegister %f\n\t\t\t\t\tkInterpolatedMovement %f", kInterpolatedDensity, kInterpolatedRegister, kInterpolatedMovement
+        println "\t\t\t\t\tkInterpolatedDensity %f\n\t\t\t\t\tkInterpolatedRegister %f\n\t\t\t\t\tkInterpolatedMovement %f", 
+            kInterpolatedDensity, kInterpolatedRegister, kInterpolatedMovement
     endif
     ; Now map these state values to actual musical parameters
     
@@ -26,7 +27,6 @@ opcode generateTransitionBehavior, 0, k
         println "\t\t\t\t\tkHarmonicDuration %f", kHarmonicDuration
     endif
 
-    println "\t\t\t\t--- close generateTransitionBehavior"
     /*
     ; 2. Octave and Register parameters
     iMinOctave, iMaxOctave mapStateToParameter kInterpolatedRegister, "register"
@@ -88,4 +88,5 @@ opcode generateTransitionBehavior, 0, k
         od
     endif
     */
+    println "\t\t\t\t--- close generateTransitionBehavior"
 endop
