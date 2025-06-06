@@ -345,3 +345,63 @@ opcode findIndices, i, ik
     endif
     xout iOutputTable
 endop
+
+; =================================================================
+; concatDisc3D1D - Riduzione dimensionale 3D a 1D tramite concatenazione discretizzata
+; =================================================================
+; Riduce tre parametri (centroide, densità, spread) a un singolo valore 
+; mediante discretizzazione e concatenazione degli indici.
+;
+; INPUT:
+;   iCentroide - valore del centroide spettrale (0-1)
+;   iDensita   - valore della densità armonica (0-1)
+;   iSpread    - valore dello spread di ottave (0-1)
+;   iLivelliK  - parametro di discretizzazione (opzionale, default=50)
+;
+; OUTPUT:
+;   iStatoArmonico - valore unico normalizzato (0-1)
+; =================================================================
+opcode concatDisc3D1D, i, iiio
+  iCentroide, iDensita, iSpread, iLivelliK xin
+  
+  ; Imposta valore predefinito per iLivelliK se non specificato
+  iLivelliK = (iLivelliK == 0) ? 100 : iLivelliK
+  
+  ; Assicura che i valori di input siano nell'intervallo [0,1]
+  iCentroide = limit(iCentroide, 0, 1)
+  iDensita = limit(iDensita, 0, 1)
+  iSpread = limit(iSpread, 0, 1)
+  
+  ; Discretizza ogni parametro in 'iLivelliK' livelli (0 a K-1)
+  iCentroideInt = round(iCentroide * (iLivelliK - 1))
+  iDensitaInt = round(iDensita * (iLivelliK - 1))
+  iSpreadInt = round(iSpread * (iLivelliK - 1))
+  
+  ; Limita gli indici nel range [0, K-1] per sicurezza
+  iCentroideInt = limit(iCentroideInt, 0, iLivelliK - 1)
+  iDensitaInt = limit(iDensitaInt, 0, iLivelliK - 1)
+  iSpreadInt = limit(iSpreadInt, 0, iLivelliK - 1)
+  
+  ; Combina gli indici in un valore intero unico
+  ; Ordine di importanza: Centroide > Densità > Spread
+  iValoreUnicoInt = (iCentroideInt * (iLivelliK * iLivelliK) + 
+                     iDensitaInt * iLivelliK + 
+                     iSpreadInt)
+  
+  ; Calcola il valore massimo possibile per la normalizzazione
+  iMaxValInt = ((iLivelliK - 1) * (iLivelliK * iLivelliK) + 
+                (iLivelliK - 1) * iLivelliK + 
+                (iLivelliK - 1))
+  
+  ; Normalizza il valore nell'intervallo [0, 1]
+  iStatoArmonico = (iMaxValInt > 0) ? iValoreUnicoInt / iMaxValInt : 0
+  
+  ; Debug output se gi_debug ≥ 2
+  if gi_debug >= 2 then
+    prints "concatDisc3D1D: C:%.3f, D:%.3f, S:%.3f → Indici: (%d,%d,%d) → Val: %d → Stato: %.4f\n",
+           iCentroide, iDensita, iSpread, iCentroideInt, iDensitaInt, iSpreadInt, 
+           iValoreUnicoInt, iStatoArmonico
+  endif
+  
+  xout iStatoArmonico
+endop

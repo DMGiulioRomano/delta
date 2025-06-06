@@ -1,7 +1,7 @@
 <CsoundSynthesizer>
 <CsOptions>
 ;-n 
--o "analizzatore.wav" -W
+-o "behaviorGenerator.wav" -W
 -d
 
 </CsOptions>
@@ -24,9 +24,14 @@ seed 0
 #include "../../udos/initTransitionMatrix.udo"
 #include "../../udos/saveFtablesBehavior.udo"                       
 #include "../../udos/determineCurrentState.udo"
+#include "../../udos/tc_interpolateParameter.udo"
 #include "../../udos/tc_storeTransitionBehaviorParameters.udo"
+#include "../../udos/parameterInterpolation.udo"
+#include "../../udos/tc_generateTransitionBehavior.udo"
+
 #include "../../udos/interpolations.udo"
 #include "../../udos/selectNextState.udo"
+#include "../../udos/instantiateState.udo"
 
 ; Include the instruments we're testing
 #include "../../orc/eventoSonoro.orc"                               ; instr 1
@@ -56,14 +61,15 @@ endin
 
 instr BehaviorGenerator
     prints "\n========================== open BehaviorGenerator *INIT-PASS*\n\n"
-    i_tc_debug = gi_debug
+    k_tc_debug = 6;gi_debug
     idur = p3
     kTrig metro 10
     ; Check if transition is active
     if kTrig == 1 then
         println "\n========================== open BehaviorGenerator *PERF-PASS*\n\n"
-        println "\tcurrent time=%.2f, next_time=%.2f, active=%d\n", 
-            gk_current_time, gk_tc_next_behavior_time, gk_tc_transition_active
+        println "\t\tk-cycle: %d and a-cycle: %d at abs time: %f\n", gk_current_time*kr, gk_current_time*sr, gk_current_time
+        println "\t\tnext_behavior_time=%.2f, active=%d\n", 
+            gk_tc_next_behavior_time, gk_tc_transition_active
         if (gk_tc_transition_active == 0) then
             turnoff
         endif
@@ -71,8 +77,8 @@ instr BehaviorGenerator
         k_elapsed_time = gk_current_time - gi_tc_transition_start_time
         k_progress = k_elapsed_time / gi_tc_transition_duration
         gk_tc_transition_progress = k_progress
-        if i_tc_debug >= 6 then
-            println "\tgi_tc_transition_duration %f\n\tk_elapsed_time %f\n\tk_progress %f\n\tgk_tc_transition_progress %f",
+        if k_tc_debug >= 6 then
+            println "\t\tgi_tc_transition_duration %f\n\t\tk_elapsed_time %f\n\t\tk_progress %f\n\t\tgk_tc_transition_progress %f",
                 gi_tc_transition_duration, k_elapsed_time, k_progress, gk_tc_transition_progress
         endif
 
@@ -80,6 +86,7 @@ instr BehaviorGenerator
         if (gk_tc_transition_active == 1) then
             ; Get current progress percentage (0-99)
             kProgressIndex = limit(int(k_progress * 100), 0, 99)
+            println "kProgressIndex %f", kProgressIndex
             ; Get expected state at this point in the transition
             kExpectedDensity = tab(kProgressIndex, gi_tc_expected_state_density)
             kExpectedRegister = tab(kProgressIndex, gi_tc_expected_state_register)
@@ -110,15 +117,15 @@ instr BehaviorGenerator
                 ; Generate interpolated parameters based on transition progress
                 println "\t\t\t\tk_progress %f",k_progress
                 generateTransitionBehavior k_progress
-                
+/*                
                 ; Calculate time for next behavior
                 k_behavior_interval interpolateBehaviorTiming k_progress
                 gk_tc_next_behavior_time = k_progress + k_behavior_interval
-                
+*/                
                 if (k_tc_debug >= 2) then
-                    println "\t\t\t\tGenerated behavior at time %.1f (progress: %.2f)\n", 
-                        gk_current_time, i_progress
-                    prints "\t\t\t\tNext behavior scheduled at +%.1f seconds\n", k_behavior_interval
+                    println "\t\t\t\tGenerated behavior at time %.3f (progress: %.2f)\n", 
+                        gk_current_time, k_progress
+                    ;prints "\t\t\t\tNext behavior scheduled at +%.1f seconds\n", k_behavior_interval
                 endif
             endif
 
@@ -319,7 +326,7 @@ f2 0 [2^20] 6 0 [2^19] .5 [2^19] 1
 ; Test each context mode sequentially
 i "initial" 0 1
 i "Birth" 0 1
-e
+e 100
 i "TestGenerator" 0 60 ; Test with dense context
 e 20
 </CsScore>
