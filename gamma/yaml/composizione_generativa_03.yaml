@@ -1,0 +1,78 @@
+# Nome della composizione
+COMPOSITION_NAME: "composizione_generativa_03"
+
+# Lista delle sezioni
+COMPOSIZIONE:
+  - nome_sezione: "I. Nascita Lenta di Cluster"
+    durata: 90
+    num_attivazioni: 20
+    timing_model:
+      type: "accelerando"
+      shape: 2.0
+    stato_iniziale:
+      ottava: {range: [0, 2], distribution: "uniform"}
+      registro: {range: [1, 3], distribution: "uniform"}
+      ampiezza_db: {range: [-35, -30], distribution: "uniform"}
+      durata_armonica: {range: [40, 60]}
+      densita_cluster: {range: [1, 3]}
+      spread_spettrale: {range: [0.1, 0.5]}
+      tipo_ritmi: {choices: ["grandi", "misti"], weights: [0.9, 0.1]}
+      nonlinear_mode: {choices: [0, 1], weights: [0.8, 0.2]}
+    stato_finale:
+      ottava: {range: [3, 5], distribution: "uniform"}
+      registro: {range: [4, 7], distribution: "uniform"}
+      ampiezza_db: {range: [-20, -15], distribution: "uniform"}
+      durata_armonica: {range: [7, 12]}
+      densita_cluster: {range: [8, 15]}
+      spread_spettrale: {range: [1.5, 2.5]}
+      tipo_ritmi: {choices: ["medi", "misti"], weights: [0.6, 0.4]}
+      nonlinear_mode: {choices: [1, 2], weights: [0.4, 0.6]}
+
+  - nome_sezione: "II. Pioggia Stocastica"
+    durata: 60
+    num_attivazioni: 150
+    timing_model:
+      type: "stochastic"
+    stato_iniziale:
+      ottava: {range: [5, 9], distribution: "uniform"}
+      registro: {range: [1, 10], distribution: "uniform"}
+      ampiezza_db: {mean: -26, std: 4, distribution: "normal"}
+      durata_armonica: {range: [3, 8]}
+      densita_cluster: {range: [1, 1]}
+      spread_spettrale: {range: [0, 0]}
+      tipo_ritmi: {choices: ["piccoli", "misti"], weights: [0.9, 0.1]}
+      nonlinear_mode: {choices: [2, 3], weights: [0.5, 0.5]}
+    stato_finale:
+      ottava: {range: [4, 7], distribution: "uniform"}
+      registro: {range: [3, 8], distribution: "uniform"}
+      ampiezza_db: {mean: -30, std: 2, distribution: "normal"}
+      durata_armonica: {range: [8, 15]}
+      densita_cluster: {range: [1, 2]}
+      spread_spettrale: {range: [0, 0]}
+      tipo_ritmi: {choices: ["piccoli"], weights: [1.0]}
+      nonlinear_mode: {choices: [0], weights: [1.0]}
+
+  - nome_sezione: "III. costa Crociera"
+    durata: 70
+    num_attivazioni: 30
+    timing_model:
+      type: "accelerando"
+      shape: 2.0
+    stato_iniziale:
+      ottava: {range: [8, 9], distribution: "uniform"}
+      registro: {range: [1, 10], distribution: "uniform"}
+      ampiezza_db: {mean: -32, std: 4, distribution: "normal"}
+      durata_armonica: {range: [3, 8]}
+      densita_cluster: {range: [1, 1]}
+      spread_spettrale: {range: [0, 0]}
+      tipo_ritmi: {choices: ["piccoli", "misti"], weights: [0.9, 0.1]}
+      nonlinear_mode: {choices: [2, 3], weights: [0.5, 0.5]}
+    stato_finale:
+      ottava: {range: [7, 8], distribution: "uniform"}
+      registro: {range: [3, 5], distribution: "uniform"}
+      ampiezza_db: {mean: -24, std: 2, distribution: "normal"}
+      durata_armonica: {range: [8, 15]}
+      densita_cluster: {range: [10, 15]}
+      spread_spettrale: {range: [0, 0]}
+      tipo_ritmi: {choices: ["piccoli"], weights: [1.0]}
+      nonlinear_mode: {choices: [0], weights: [1.0]}
