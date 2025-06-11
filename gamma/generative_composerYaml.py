@@ -40,10 +40,9 @@ COMPOSITION_NAME = "composizione_generativa_03"
 # - 'mean', 'std': Per la distribuzione normale.
 # - 'choices', 'weights': Per una scelta pesata da una lista.
 
-# --- Costanti tecniche derivate da validator.udo ---
 OTTAVE_RANGE = (0, 10)
-REGISTRI_RANGE = (1, 10)
-
+REGISTRI_RANGE = (1, 50)
+INTERVALLI_PER_OTTAVA = 200 
 
 def load_composition_from_yaml(file_path):
     """
@@ -150,13 +149,59 @@ class GenerativeComposer:
     def _generate_params_from_mask(self, mask):
         """
         Il cuore del generatore. Prende una maschera e produce un set di
-        parametri concreti e validi.
+        parametri concreti e validi, con una gestione intelligente dello spread.
         """
         params = {}
 
-        # Itera su ogni parametro definito nella maschera
+        # --- GESTIONE SPECIALE PER L'OTTAVA CON SPREAD ---
+        
+        # 1. Estrai le maschere rilevanti
+        ottava_mask = mask['ottava']
+        spread_mask = mask.get('spread_spettrale', {'range': [0, 0]}) # Usa 0 se non definito
+
+        # 2. Genera un valore di spread per questo specifico evento
+        spread_value = random.uniform(spread_mask['range'][0], spread_mask['range'][1])
+
+        # 3. Calcola il "centro di gravità" del range di ottave originale
+        ottava_min_orig, ottava_max_orig = ottava_mask['range']
+        ottava_center = random.uniform(ottava_min_orig, ottava_max_orig)
+        
+        # 4. Applica la logica di generazione in base al tipo di distribuzione
+        generated_ottava = 0 # Valore di default
+        
+        if ottava_mask.get('distribution') == 'normal':
+            # Per la distribuzione normale: genera e poi clippa.
+            # Lo spread agisce come deviazione standard per creare dispersione attorno al centro.
+            valore_generato = np.random.normal(loc=ottava_center, scale=spread_value)
+            generated_ottava = int(np.clip(valore_generato, OTTAVE_RANGE[0], OTTAVE_RANGE[1]))
+        
+        else: # Default a distribuzione "uniform"
+            # Per la distribuzione uniforme: calcola i limiti sicuri e poi genera.
+            # Lo spread definisce l'ampiezza del range di generazione.
+            
+            # Calcola i limiti del nostro range desiderato, tenendoli dentro i limiti globali
+            min_gen = max(OTTAVE_RANGE[0], ottava_center - spread_value)
+            max_gen = min(OTTAVE_RANGE[1], ottava_center + spread_value)
+            
+            # Assicurati che min_gen non sia maggiore di max_gen
+            if min_gen >= max_gen:
+                valore_generato = min_gen
+            else:
+                # Generiamo un valore uniforme DENTRO il range sicuro calcolato
+                valore_generato = random.uniform(min_gen, max_gen)
+            
+            generated_ottava = int(round(valore_generato))
+
+        params['ottava'] = generated_ottava
+
+        # --- FINE GESTIONE SPECIALE OTTAVA ---
+
+
+        # --- GESTIONE DI TUTTI GLI ALTRI PARAMETRI ---
+        # Itera su ogni parametro definito nella maschera, saltando l'ottava
+        # perché è già stata gestita.
         for key, p_mask in mask.items():
-            if key in ['choices', 'weights']: continue # Proprietà, non parametri
+            if key in ['choices', 'weights', 'ottava', 'spread_spettrale']: continue
             
             val = 0
             if 'range' in p_mask:
@@ -175,14 +220,15 @@ class GenerativeComposer:
             
             params[key] = val
 
-        # Clipping per garantire che i valori rimangano nei limiti tecnici
-        params['ottava'] = int(np.clip(params.get('ottava', 5), OTTAVE_RANGE[0], OTTAVE_RANGE[1]))
+        # Clipping per garantire che il registro rimanga nei limiti tecnici
         params['registro'] = int(np.clip(params.get('registro', 5), REGISTRI_RANGE[0], REGISTRI_RANGE[1]))
 
         # Generazione derivata
-        params['ritmi'] = self._generate_rhythm_pattern(params['tipo_ritmi'])
+        params['ritmi'] = self._generate_rhythm_pattern(params.get('tipo_ritmi', 'medi'))
         params['posizioni'] = [i % r for i, r in enumerate(params['ritmi']) if r > 0]
-        moltiplicatore = random.choice([1, 1.25, 1.6])
+        
+        # Usa un moltiplicatore di default se non è specificato
+        moltiplicatore = params.get('moltiplicatore_durata', random.choice([1, 1.25, 1.6]))
         params['durata_totale'] = params['durata_armonica'] * moltiplicatore
         
         self.id_comp_counter += 1
@@ -219,47 +265,60 @@ class GenerativeComposer:
         full_sequence = []
         current_time_offset = 0.0
         
+        # --- NUOVO ---
+        # Definiamo il moltiplicatore massimo come costante per chiarezza
+        MAX_DURATION_MULTIPLIER = 1.6
+        
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
             print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s) ---")
+
+            section_events_for_logging = []
+
+            # --- LOGICA MODIFICATA PER LA DURATA SICURA ---
             
-            # 1. Genera i punti di attivazione temporale per i cluster
-            cluster_onsets = self.time_scheduler.generate_onsets(
-                section['timing_model'], section['durata'], section['num_attivazioni']
-            )
+            # 1. Calcoliamo il 'cuscinetto di sicurezza' basato sullo stato finale.
+            end_mask = section['stato_finale']
+            max_harmonic_dur_at_end = end_mask['durata_armonica']['range'][1]
+            safety_buffer = max_harmonic_dur_at_end * MAX_DURATION_MULTIPLIER
+            
+            # 2. Calcoliamo la nuova durata 'sicura' per la generazione degli onsets.
+            generation_duration = section['durata'] - safety_buffer
+            
+            print(f"  > Durata totale: {section['durata']}s. Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
+            print(f"  > Gli eventi verranno generati entro una finestra di {generation_duration:.2f}s.")
+            
+            # 3. Gestiamo il caso in cui il cuscinetto sia troppo grande.
+            if generation_duration <= 0:
+                print(f"  > ATTENZIONE: Il cuscinetto di sicurezza è maggiore della durata della sezione. Nessun evento generato.")
+                cluster_onsets = []
+            else:
+                # 4. Chiamiamo TimeScheduler con la nuova durata ridotta.
+                cluster_onsets = self.time_scheduler.generate_onsets(
+                    section['timing_model'], generation_duration, section['num_attivazioni']
+                )
 
             start_mask = section['stato_iniziale']
-            end_mask = section['stato_finale']
+            # end_mask è già stato definito sopra
 
-            # 2. Per ogni punto di attivazione, genera un cluster di eventi
+            # 2. Per ogni punto di attivazione, genera un cluster di eventi (il resto non cambia)
             for onset in cluster_onsets:
                 progress = onset / section['durata'] if section['durata'] > 0 else 0
                 
-                # Interpola le maschere per ottenere quella per l'istante corrente
-                center_mask = self._interpolate_mask(start_mask, end_mask, progress)
+                # ... il resto della funzione rimane identico da qui in poi ...
                 
-                # Determina quanti eventi generare in questo cluster
+                center_mask = self._interpolate_mask(start_mask, end_mask, progress)
                 dens_range = center_mask['densita_cluster']['range']
                 num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
-                
-                # 3. Genera gli eventi effettivi del cluster
                 for _ in range(num_events_in_cluster):
-                    
-                    # Genera un set di parametri, con un massimo di tentativi
-                    for attempt in range(10): # Tenta max 10 volte di trovare parametri validi
-                        
-                        # Perturba leggermente la maschera per lo "spread" spettrale
+                    for attempt in range(10):
                         event_mask = center_mask.copy()
                         spread = random.uniform(event_mask['spread_spettrale']['range'][0], 
                                                 event_mask['spread_spettrale']['range'][1])
-                        
                         ott_range = event_mask['ottava']['range']
                         event_mask['ottava']['range'] = [ott_range[0] - spread, ott_range[1] + spread]
-
                         params = self._generate_params_from_mask(event_mask)
-                        
                         if self._valida_parametri(params):
-                            # Mappa il ritmo a una tabella Csound
                             rhythm_tuple = tuple(params['ritmi'])
                             if rhythm_tuple not in self.rhythm_table_map:
                                 self.rhythm_table_map[rhythm_tuple] = {
@@ -267,24 +326,19 @@ class GenerativeComposer:
                                     'pos_tab_num': self.next_table_id + 1
                                 }
                                 self.next_table_id += 2
-                            
                             params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
                             params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
-
-                            # Schedula l'evento
-                            jitter = np.random.normal(loc=0.0, scale=0.05) # Piccolo tremolio temporale
+                            jitter = np.random.normal(loc=0.0, scale=0.05)
                             event_time = current_time_offset + onset + jitter
-                            
-                            full_sequence.append({'time': event_time, 'params': params})
-                            break # Parametri validi trovati, esci dal ciclo dei tentativi
+                            event_data = {'time': event_time, 'params': params}
+                            full_sequence.append(event_data)
+                            section_events_for_logging.append(event_data)
+                            break
                     else:
-                        # Questo `else` si attiva se il `for` dei tentativi finisce senza `break`
-                        # print(f"Attenzione: Impossibile generare parametri validi per un evento al tempo ~{onset:.2f}s")
                         pass
-
+            print(f"  > Comportamenti generati per questa sezione: {len(section_events_for_logging)}")
             current_time_offset += section['durata']
         
-        # Ordina la sequenza finale per tempo
         full_sequence.sort(key=lambda e: e['time'])
         print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori.")
         print(f"Mappati {len(self.rhythm_table_map)} pattern di ritmi unici a tabelle Csound.")
@@ -323,9 +377,12 @@ class GenerativeComposer:
         template = self.get_csd_template()
         csd_content = template.format(
             composition_name=composition_name,
-            score_tables=score_tables,  # <--- NUOVO
+            score_tables=score_tables, 
             score_lines=score_lines,
-            durata_totale=last_event_time + 10
+            durata_totale=last_event_time + 10,
+            ottave_macro = OTTAVE_RANGE[1], 
+            registri_macro = REGISTRI_RANGE[1],
+            intervalli_macro = INTERVALLI_PER_OTTAVA
         )
         file_path = self.output_path / f"{composition_name}.csd"
         with open(file_path, 'w') as f:
@@ -350,9 +407,9 @@ nchnls = 2
 #define SQRT2 #1.4142135623730951#
 #define MAX_AMP #0.999#
 #define FONDAMENTALE #32#
-#define OTTAVE #10#
-#define INTERVALLI #200#
-#define REGISTRI #50#
+#define OTTAVE #{ottave_macro}#
+#define INTERVALLI #{intervalli_macro}#
+#define REGISTRI #{registri_macro}#
 #define M_PI #3.141592653589793#
 gSdirSco = "./sco/"
 gi_Index init 1

@@ -26,7 +26,7 @@ instr eventoSonoro
     iamp = limit(iamp, -$MAX_AMP, $MAX_AMP)
     id_evento=p10
     id_comportamento=p11
-    i_debug=2
+    i_debug=1
 
     $DEBUG_Evento_print_Pfields
 

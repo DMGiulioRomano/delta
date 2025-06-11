@@ -1,0 +1,111 @@
+# ==============================================================================
+# TEMPLATE GUIDA PER LA COMPOSIZIONE GENERATIVA (v2.0)
+# ==============================================================================
+# Questo file è un modello che spiega tutte le opzioni disponibili per
+# la creazione di una partitura YAML per il Generative Composer.
+#
+# Una partitura è una lista di "sezioni". Ogni sezione è definita da un
+# trattino (-) seguito da coppie chiave-valore.
+# ==============================================================================
+
+
+# ------------------------------------------------------------------------------
+# Inizio della prima sezione della composizione
+# ------------------------------------------------------------------------------
+-
+    # --- PARAMETRI GENERALI DELLA SEZIONE ---
+
+    # nome_sezione: (Stringa) Un nome descrittivo per la sezione.
+    # Utile per il debug e per l'etichetta nel grafico di visualizzazione.
+    nome_sezione: "Nome Descrittivo della Sezione (es. I. Introduzione)"
+
+    # durata: (Numero) La durata totale della sezione in secondi.
+    durata: 60
+
+    # num_attivazioni: (Intero) Il numero di "impulsi" o "trigger" che
+    # avviano la generazione di cluster sonori all'interno di questa sezione.
+    # Un valore basso crea musica rada, un valore alto crea texture dense.
+    num_attivazioni: 50
+
+    # timing_model: (Dizionario) Definisce COME vengono distribuiti nel tempo
+    # gli impulsi definiti da 'num_attivazioni'.
+    timing_model:
+        # type: (Stringa) Il modello ritmico della sezione. Opzioni disponibili:
+        #   - "linear":      Intervalli costanti, come un metronomo.
+        #   - "accelerando": Gli intervalli si riducono, creando accelerazione.
+        #   - "ritardando":  Gli intervalli aumentano, creando rallentamento.
+        #   - "stochastic":  Intervalli casuali, per texture organiche e imprevedibili.
+        type: "accelerando"
+
+        # shape: (Numero, Opzionale) Controlla l'intensità dell'accelerando/ritardando.
+        # Richiesto solo per i tipi 'accelerando' e 'ritardando'.
+        # Un valore > 1.0 rende l'effetto più pronunciato. Default è 2.0.
+        shape: 2.5
+
+
+    # --- MASCHERE DI TENDENZA: STATO INIZIALE E FINALE ---
+    # Definiscono gli spazi di possibilità da cui i parametri vengono generati.
+    # I valori verranno interpolati fluidamente tra stato_iniziale e stato_finale
+    # nel corso della 'durata' della sezione.
+
+    stato_iniziale:
+        # ottava: Controlla l'altezza su larga scala (da 0 a 10).
+        ottava: {range: [0, 2], distribution: "uniform"}
+
+        # registro: Controlla la posizione fine all'interno di un'ottava (da 1 a 10).
+        registro: {range: [1, 4], distribution: "uniform"}
+
+        # ampiezza_db: L'ampiezza in decibel. Valori negativi. -6 è forte, -40 è piano.
+        # Può usare una distribuzione 'normal' per concentrare i valori attorno a una media.
+        ampiezza_db: {mean: -30, std: 5, distribution: "normal"}
+
+        # durata_armonica: Un valore di riferimento in secondi che influenza la durata
+        # e la densità degli eventi generati dall'instrument 'Comportamento'.
+        durata_armonica: {range: [30, 50]}
+
+        # densita_cluster: Quanti eventi sonori vengono generati per ogni impulso.
+        # range: [1, 1] -> Solo note singole.
+        # range: [3, 5] -> Cluster/accordi di 3, 4 o 5 note.
+        densita_cluster: {range: [1, 3]}
+
+        # spread_spettrale: Controlla quanto le note di un cluster sono "sparpagliate"
+        # in termini di ottava. Un valore basso crea accordi chiusi, un valore alto
+        # crea accordi aperti che coprono un ampio registro.
+        spread_spettrale: {range: [0.1, 0.5]}
+
+        # tipo_ritmi: Categoria ritmica. Controlla la velocità e la durata dei suoni.
+        # 'choices' disponibili (definite in _generate_rhythm_pattern in Python):
+        #   - 'piccoli': Ritmi veloci, suoni brevi (valori numerici bassi: 1, 2, 3...)
+        #   - 'medi':    Ritmi intermedi.
+        #   - 'grandi':  Ritmi lenti, suoni lunghi (valori numerici alti: 16, 20...)
+        #   - 'misti':   Una combinazione dei precedenti.
+        # 'weights' devono avere la stessa lunghezza di 'choices' e sommare a 1.0 (opzionale).
+        tipo_ritmi: {choices: ['grandi', 'misti'], weights: [0.9, 0.1]}
+
+        # nonlinear_mode: Controlla il comportamento del generatore di ritmi 'NonlinearFunc'.
+        # 'choices' disponibili:
+        #   - 0: Convergente (i ritmi tendono a un valore stabile)
+        #   - 1: Periodico (i ritmi si ripetono in cicli)
+        #   - 2: Caotico (comportamento caotico ma deterministico)
+        #   - 3: Caos Vero (più casualità e imprevedibilità)
+        nonlinear_mode: {choices: [0, 1], weights: [0.8, 0.2]}
+
+    stato_finale:
+        # Qui si definiscono gli stessi parametri dello stato_iniziale, ma con i valori
+        # che si desidera raggiungere alla FINE della sezione.
+        ottava:           {range: [4, 6]}
+        registro:         {range: [5, 10]}
+        ampiezza_db:      {range: [-15, -10]}
+        durata_armonica:  {range: [10, 20]}
+        densita_cluster:  {range: [5, 10]}
+        spread_spettrale: {range: [1.5, 3.0]}
+        tipo_ritmi:       {choices: ['piccoli', 'misti'], weights: [0.1, 0.9]}
+        nonlinear_mode:   {choices: [2, 3], weights: [0.3, 0.7]}
+
+
+# ------------------------------------------------------------------------------
+# Puoi aggiungere altre sezioni semplicemente iniziando un nuovo blocco con "-"
+# ------------------------------------------------------------------------------
+# -
+#   nome_sezione: "Seconda Sezione"
+#   ... e così via
