@@ -2,7 +2,7 @@
 # Ogni trattino (-) definisce una nuova sezione della composizione.
 
 -   nome_sezione: "I. Te rompo rculo"
-    durata: 17
+    durata: 30
     num_attivazioni: 1
     timing_model:
         type: "accelerando"
@@ -17,12 +17,12 @@
         tipo_ritmi:       {choices: ['medi', 'piccoli'], weights: [0.9, 0.1]}
         nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
     stato_finale:
-        ottava:           {range: [0, 10], distribution: "uniform"}
-        registro:         {range: [1, 50], distribution: "uniform"}
-        ampiezza_db:      {range: [-50, -45], distribution: "uniform"}
+        ottava:           {range: [4, 5], distribution: "uniform"}
+        registro:         {range: [5, 35], distribution: "uniform"}
+        ampiezza_db:      {range: [-40, -35], distribution: "uniform"}
         durata_armonica:  {range: [10, 7]}
-        densita_cluster:  {range: [100, 200]}
-        spread_spettrale: {range: [0, 0]}
+        densita_cluster:  {range: [20, 50]}
+        spread_spettrale: {range: [0, 1]}
         tipo_ritmi:       {choices: ['medi', 'piccoli'], weights: [0.2, 0.8]}
         nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
 

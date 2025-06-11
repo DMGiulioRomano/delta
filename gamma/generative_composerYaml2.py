@@ -148,86 +148,50 @@ class GenerativeComposer:
 
     def _generate_params_from_mask(self, mask):
         """
-        Il cuore del generatore. Prende una maschera e produce un set di
-        parametri concreti e validi, con una gestione intelligente dello spread.
+        Il cuore del generatore. Versione semplificata e unificata.
+        Tutti i parametri sono gestiti dalla stessa logica coerente.
         """
         params = {}
 
-        # --- GESTIONE SPECIALE PER L'OTTAVA CON SPREAD ---
-        
-        # 1. Estrai le maschere rilevanti
-        ottava_mask = mask['ottava']
-        spread_mask = mask.get('spread_spettrale', {'range': [0, 0]}) # Usa 0 se non definito
-
-        # 2. Genera un valore di spread per questo specifico evento
-        spread_value = random.uniform(spread_mask['range'][0], spread_mask['range'][1])
-
-        # 3. Calcola il "centro di gravità" del range di ottave originale
-        ottava_min_orig, ottava_max_orig = ottava_mask['range']
-        ottava_center = random.uniform(ottava_min_orig, ottava_max_orig)
-        
-        # 4. Applica la logica di generazione in base al tipo di distribuzione
-        generated_ottava = 0 # Valore di default
-        
-        if ottava_mask.get('distribution') == 'normal':
-            # Per la distribuzione normale: genera e poi clippa.
-            # Lo spread agisce come deviazione standard per creare dispersione attorno al centro.
-            valore_generato = np.random.normal(loc=ottava_center, scale=spread_value)
-            generated_ottava = int(np.clip(valore_generato, OTTAVE_RANGE[0], OTTAVE_RANGE[1]))
-        
-        else: # Default a distribuzione "uniform"
-            # Per la distribuzione uniforme: calcola i limiti sicuri e poi genera.
-            # Lo spread definisce l'ampiezza del range di generazione.
-            
-            # Calcola i limiti del nostro range desiderato, tenendoli dentro i limiti globali
-            min_gen = max(OTTAVE_RANGE[0], ottava_center - spread_value)
-            max_gen = min(OTTAVE_RANGE[1], ottava_center + spread_value)
-            
-            # Assicurati che min_gen non sia maggiore di max_gen
-            if min_gen >= max_gen:
-                valore_generato = min_gen
-            else:
-                # Generiamo un valore uniforme DENTRO il range sicuro calcolato
-                valore_generato = random.uniform(min_gen, max_gen)
-            
-            generated_ottava = int(round(valore_generato))
-
-        params['ottava'] = generated_ottava
-
-        # --- FINE GESTIONE SPECIALE OTTAVA ---
-
-
-        # --- GESTIONE DI TUTTI GLI ALTRI PARAMETRI ---
-        # Itera su ogni parametro definito nella maschera, saltando l'ottava
-        # perché è già stata gestita.
+        # Itera su ogni parametro definito nella maschera.
         for key, p_mask in mask.items():
-            if key in ['choices', 'weights', 'ottava', 'spread_spettrale']: continue
+            # Salta le chiavi di controllo che non sono parametri diretti.
+            if key in ['choices', 'weights', 'distribution', 'spread_spettrale']: 
+                continue
             
             val = 0
-            if 'range' in p_mask:
+            
+            # --- PERCORSO 1: DISTRIBUZIONE NORMALE ---
+            # Se la maschera contiene 'mean' e 'std', usa la generazione Gaussiana.
+            if 'mean' in p_mask and 'std' in p_mask:
+                mean = p_mask['mean']
+                std = p_mask['std']
+                val = np.random.normal(loc=mean, scale=std)
+
+            # --- PERCORSO 2: DISTRIBUZIONE UNIFORME (da un range) ---
+            elif 'range' in p_mask:
                 min_val, max_val = p_mask['range']
-                if p_mask.get('distribution') == 'normal':
-                    mean = (min_val + max_val) / 2
-                    std = (max_val - min_val) / 4 # Stima approssimativa
-                    val = np.random.normal(mean, std)
-                else: # Uniforme
-                    if isinstance(min_val, int):
-                        val = random.randint(min_val, max_val)
-                    else:
-                        val = random.uniform(min_val, max_val)
+                if isinstance(min_val, int) and isinstance(max_val, int):
+                    val = random.randint(min_val, max_val)
+                else:
+                    val = random.uniform(min_val, max_val)
+            
+            # --- PERCORSO 3: SCELTA PESATA (da una lista) ---
             elif 'choices' in p_mask:
                 val = random.choices(p_mask['choices'], weights=p_mask.get('weights'), k=1)[0]
             
             params[key] = val
 
-        # Clipping per garantire che il registro rimanga nei limiti tecnici
+        # --- APPLICAZIONE DEI CLIPPING E GENERAZIONE DERIVATA (POST-GENERAZIONE) ---
+        
+        # Clipping per garantire che i valori rimangano nei limiti tecnici globali.
+        params['ottava'] = int(round(np.clip(params.get('ottava', 5), OTTAVE_RANGE[0], OTTAVE_RANGE[1])))
         params['registro'] = int(np.clip(params.get('registro', 5), REGISTRI_RANGE[0], REGISTRI_RANGE[1]))
 
-        # Generazione derivata
+        # Generazione di parametri derivati
         params['ritmi'] = self._generate_rhythm_pattern(params.get('tipo_ritmi', 'medi'))
         params['posizioni'] = [i % r for i, r in enumerate(params['ritmi']) if r > 0]
         
-        # Usa un moltiplicatore di default se non è specificato
         moltiplicatore = params.get('moltiplicatore_durata', random.choice([1, 1.25, 1.6]))
         params['durata_totale'] = params['durata_armonica'] * moltiplicatore
         
@@ -239,25 +203,49 @@ class GenerativeComposer:
     def _interpolate_mask(self, start_mask, end_mask, progress):
         """Interpola tra due maschere per ottenere una maschera intermedia."""
         interp_mask = {}
+        # Assumiamo che start_mask e end_mask abbiano le stesse chiavi.
         for key in start_mask:
             s = start_mask[key]
             e = end_mask[key]
             interp_mask[key] = {}
 
+            # --- Percorso 1: La maschera definisce un range ---
             if 'range' in s:
                 s_min, s_max = s['range']
                 e_min, e_max = e['range']
                 i_min = s_min + (e_min - s_min) * progress
                 i_max = s_max + (e_max - s_max) * progress
                 interp_mask[key]['range'] = [i_min, i_max]
+                # Se è presente, propaga la chiave 'distribution'
                 if 'distribution' in s:
                     interp_mask[key]['distribution'] = s['distribution']
+
+            # --- Percorso 2: La maschera definisce media e std ---
+            elif 'mean' in s:
+                i_mean = s['mean'] + (e['mean'] - s['mean']) * progress
+                i_std = s['std'] + (e['std'] - s['std']) * progress
+                interp_mask[key]['mean'] = i_mean
+                interp_mask[key]['std'] = i_std
+                # Propaga la chiave 'distribution'
+                if 'distribution' in s:
+                    interp_mask[key]['distribution'] = s['distribution']
+
+            # --- Percorso 3: La maschera definisce scelte pesate ---
             elif 'choices' in s:
-                 # Per le scelte pesate, la transizione è un "cross-fade" dei pesi
+                # Per le scelte pesate, la transizione è un "cross-fade" dei pesi
                 s_weights = np.array(s.get('weights', [1]*len(s['choices'])))
                 e_weights = np.array(e.get('weights', [1]*len(e['choices'])))
-                i_weights = s_weights * (1 - progress) + e_weights * progress
-                interp_mask[key] = {'choices': s['choices'], 'weights': i_weights.tolist()}
+                # Assicurati che i due array di pesi abbiano la stessa lunghezza per il cross-fade
+                if len(s_weights) == len(e_weights):
+                    i_weights = s_weights * (1 - progress) + e_weights * progress
+                    interp_mask[key] = {'choices': s['choices'], 'weights': i_weights.tolist()}
+                else:
+                    # Se i pesi non corrispondono, usa un fade-out/fade-in
+                    if progress < 0.5:
+                        interp_mask[key] = s
+                    else:
+                        interp_mask[key] = e
+        
         return interp_mask
 
     def process_composition(self, composition_structure):
@@ -265,7 +253,6 @@ class GenerativeComposer:
         full_sequence = []
         current_time_offset = 0.0
         
-        # Definiamo il moltiplicatore massimo come costante per chiarezza
         MAX_DURATION_MULTIPLIER = 1.6
         
         print("Inizio elaborazione della composizione...")
@@ -274,73 +261,60 @@ class GenerativeComposer:
 
             section_events_for_logging = []
 
-            # --- LOGICA DI GESTIONE DELLA DURATA ---
-            # Questa parte rimane invariata, ma è importante per il contesto.
-            # Controlliamo se la sezione è statica o dinamica per calcolare correttamente
-            # il cuscinetto di sicurezza.
-            
-            # --- MODIFICA 1: Determina il tipo di sezione ---
+            # --- 1. DETERMINA IL TIPO DI SEZIONE (STATICA O DINAMICA) ---
             is_static_section = 'stato_unico' in section
+            if is_static_section:
+                print("  > Tipo sezione: Statica (usa 'stato_unico')")
+            else:
+                print("  > Tipo sezione: Dinamica (usa 'stato_iniziale' -> 'stato_finale')")
 
-            # 1. Calcoliamo il 'cuscinetto di sicurezza'
+            # --- 2. CALCOLA IL CUSCINETTO DI SICUREZZA ---
             # Se la sezione è statica, usa 'stato_unico', altrimenti usa 'stato_finale'.
-            end_mask_for_buffer = section['stato_unico'] if is_static_section else section['stato_finale']
+            mask_for_buffer = section['stato_unico'] if is_static_section else section['stato_finale']
             
-            max_harmonic_dur_at_end = end_mask_for_buffer['durata_armonica']['range'][1]
-            safety_buffer = max_harmonic_dur_at_end * MAX_DURATION_MULTIPLIER
+            # Estrai la durata armonica massima per stimare la durata massima di un evento
+            # Si assume che la maschera di durata abbia sempre un 'range'
+            max_harmonic_dur = mask_for_buffer['durata_armonica']['range'][1]
+            safety_buffer = max_harmonic_dur * MAX_DURATION_MULTIPLIER
             
-            # 2. Calcoliamo la nuova durata 'sicura' per la generazione degli onsets.
             generation_duration = section['durata'] - safety_buffer
             
             print(f"  > Durata totale: {section['durata']}s. Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
             print(f"  > Gli eventi verranno generati entro una finestra di {generation_duration:.2f}s.")
             
-            # 3. Gestiamo il caso in cui il cuscinetto sia troppo grande.
             if generation_duration <= 0:
                 print(f"  > ATTENZIONE: Il cuscinetto di sicurezza è maggiore della durata della sezione. Nessun evento generato.")
                 cluster_onsets = []
             else:
-                # 4. Chiamiamo TimeScheduler con la nuova durata ridotta.
                 cluster_onsets = self.time_scheduler.generate_onsets(
                     section['timing_model'], generation_duration, section['num_attivazioni']
                 )
 
-            # --- MODIFICA 2: LOGICA CENTRALE PER LA SELEZIONE DELLA MASCHERA ---
-            # Qui implementiamo il bivio per gestire i due tipi di sezione.
-
-            # 2. Per ogni punto di attivazione, genera un cluster di eventi.
+            # --- 3. GENERAZIONE DEGLI EVENTI PER OGNI ATTIVAZIONE ---
             for onset in cluster_onsets:
                 
-                # Questa è la modifica chiave:
+                # --- 3a. OTTIENI LA MASCHERA DI CONTROLLO (center_mask) ---
                 if is_static_section:
-                    # Se la sezione è STATICA, la maschera è sempre la stessa.
-                    # Non c'è bisogno di interpolazione.
-                    print(f"  > Sezione statica rilevata. Uso 'stato_unico'.")
+                    # Per una sezione statica, la maschera è sempre la stessa.
                     center_mask = section['stato_unico']
                 else:
-                    # Se la sezione è DINAMICA (comportamento originale), calcoliamo
-                    # la progressione e interpoliamo tra stato iniziale e finale.
+                    # Per una sezione dinamica, calcola la progressione e interpola.
                     progress = onset / section['durata'] if section['durata'] > 0 else 0
                     start_mask = section['stato_iniziale']
                     end_mask = section['stato_finale']
                     center_mask = self._interpolate_mask(start_mask, end_mask, progress)
 
-                # Da qui in poi, il resto del codice è IDENTICO e funziona con la `center_mask`
-                # ottenuta, indipendentemente da come sia stata creata.
-                
+                # --- 3b. GENERA IL CLUSTER DI EVENTI ---
                 dens_range = center_mask['densita_cluster']['range']
                 num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
                 
                 for _ in range(num_events_in_cluster):
                     for attempt in range(10): # Ciclo di tentativi di generazione
-                        event_mask = center_mask.copy()
                         
-                        # Questa parte che gestiva lo spread sull'ottava è stata rimossa nella
-                        # versione precedente, ma la lascio per completezza logica.
-                        # Nel tuo ultimo script, questa logica era già dentro _generate_params_from_mask.
-                        # Quindi il flusso qui è corretto.
-                        
-                        params = self._generate_params_from_mask(event_mask)
+                        # --- MODIFICA CHIAVE: LA LOGICA DELLO SPREAD È STATA RIMOSSA ---
+                        # Ora chiamiamo direttamente la funzione di generazione con la maschera di controllo.
+                        # Non creiamo più una 'event_mask' temporanea.
+                        params = self._generate_params_from_mask(center_mask)
                         
                         if self._valida_parametri(params):
                             # Mappatura delle tabelle di ritmi
@@ -365,8 +339,7 @@ class GenerativeComposer:
                             break # Esce dal ciclo di tentativi se la generazione ha successo
                     else:
                         # Questo blocco viene eseguito se il ciclo `for attempt` finisce senza un `break`.
-                        # Significa che non siamo riusciti a generare parametri validi in 10 tentativi.
-                        # Per ora non fa nulla (pass), ma si potrebbe aggiungere un messaggio di warning.
+                        print("  > ATTENZIONE: Impossibile generare parametri validi dopo 10 tentativi.")
                         pass
                         
             print(f"  > Comportamenti generati per questa sezione: {len(section_events_for_logging)}")
@@ -376,6 +349,7 @@ class GenerativeComposer:
         print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori.")
         print(f"Mappati {len(self.rhythm_table_map)} pattern di ritmi unici a tabelle Csound.")
         return full_sequence
+
 
     def generate_csd(self, composition_name, events):
         """Genera il file CSD finale dalla sequenza di eventi."""
