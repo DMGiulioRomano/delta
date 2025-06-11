@@ -384,7 +384,7 @@ f1 0 4096 10 1
 f2 0 [2^10] 6 0 [2^9] .5 [2^9] 1
 i "Init" 0 0.1
 {score_lines}
-e {durata_totale}
+;e {durata_totale}
 </CsScore>
 </CsoundSynthesizer>
 """
