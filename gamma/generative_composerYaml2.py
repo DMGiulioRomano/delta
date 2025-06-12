@@ -106,7 +106,6 @@ class GenerativeComposer:
         """
         Valida un set di parametri generati per assicurarsi che siano
         tecnicamente validi per il motore Csound.
-        Copiato e adattato da `genera_gamma_comportamenti.py`.
         """
         ott, reg, amp = params['ottava'], params['registro'], params['ampiezza_db']
         
@@ -261,6 +260,15 @@ class GenerativeComposer:
 
             section_events_for_logging = []
 
+            # --- 1. APPLICA IL RATIO TEMPORALE ---
+            # Ottieni il ratio, con 1.0 come default se non specificato.
+            time_ratio = section.get('ratio_temporale', 1.0)
+
+            # Calcola la durata effettiva e scalata della sezione.
+            scaled_section_duration = section['durata'] * time_ratio
+
+            print(f"  > Ratio temporale: {time_ratio}x. Durata effettiva: {scaled_section_duration:.2f}s")
+
             # --- 1. DETERMINA IL TIPO DI SEZIONE (STATICA O DINAMICA) ---
             is_static_section = 'stato_unico' in section
             if is_static_section:
@@ -268,17 +276,19 @@ class GenerativeComposer:
             else:
                 print("  > Tipo sezione: Dinamica (usa 'stato_iniziale' -> 'stato_finale')")
 
+
             # --- 2. CALCOLA IL CUSCINETTO DI SICUREZZA ---
             # Se la sezione è statica, usa 'stato_unico', altrimenti usa 'stato_finale'.
             mask_for_buffer = section['stato_unico'] if is_static_section else section['stato_finale']
             
-            # Estrai la durata armonica massima per stimare la durata massima di un evento
-            # Si assume che la maschera di durata abbia sempre un 'range'
-            max_harmonic_dur = mask_for_buffer['durata_armonica']['range'][1]
-            safety_buffer = max_harmonic_dur * MAX_DURATION_MULTIPLIER
+            # Estrai la durata armonica massima *prima* di scalarla...
+            max_harmonic_dur_unscaled = mask_for_buffer['durata_armonica']['range'][1]
+            # ...e poi scalala per il calcolo del cuscinetto.
+            max_harmonic_dur_scaled = max_harmonic_dur_unscaled * time_ratio
+            safety_buffer = max_harmonic_dur_scaled * MAX_DURATION_MULTIPLIER
             
-            generation_duration = section['durata'] - safety_buffer
-            
+            generation_duration = scaled_section_duration - safety_buffer
+
             print(f"  > Durata totale: {section['durata']}s. Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
             print(f"  > Gli eventi verranno generati entro una finestra di {generation_duration:.2f}s.")
             
@@ -310,11 +320,17 @@ class GenerativeComposer:
                 
                 for _ in range(num_events_in_cluster):
                     for attempt in range(10): # Ciclo di tentativi di generazione
+
+                        event_mask = center_mask.copy()
                         
-                        # --- MODIFICA CHIAVE: LA LOGICA DELLO SPREAD È STATA RIMOSSA ---
-                        # Ora chiamiamo direttamente la funzione di generazione con la maschera di controllo.
-                        # Non creiamo più una 'event_mask' temporanea.
-                        params = self._generate_params_from_mask(center_mask)
+                        if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
+                            current_range = event_mask['durata_armonica']['range']
+                            scaled_range = [val * time_ratio for val in current_range]
+                            # Modifichiamo il dizionario del range direttamente
+                            event_mask['durata_armonica'] = event_mask['durata_armonica'].copy() # Evita side-effects
+                            event_mask['durata_armonica']['range'] = scaled_range
+
+                        params = self._generate_params_from_mask(event_mask)
                         
                         if self._valida_parametri(params):
                             # Mappatura delle tabelle di ritmi
@@ -343,7 +359,7 @@ class GenerativeComposer:
                         pass
                         
             print(f"  > Comportamenti generati per questa sezione: {len(section_events_for_logging)}")
-            current_time_offset += section['durata']
+            current_time_offset += scaled_section_duration
         
         full_sequence.sort(key=lambda e: e['time'])
         print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori.")
@@ -374,8 +390,8 @@ class GenerativeComposer:
         for event in events:
             p = event['params']
             event_time = max(event['time'], 0.001)
-            score_lines += ";\t\t\t\t\t\tat\t\tdur\t\ttab\t\tarmonica\tampiezza\tottava\tregistro\tniente\tid_comp\tnonlinearMode\n"
-            score_lines += (f'i "AvviaComportamento"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
+            score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tampiezza\tottava\tregistro\tniente\tid_comp\tnonlinearMode\n"
+            score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
                             f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["ampiezza_db"]:.2f}\t\t'
                             f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}\n')
             last_event_time = max(last_event_time, event_time + p["durata_totale"])
@@ -428,8 +444,7 @@ gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 #include "../includes/NonlinearFunc.udo"
 #include "../includes/GenPythagFreqs.udo"
 #include "../includes/eventoSonoro.orc"
-#include "../includes/comportamento.orc"
-#include "../includes/avvia_comportamento.orc"
+#include "../includes/voce.orc"
 
 instr Init
     i_Res GenPythagFreqs $FONDAMENTALE, $INTERVALLI, $OTTAVE, gi_Intonazione
@@ -501,10 +516,13 @@ class CompositionDebugger:
         ax.set_title(f"Visualizzazione Composizione: '{composition_name}'")
         ax.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
         
-        # --- MODIFICA CHIAVE QUI ---
         current_time = 0
-        for section in composition_structure: # <--- 2. USATO IL NUOVO PARAMETRO
-            current_time += section['durata']
+        for section in composition_structure:
+            time_ratio = section.get('ratio_temporale', 1.0)
+            scaled_duration = section['durata'] * time_ratio
+            
+            current_time += scaled_duration # <-- Usa la durata scalata
+
             ax.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=f"Fine: {section['nome_sezione']}")
         
         handles, labels = ax.get_legend_handles_labels()

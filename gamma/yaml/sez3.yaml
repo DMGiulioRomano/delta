@@ -3,6 +3,7 @@
 
 -   nome_sezione: "I. Te rompo rculo"
     durata: 40
+    ratio_temporale: 2.0 
     num_attivazioni: 5
     timing_model:
         type: "accelerando"
@@ -25,3 +26,19 @@
         spread_spettrale: {range: [0, 0]}
         tipo_ritmi:       {choices: ['medi', 'misti'], weights: [0.2, 0.8]}
         nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
+
+-   nome_sezione: "II. pino"
+    durata: 40
+    num_attivazioni: 5
+    timing_model:
+        type: "accelerando"
+        shape: 2.0
+    stato_unico:
+        ottava:           {range: [0, 9], distribution: "uniform"}
+        registro:         {range: [1, 50], distribution: "uniform"}
+        ampiezza_db:      {range: [-45, -40], distribution: "uniform"}
+        durata_armonica:  {range: [5, 10]}
+        densita_cluster:  {range: [50, 100]}
+        spread_spettrale: {range: [0, 0]}
+        tipo_ritmi:       {choices: ['medi', 'piccoli'], weights: [0.9, 0.1]}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}

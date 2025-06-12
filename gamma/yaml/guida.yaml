@@ -5,107 +5,129 @@
 # la creazione di una partitura YAML per il Generative Composer.
 #
 # Una partitura è una lista di "sezioni". Ogni sezione è definita da un
-# trattino (-) seguito da coppie chiave-valore.
+# trattino (-) e descrive un segmento temporale della composizione.
+# Le sezioni vengono eseguite in sequenza.
 # ==============================================================================
 
 
 # ------------------------------------------------------------------------------
-# Inizio della prima sezione della composizione
+# Esempio di Sezione Dinamica (con transizione da stato_iniziale a stato_finale)
 # ------------------------------------------------------------------------------
 -
     # --- PARAMETRI GENERALI DELLA SEZIONE ---
 
-    # nome_sezione: (Stringa) Un nome descrittivo per la sezione.
+    # nome_sezione: (Stringa, Obbligatorio) Un nome descrittivo per la sezione.
     # Utile per il debug e per l'etichetta nel grafico di visualizzazione.
-    nome_sezione: "Nome Descrittivo della Sezione (es. I. Introduzione)"
+    nome_sezione: "I. Transizione da Quiete a Tempesta"
 
-    # durata: (Numero) La durata totale della sezione in secondi.
-    durata: 60
+    # durata: (Numero, Obbligatorio) La durata di base della sezione in secondi.
+    # Questo valore viene moltiplicato per il 'ratio_temporale'.
+    durata: 90
 
-    # num_attivazioni: (Intero) Il numero di "impulsi" o "trigger" che
-    # avviano la generazione di cluster sonori all'interno di questa sezione.
+    # ratio_temporale: (Numero, Opzionale) Un fattore di scala per il tempo.
+    # Utile per "stirare" (valori > 1) o "comprimere" (valori < 1) l'intera
+    # sezione senza modificare ogni singolo parametro di durata. Default: 1.0.
+    ratio_temporale: 1.0
+
+    # num_attivazioni: (Intero, Obbligatorio) Il numero di "impulsi" o "gesti"
+    # che avviano la generazione di cluster sonori all'interno di questa sezione.
     # Un valore basso crea musica rada, un valore alto crea texture dense.
-    num_attivazioni: 50
+    num_attivazioni: 75
 
-    # timing_model: (Dizionario) Definisce COME vengono distribuiti nel tempo
-    # gli impulsi definiti da 'num_attivazioni'.
+    # timing_model: (Dizionario, Obbligatorio) Definisce COME vengono distribuiti
+    # nel tempo gli impulsi definiti da 'num_attivazioni'.
     timing_model:
         # type: (Stringa) Il modello ritmico della sezione. Opzioni disponibili:
-        #   - "linear":      Intervalli costanti, come un metronomo.
+        #   - "lineare":     Intervalli costanti, come un metronomo.
         #   - "accelerando": Gli intervalli si riducono, creando accelerazione.
         #   - "ritardando":  Gli intervalli aumentano, creando rallentamento.
         #   - "stochastic":  Intervalli casuali, per texture organiche e imprevedibili.
         type: "accelerando"
 
-        # shape: (Numero, Opzionale) Controlla l'intensità dell'accelerando/ritardando.
+        # shape: (Numero, Opzionale) Controlla la "curva" dell'accelerando/ritardando.
         # Richiesto solo per i tipi 'accelerando' e 'ritardando'.
         # Un valore > 1.0 rende l'effetto più pronunciato. Default è 2.0.
-        shape: 2.5
+        shape: 1.8
 
 
     # --- MASCHERE DI TENDENZA: STATO INIZIALE E FINALE ---
     # Definiscono gli spazi di possibilità da cui i parametri vengono generati.
     # I valori verranno interpolati fluidamente tra stato_iniziale e stato_finale
     # nel corso della 'durata' della sezione.
+    # NOTA: La struttura delle chiavi deve essere identica tra i due stati.
 
     stato_iniziale:
         # ottava: Controlla l'altezza su larga scala (da 0 a 10).
-        ottava: {range: [0, 2], distribution: "uniform"}
+        ottava: {range: [1, 3]}
 
-        # registro: Controlla la posizione fine all'interno di un'ottava (da 1 a 10).
-        registro: {range: [1, 4], distribution: "uniform"}
+        # registro: Controlla la posizione fine all'interno di un'ottava (da 1 a 50).
+        registro: {range: [1, 20]}
 
-        # ampiezza_db: L'ampiezza in decibel. Valori negativi. -6 è forte, -40 è piano.
+        # ampiezza_db: L'ampiezza in decibel (0dbfs). Valori negativi.
+        # -6 è molto forte, -60 è quasi impercettibile.
         # Può usare una distribuzione 'normal' per concentrare i valori attorno a una media.
-        ampiezza_db: {mean: -30, std: 5, distribution: "normal"}
+        ampiezza_db: {mean: -45, std: 5}
 
-        # durata_armonica: Un valore di riferimento in secondi che influenza la durata
-        # e la densità degli eventi generati dall'instrument 'Comportamento'.
-        durata_armonica: {range: [30, 50]}
+        # durata_armonica: Durata di riferimento in secondi per la generazione ritmica interna.
+        # Valori alti portano a eventi più lenti e lunghi.
+        durata_armonica: {range: [2.0, 4.0]}
+
+        # moltiplicatore_durata: Fattore di sovrapposizione degli eventi.
+        # Un valore > 1.0 fa sì che la durata totale di un evento sia maggiore
+        # della sua durata armonica, creando legature e texture continue.
+        moltiplicatore_durata: {choices: [1.1, 1.5], weights: [0.8, 0.2]}
 
         # densita_cluster: Quanti eventi sonori vengono generati per ogni impulso.
-        # range: [1, 1] -> Solo note singole.
-        # range: [3, 5] -> Cluster/accordi di 3, 4 o 5 note.
-        densita_cluster: {range: [1, 3]}
+        # range: [1, 1] -> Solo suoni singoli.
+        # range: [3, 5] -> Cluster/accordi di 3, 4 o 5 suoni.
+        densita_cluster: {range: [1, 2]}
 
-        # spread_spettrale: Controlla quanto le note di un cluster sono "sparpagliate"
-        # in termini di ottava. Un valore basso crea accordi chiusi, un valore alto
-        # crea accordi aperti che coprono un ampio registro.
-        spread_spettrale: {range: [0.1, 0.5]}
-
-        # tipo_ritmi: Categoria ritmica. Controlla la velocità e la durata dei suoni.
+        # tipo_ritmi: Categoria ritmica iniziale passata a Csound.
         # 'choices' disponibili (definite in _generate_rhythm_pattern in Python):
         #   - 'piccoli': Ritmi veloci, suoni brevi (valori numerici bassi: 1, 2, 3...)
         #   - 'medi':    Ritmi intermedi.
         #   - 'grandi':  Ritmi lenti, suoni lunghi (valori numerici alti: 16, 20...)
         #   - 'misti':   Una combinazione dei precedenti.
-        # 'weights' devono avere la stessa lunghezza di 'choices' e sommare a 1.0 (opzionale).
-        tipo_ritmi: {choices: ['grandi', 'misti'], weights: [0.9, 0.1]}
+        tipo_ritmi: {choices: ['grandi']}
 
-        # nonlinear_mode: Controlla il comportamento del generatore di ritmi 'NonlinearFunc'.
+        # nonlinear_mode: Comportamento del generatore ritmico interno ('NonlinearFunc').
         # 'choices' disponibili:
         #   - 0: Convergente (i ritmi tendono a un valore stabile)
         #   - 1: Periodico (i ritmi si ripetono in cicli)
-        #   - 2: Caotico (comportamento caotico ma deterministico)
-        #   - 3: Caos Vero (più casualità e imprevedibilità)
-        nonlinear_mode: {choices: [0, 1], weights: [0.8, 0.2]}
+        #   - 2: Caotico (comportamento complesso ma deterministico)
+        #   - 3: Caos "Vero" (più casualità e imprevedibilità)
+        nonlinear_mode: {choices: [0, 1], weights: [0.9, 0.1]}
 
     stato_finale:
         # Qui si definiscono gli stessi parametri dello stato_iniziale, ma con i valori
         # che si desidera raggiungere alla FINE della sezione.
-        ottava:           {range: [4, 6]}
-        registro:         {range: [5, 10]}
-        ampiezza_db:      {range: [-15, -10]}
-        durata_armonica:  {range: [10, 20]}
-        densita_cluster:  {range: [5, 10]}
-        spread_spettrale: {range: [1.5, 3.0]}
-        tipo_ritmi:       {choices: ['piccoli', 'misti'], weights: [0.1, 0.9]}
-        nonlinear_mode:   {choices: [2, 3], weights: [0.3, 0.7]}
-
+        ottava:                 {range: [7, 9]}
+        registro:               {range: [30, 50]}
+        ampiezza_db:            {range: [-12, -6]}
+        durata_armonica:        {range: [0.2, 0.5]}
+        moltiplicatore_durata:  {choices: [1.8, 2.5, 4.0], weights: [0.2, 0.5, 0.3]}
+        densita_cluster:        {range: [8, 15]}
+        tipo_ritmi:             {choices: ['piccoli', 'misti'], weights: [0.8, 0.2]}
+        nonlinear_mode:         {choices: [2, 3], weights: [0.1, 0.9]}
 
 # ------------------------------------------------------------------------------
-# Puoi aggiungere altre sezioni semplicemente iniziando un nuovo blocco con "-"
+# Esempio di Sezione Statica (con stato_unico)
 # ------------------------------------------------------------------------------
-# -
-#   nome_sezione: "Seconda Sezione"
-#   ... e così via
+-
+    nome_sezione: "II. Stasi Ritmica"
+    durata: 40
+    num_attivazioni: 100
+    timing_model:
+        type: "lineare"
+
+    # Per una sezione con un carattere sonoro omogeneo, si usa 'stato_unico'
+    # invece di 'stato_iniziale' e 'stato_finale'.
+    stato_unico:
+        ottava:                 {mean: 5, std: 1}
+        registro:               {range: [10, 40]}
+        ampiezza_db:            {range: [-18, -14]}
+        durata_armonica:        {range: [0.8, 1.2]}
+        moltiplicatore_durata:  {choices: [1.0]} # Nessuna sovrapposizione
+        densita_cluster:        {range: [1, 1]}
+        tipo_ritmi:             {choices: ['medi']}
+        nonlinear_mode:         {choices: [1]} # Forza un comportamento periodico

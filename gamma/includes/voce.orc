@@ -2,7 +2,7 @@
 ; comportamento.orc (Versione pulita e modificata per il generatore di gamma)
 ; Generatore di eventi sonori.
 ; ===========================================================================
-instr Comportamento
+instr Voce
     ; -----------------------------------------------------------------------
     ; 1. INIZIALIZZAZIONE E ACQUISIZIONE PARAMETRI
     ; -----------------------------------------------------------------------
