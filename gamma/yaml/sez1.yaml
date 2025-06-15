@@ -2,51 +2,48 @@
 # Ogni trattino (-) definisce una nuova sezione della composizione.
 
 -   nome_sezione: "I. Nascita Lenta di Cluster"
-    durata: 90
-    num_attivazioni: 20
+    durata: 50
+    ratio_temporale: 1.0
+    num_attivazioni: 10
     timing_model:
-        type: "accelerando"
-        shape: 2.0
+        type: "stochastic"
     stato_iniziale:
         ottava:           {range: [0, 2], distribution: "uniform"}
-        registro:         {range: [1, 3], distribution: "uniform"}
-        ampiezza_db:      {range: [-40, -35], distribution: "uniform"}
-        durata_armonica:  {range: [30, 40]}
-        densita_cluster:  {range: [1, 3]}
-        spread_spettrale: {range: [0.1, 0.5]}
-        tipo_ritmi:       {choices: ['grandi', 'misti'], weights: [0.9, 0.1]}
+        registro:         {range: [10, 40], distribution: "uniform"}
+        dinamica:         {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [8, 15]}
+        tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.9, 0.1]}
         nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
     stato_finale:
-        ottava:           {range: [3, 5], distribution: "uniform"}
+        ottava:           {range: [5, 7], distribution: "uniform"}
         registro:         {range: [4, 7], distribution: "uniform"}
-        ampiezza_db:      {range: [-40, -35], distribution: "uniform"}
-        durata_armonica:  {range: [15, 30]}
-        densita_cluster:  {range: [8, 15]}
-        spread_spettrale: {range: [1.5, 2.5]}
-        tipo_ritmi:       {choices: ['grandi', 'misti'], weights: [0.2, 0.8]}
+        dinamica:         {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [30, 50]}
+        tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.2, 0.8]}
         nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
 
--   nome_sezione: "II. provetta"
-    durata: 40
-    num_attivazioni: 40
+-   nome_sezione: "II. Nascita Lenta di Cluster"
+    durata: 30
+    ratio_temporale: 1.0
+    num_attivazioni: 6
     timing_model:
-        type: "accelerando"
-        shape: 4.0
+        type: "stochastic"
     stato_iniziale:
-        ottava:           {range: [3, 7], distribution: "uniform"}
-        registro:         {range: [1, 10], distribution: "uniform"}
-        ampiezza_db:      {range: [-45, -40], distribution: "uniform"}
-        durata_armonica:  {range: [5, 10]}
-        densita_cluster:  {range: [20, 30]}
-        spread_spettrale: {range: [2.0, 3.0]}
-        tipo_ritmi:       {choices: ['grandi', 'misti'], weights: [0.9, 0.1]}
+        ottava:           {range: [0, 2], distribution: "uniform"}
+        registro:         {range: [10, 40], distribution: "uniform"}
+        dinamica:         {choices: ['ppp', 'pp', 'p'], weights: [0.8, 0.15, 0.05]}
+        durata_armonica:  {range: [1, 1]}
+        densita_cluster:  {range: [3, 5]}
+        tipo_ritmi:       {choices: ['piccoli']}
         nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
     stato_finale:
-        ottava:           {range: [2, 3], distribution: "uniform"}
-        registro:         {range: [4, 7], distribution: "uniform"}
-        ampiezza_db:      {range: [-20, -15], distribution: "uniform"}
-        durata_armonica:  {range: [15, 20]}
-        densita_cluster:  {range: [15, 20]}
-        spread_spettrale: {range: [0.1, 0.5]}
-        tipo_ritmi:       {choices: ['grandi', 'misti'], weights: [0.2, 0.8]}
-        nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
+        ottava:           {range: [3, 7], distribution: "uniform"}
+        registro:         {range: [13, 40], distribution: "uniform"}
+        dinamica:         {choices: ['p', 'mf'], weights: [.3,0.8]}
+        durata_armonica:  {range: [5, 5]}
+        densita_cluster:  {range: [30, 70]}
+        tipo_ritmi:       {choices: ['piccoli']}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.4, 0.6]}
+

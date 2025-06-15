@@ -10,7 +10,7 @@ instr Voce
     i_Durata         = p3             ; Durata complessiva
     i_RitmiTab       = p4             ; Tabella dei ritmi
     i_DurataArmonica = p5             ; Durata armonica di riferimento
-    i_Ampiezza       = p6             ; Ampiezza in dB
+    i_DynamicIndex   = p6         
     i_Ottava         = p7             ; Ottava
     i_Registro       = p8             ; Registro
     i_PosTab         = p9             ; Tabella delle posizioni
@@ -64,9 +64,9 @@ instr Voce
         endif
 
         ; -------- 3.3 CALCOLO PARAMETRI DELL'EVENTO --------
-        i_Amp = calcAmpiezza(i_Ampiezza, i_RitmoCorrente, -0.05)
         i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
         i_Freq2 = i_Freq1
+        i_Amp = GetIsoAmp(i_Freq1, i_DynamicIndex)
 
         if i_EventIdx < ftlen(i_PosTab) then
             i_Pos tab_i i_EventIdx, i_PosTab
@@ -86,7 +86,12 @@ instr Voce
         tabw_i i_EventAttack, gi_Index, gi_eve_attacco
         ; ... le altre scritture su tabella `gi_eve_*` non sono necessarie per la sola generazione audio,
         ; ma `i_EventAttack` serve per il calcolo del prossimo attacco.
-        
+
+        if i_RitmoCorrente < 1 then
+            prints "ERROR\n"
+            prints "Voce %d, Evento %d: Passo i_RitmoCorrente = %f a eventoSonoro\n", i_IdComp, i_EventIdx, i_RitmoCorrente
+            exitnow
+        endif
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
         schedule "eventoSonoro", i_EventAttack - p2, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index,i_IdComp
 

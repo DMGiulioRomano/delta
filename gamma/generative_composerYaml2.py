@@ -26,6 +26,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
+import subprocess 
 # =============================================================================
 # DEFINIZIONE DELLA COMPOSIZIONE (IL CUORE DEL SISTEMA)
 # =============================================================================
@@ -72,14 +73,49 @@ class TimeScheduler:
         if num_events == 1: return [duration / 2.0]
 
         base_progress = np.linspace(0, 1, num_events, endpoint=False) # Endpoint False per evitare un evento a durata esatta
+        final_progress = np.zeros_like(base_progress)
+        model_type = model.get('type', 'linear')
 
-        if model['type'] == 'accelerando':
+        if model_type == 'accelerando':
             shape = model.get('shape', 2.0)
             final_progress = base_progress ** shape
-        elif model['type'] == 'ritardando':
+        elif model_type == 'ritardando':
             shape = model.get('shape', 2.0) # La forma > 1.0 rallenta se invertita
             final_progress = 1 - (1 - base_progress) ** shape
-        elif model['type'] == 'stochastic':
+        elif model_type == 'breakpoint':
+            points = model['points']
+            
+            # Itera su ogni segmento della spezzata (da punto i a punto i+1)
+            for i in range(len(points) - 1):
+                start_point = points[i]
+                end_point = points[i+1]
+                # Estrai i dati del segmento
+                t_start, v_start = start_point[0], start_point[1]
+                t_end, v_end = end_point[0], end_point[1]
+                # La forma è definita dal punto di arrivo. Default a lineare (1.0).
+                shape = end_point[2] if len(end_point) > 2 else 1.0
+                # Trova quali eventi cadono in questo intervallo di tempo
+                segment_mask = (base_progress >= t_start) & (base_progress < t_end)
+                if not np.any(segment_mask):
+                    continue
+                
+                # Seleziona solo i punti di tempo in questo segmento
+                segment_times = base_progress[segment_mask]
+
+                # --- CUORE DELLA LOGICA ---
+                # 1. Normalizza il tempo all'interno del segmento (da 0 a 1)
+                time_in_segment = (segment_times - t_start) / (t_end - t_start)
+                # 2. Applica la funzione di shaping (curva)
+                shaped_time = time_in_segment ** shape
+                # 3. Interpola linearmente tra i VALORI usando il tempo curvato
+                interpolated_values = v_start + (v_end - v_start) * shaped_time                
+                # Assegna i valori calcolati all'array finale
+                final_progress[segment_mask] = interpolated_values            
+            # Gestisci l'ultimo punto esatto, se presente
+            if base_progress[-1] == 1.0:
+                final_progress[-1] = points[-1][1]
+
+        elif model_type == 'stochastic':
             final_progress = np.sort(np.random.rand(num_events))
         else: # Default a lineare
             final_progress = base_progress
@@ -100,6 +136,10 @@ class GenerativeComposer:
         self.rhythm_table_map = {}
         self.next_table_id = 1000
         
+        # Mappa per tradurre la dinamica in un indice per Csound
+        self.dynamic_to_index = {
+            'ppp': 0, 'pp': 1, 'p': 2, 'mf': 3, 'f': 4, 'ff': 5, 'fff': 6
+        }
         self.id_comp_counter = 0
 
     def _valida_parametri(self, params):
@@ -107,23 +147,6 @@ class GenerativeComposer:
         Valida un set di parametri generati per assicurarsi che siano
         tecnicamente validi per il motore Csound.
         """
-        ott, reg, amp = params['ottava'], params['registro'], params['ampiezza_db']
-        
-        # 1. Validazione Ampiezza vs Ottava/Registro
-        max_amp = -6
-        if ott > 0:
-            if ott <= 3:
-                slope = (-12 - (-6)) / 2
-                max_amp = -6 + slope * (ott - 1) - (reg - 1) * 0.3
-            else:
-                progress = (ott - 3) / 7
-                smooth_progress = (1 - np.cos(progress * np.pi)) / 2
-                base_amp = -12 + (-25 - (-12)) * smooth_progress
-                reg_influence = (reg - 1) * 0.2
-                max_amp = min(base_amp - reg_influence, -12)
-        if amp > max_amp:
-            return False
-
         # 2. Validazione Durata
         min_ritmo = min(r for r in params['ritmi'] if r > 0)
         if not min_ritmo: return False
@@ -181,14 +204,48 @@ class GenerativeComposer:
             
             params[key] = val
 
+        if 'dinamica' in mask:
+            dynamic_mask = mask['dinamica']
+            # Assumiamo che la dinamica sia sempre una scelta pesata
+            if 'choices' in dynamic_mask:
+                dynamic_str = random.choices(
+                    dynamic_mask['choices'], 
+                    weights=dynamic_mask.get('weights'), 
+                    k=1
+                )[0]
+                # Traduci la stringa (es. 'f') nell'indice numerico (es. 4)
+                params['dynamic_index'] = self.dynamic_to_index.get(dynamic_str, 3) # Default a 'mf' se non trova
+        else:
+            # Se la maschera non specifica la dinamica, usa un default
+            params['dynamic_index'] = 3 # 'mf'
+
         # --- APPLICAZIONE DEI CLIPPING E GENERAZIONE DERIVATA (POST-GENERAZIONE) ---
         
         # Clipping per garantire che i valori rimangano nei limiti tecnici globali.
         params['ottava'] = int(round(np.clip(params.get('ottava', 5), OTTAVE_RANGE[0], OTTAVE_RANGE[1])))
         params['registro'] = int(np.clip(params.get('registro', 5), REGISTRI_RANGE[0], REGISTRI_RANGE[1]))
 
+
         # Generazione di parametri derivati
-        params['ritmi'] = self._generate_rhythm_pattern(params.get('tipo_ritmi', 'medi'))
+        rhythm_mask = mask.get('tipo_ritmi', {'choices': ['medi']}) # Default a categoria 'medi'
+        if 'explicit_values' in rhythm_mask:
+            # --- MODALITÀ 1: L'utente ha fornito una lista esplicita ---
+            params['ritmi'] = rhythm_mask['explicit_values']
+
+        elif 'choices' in rhythm_mask:
+            # --- MODALITÀ 2: L'utente ha fornito una lista di scelte ---
+            choice = random.choices(rhythm_mask['choices'], weights=rhythm_mask.get('weights'), k=1)[0]
+            
+            if isinstance(choice, list):
+                # Sottocaso 2a: La scelta è già una lista di ritmi (es. [[2,3,5], [7,7]])
+                params['ritmi'] = choice
+            else:
+                # Sottocaso 2b: La scelta è una categoria stringa (vecchio comportamento)
+                params['ritmi'] = self._generate_rhythm_pattern(choice)
+        else:
+            # Fallback se la maschera 'tipo_ritmi' è malformata
+            params['ritmi'] = self._generate_rhythm_pattern('medi')
+
         params['posizioni'] = [i % r for i, r in enumerate(params['ritmi']) if r > 0]
         
         moltiplicatore = params.get('moltiplicatore_durata', random.choice([1, 1.25, 1.6]))
@@ -345,8 +402,14 @@ class GenerativeComposer:
                             params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
                             params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
                             
-                            # Calcolo del tempo finale con un po' di jitter
-                            jitter = np.random.normal(loc=0.0, scale=0.05)
+                            # Calcolo del tempo finale con jitter configurabile
+                            # 1. Ottieni la scala del jitter dai parametri generati.
+                            #    Usa .get() per fornire un valore di default (es. 0.05) se 
+                            #    'onset_jitter' non è stato definito nella maschera YAML.
+                            jitter_scale = params.get('onset_jitter', 0.05)
+                            
+                            # 2. Genera il valore di jitter usando la scala ottenuta.
+                            jitter = np.random.normal(loc=0.0, scale=jitter_scale)
                             event_time = current_time_offset + onset + jitter
                             
                             event_data = {'time': event_time, 'params': params}
@@ -374,14 +437,14 @@ class GenerativeComposer:
         # 1. Costruisci gli f-statement per le tabelle nello score
         score_tables = ""
         for rhythm_tuple, table_ids in self.rhythm_table_map.items():
-            ritmi_str = ', '.join(map(str, rhythm_tuple))
+            ritmi_str = ' '.join(map(str, rhythm_tuple))
             posizioni = [i % r for i, r in enumerate(rhythm_tuple) if r > 0]
-            posizioni_str = ', '.join(map(str, posizioni))
+            posizioni_str = ' '.join(map(str, posizioni))
             
             # Sintassi f-statement: f <num> <start> <size> <GEN> <params...>
             # GEN 2 legge i valori direttamente. Lo start time è 0 per renderle subito disponibili.
-            score_tables += f"f {table_ids['ritmi_tab_num']} 0 {len(rhythm_tuple)} 2 {ritmi_str}\n"
-            score_tables += f"f {table_ids['pos_tab_num']} 0 {len(posizioni)} 2 {posizioni_str}\n"
+            score_tables += f"f {table_ids['ritmi_tab_num']} 0 {len(rhythm_tuple)} -2 {ritmi_str}\n"
+            score_tables += f"f {table_ids['pos_tab_num']} 0 {len(posizioni)} -2 {posizioni_str}\n"
 
         # 2. Costruisci le linee di score (questa parte non cambia)
         score_lines = ""
@@ -392,7 +455,7 @@ class GenerativeComposer:
             event_time = max(event['time'], 0.001)
             score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tampiezza\tottava\tregistro\tniente\tid_comp\tnonlinearMode\n"
             score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
-                            f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["ampiezza_db"]:.2f}\t\t'
+                            f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]}\t\t\t'
                             f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}\n')
             last_event_time = max(last_event_time, event_time + p["durata_totale"])
 
@@ -411,9 +474,8 @@ class GenerativeComposer:
         with open(file_path, 'w') as f:
             f.write(csd_content)
         
-        print(f"\n✓ Composizione creata: {file_path}")
-        print(f"  Per renderizzare: csound \"{file_path}\"")
-
+        return file_path
+    
     def get_csd_template(self):
         """Restituisce il template CSD master."""
         return """
@@ -439,10 +501,13 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
+gi_debug init 1
+
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
 #include "../includes/NonlinearFunc.udo"
 #include "../includes/GenPythagFreqs.udo"
+#include "../includes/initIsoAmp.orc"
 #include "../includes/eventoSonoro.orc"
 #include "../includes/voce.orc"
 
@@ -496,7 +561,7 @@ class CompositionDebugger:
             duration = p['durata_totale']
             end = start + duration
             pitch = p['ottava'] + (p['registro'] / 10.0)
-            amp_norm = (p['ampiezza_db'] + 60) / 60
+            amp_norm = p.get('dynamic_index', 3) / 6.0  # Normalizza l'indice (0-6) a (0-1)
             plot_data.append({'start': start, 'end': end, 'pitch': pitch, 'amp_norm': amp_norm})
             if end > max_time: max_time = end
 
@@ -535,6 +600,12 @@ class CompositionDebugger:
         print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
         
 if __name__ == "__main__":
+    # ===================================================================
+    # FLAG DI CONTROLLO: Decidi se lanciare Csound dopo la generazione.
+    # Imposta su True per renderizzare automaticamente il file audio.
+    # Imposta su False per generare solo il file .csd e il grafico.
+    RENDER_AUTOMATICAMENTE = True
+    # ===================================================================
     # 1. Controllo degli argomenti
     if len(sys.argv) < 2:
         print("ERRORE: Devi specificare il percorso del file YAML della composizione.")
@@ -561,6 +632,28 @@ if __name__ == "__main__":
         debugger.plot_piano_roll(event_sequence, composition_name, composition_structure)
         
         # 6. Genera il file CSD finale
-        composer.generate_csd(composition_name, event_sequence)
+        csd_file_path = composer.generate_csd(composition_name, event_sequence)
     else:
         print("\nERRORE: Nessun evento generato. Controlla la configurazione della composizione.")
+    # 7. ESECUZIONE AUTOMATICA DI CSOUND (se abilitata)
+    if RENDER_AUTOMATICAMENTE and csd_file_path:
+        print("\n--- AVVIO RENDERING CON CSOUND ---")
+        print(f"Eseguo il comando: csound \"{csd_file_path}\"")
+        try:
+            # Costruisci il comando come una lista di argomenti
+            command = ['csound', str(csd_file_path)]
+            
+            # Esegui il comando. L'output di Csound apparirà nel terminale.
+            # Lo script Python attenderà il completamento di Csound.
+            subprocess.run(command, check=True)
+            
+            print("\n✓ Rendering Csound completato con successo.")
+        except FileNotFoundError:
+            print("\nERRORE CRITICO: Comando 'csound' non trovato.")
+            print("Assicurati che Csound sia installato e che il suo eseguibile sia nel PATH di sistema.")
+        except subprocess.CalledProcessError:
+            print("\nERRORE: Csound ha terminato con un errore durante il rendering.")
+    elif csd_file_path:
+        # Se il rendering non è automatico, stampa il comando come prima
+        print(f"\nPer renderizzare manualmente, esegui:")
+        print(f"  csound \"{csd_file_path}\"")

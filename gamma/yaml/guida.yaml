@@ -42,12 +42,31 @@
         #   - "accelerando": Gli intervalli si riducono, creando accelerazione.
         #   - "ritardando":  Gli intervalli aumentano, creando rallentamento.
         #   - "stochastic":  Intervalli casuali, per texture organiche e imprevedibili.
-        type: "accelerando"
+        #   - "breakpoint":  Modella la progressione usando una
+        #                    funzione a tratti definita da una lista di punti.
+        type: "breakpoint"
 
+        # points: (Lista di liste)
+        # Ogni punto è [tempo, valore, forma].
+        # - tempo: Posizione normalizzata (0.0 -> 1.0)
+        # - valore: Valore di progressione da raggiungere (0.0 -> 1.0)
+        # - forma: (Opzionale) Esponente che modella la curva DEL SEGMENTO PRECEDENTE.
+        #    - 1.0 = Lineare (default se omesso)
+        #    - > 1.0 = Ease-in (lento all'inizio, veloce alla fine)
+        #    - < 1.0 = Ease-out (veloce all'inizio, lento alla fine)
+        # Il primo punto non necessita di 'forma'.
+        
+        # Esempio: Un attacco "morbido" seguito da una caduta "dura"
+        points:
+          - [0.0, 0.0]                  # Punto di partenza
+          - [0.7, 1.0, 2.5]             # Raggiungi il picco con un forte ease-in (forma = 2.5)
+          - [1.0, 0.0, 0.5]             # Torna a 0 con un forte ease-out (forma = 0.5)
+        #oppure points: [[0.0, 0.0],[0.7, 1.0, 2.5],[1.0, 0.0, 0.5]]
         # shape: (Numero, Opzionale) Controlla la "curva" dell'accelerando/ritardando.
         # Richiesto solo per i tipi 'accelerando' e 'ritardando'.
         # Un valore > 1.0 rende l'effetto più pronunciato. Default è 2.0.
         shape: 1.8
+
 
 
     # --- MASCHERE DI TENDENZA: STATO INIZIALE E FINALE ---
@@ -63,10 +82,8 @@
         # registro: Controlla la posizione fine all'interno di un'ottava (da 1 a 50).
         registro: {range: [1, 20]}
 
-        # ampiezza_db: L'ampiezza in decibel (0dbfs). Valori negativi.
-        # -6 è molto forte, -60 è quasi impercettibile.
-        # Può usare una distribuzione 'normal' per concentrare i valori attorno a una media.
-        ampiezza_db: {mean: -45, std: 5}
+        # quando non presente credo sia automaticamente a mf
+        dinamica:         {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
 
         # durata_armonica: Durata di riferimento in secondi per la generazione ritmica interna.
         # Valori alti portano a eventi più lenti e lunghi.
@@ -82,13 +99,43 @@
         # range: [3, 5] -> Cluster/accordi di 3, 4 o 5 suoni.
         densita_cluster: {range: [1, 2]}
 
-        # tipo_ritmi: Categoria ritmica iniziale passata a Csound.
-        # 'choices' disponibili (definite in _generate_rhythm_pattern in Python):
-        #   - 'piccoli': Ritmi veloci, suoni brevi (valori numerici bassi: 1, 2, 3...)
-        #   - 'medi':    Ritmi intermedi.
-        #   - 'grandi':  Ritmi lenti, suoni lunghi (valori numerici alti: 16, 20...)
-        #   - 'misti':   Una combinazione dei precedenti.
-        tipo_ritmi: {choices: ['grandi']}
+        # onset_jitter: (Numero/Dizionario, Opzionale) Controlla la "sbavatura" temporale
+        # degli eventi attorno al loro tempo di attacco teorico (onset).
+        # Tecnicamente, definisce la deviazione standard (in secondi) di una
+        # distribuzione normale da cui viene pescato un piccolo offset temporale.
+        # - Valori bassi (es. 0.01) creano un effetto di "flam" molto stretto.
+        # - Valori alti (es. 0.2) creano una dispersione temporale più ampia.
+        # - Un valore di 0.0 disattiva completamente il jitter per quell'evento.
+        #
+        # Default: Se omesso, il sistema applica un jitter di default con scala 0.05.
+        onset_jitter: {range: [0.0, 0.02]}
+
+        # tipo_ritmi: (Dizionario) Definisce il pattern ritmico usato da Csound.
+        # Esistono tre modalità di utilizzo, dalla più generativa alla più prescrittiva.
+
+        # --- Modalità 1: Categorie Predefinite (Comportamento Originale) ---
+        # Scegli una categoria e il sistema genererà un pattern ritmico appropriato.
+        # 'choices' disponibili: 'piccoli', 'medi', 'grandi', 'misti'.
+        # Esempio: tipo_ritmi: {choices: ['piccoli', 'medi'], weights: [0.8, 0.2]}
+
+        # --- Modalità 2: Lista Esplicita (Nuova, Prescrittiva) ---
+        # Fornisci un pattern ritmico esatto che verrà usato per ogni evento generato
+        # da questa maschera.
+        # Usa la chiave 'explicit_values'.
+        # Esempio:
+        # tipo_ritmi: {explicit_values: [7, 5, 12, 3, 21]}
+        
+        # --- Modalità 3: Scelta tra Liste Esplicite (Nuova, Avanzata) ---
+        # Combina il controllo della Modalità 2 con la flessibilità della Modalità 1.
+        # Fornisci una lista di 'choices', dove ogni scelta è un intero pattern ritmico.
+        # Il sistema ne sceglierà uno a caso (rispettando i pesi) per ogni evento.
+        # Esempio:
+        tipo_ritmi:
+            choices:
+              - [2, 3, 5, 8]  # Pattern 1 (Fibonacci)
+              - [7, 7, 7]     # Pattern 2 (Ostinato)
+              - [16, 2, 16]   # Pattern 3 (Contrasto)
+            weights: [0.6, 0.3, 0.1] # 60% prob. Fibonacci, 30% Ostinato, 10% Contrasto
 
         # nonlinear_mode: Comportamento del generatore ritmico interno ('NonlinearFunc').
         # 'choices' disponibili:
@@ -103,7 +150,7 @@
         # che si desidera raggiungere alla FINE della sezione.
         ottava:                 {range: [7, 9]}
         registro:               {range: [30, 50]}
-        ampiezza_db:            {range: [-12, -6]}
+        dinamica:               {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
         durata_armonica:        {range: [0.2, 0.5]}
         moltiplicatore_durata:  {choices: [1.8, 2.5, 4.0], weights: [0.2, 0.5, 0.3]}
         densita_cluster:        {range: [8, 15]}
@@ -125,7 +172,7 @@
     stato_unico:
         ottava:                 {mean: 5, std: 1}
         registro:               {range: [10, 40]}
-        ampiezza_db:            {range: [-18, -14]}
+        dinamica:               {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
         durata_armonica:        {range: [0.8, 1.2]}
         moltiplicatore_durata:  {choices: [1.0]} # Nessuna sovrapposizione
         densita_cluster:        {range: [1, 1]}

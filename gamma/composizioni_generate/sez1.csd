@@ -1,7 +1,7 @@
 
 <CsoundSynthesizer>
 <CsOptions>
--o "sez3.wav" -W -d
+-o "sez1.wav" -W -d
 </CsOptions>
 <CsInstruments>
 sr = 44100
@@ -21,10 +21,13 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
+gi_debug init 1
+
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
 #include "../includes/NonlinearFunc.udo"
 #include "../includes/GenPythagFreqs.udo"
+#include "../includes/initIsoAmp.orc"
 #include "../includes/eventoSonoro.orc"
 #include "../includes/voce.orc"
 
@@ -38,23 +41,23 @@ instr Init
 endin
 </CsInstruments>
 <CsScore>
-f 0 16.297156670761034 ; Evento f fittizio per definire la durata totale
+f 0 88.09511888728348 ; Evento f fittizio per definire la durata totale
 f1 0 4096 10 1
 f2 0 1024 6 0 512 0.5 512 1 ; Envelope per il suono
 
 ; --- TABELLE DI DATI PER LA PARTITURA ---
-f 1000 0 3 2 7, 9, 12
-f 1001 0 3 2 0, 1, 2
-f 1002 0 3 2 8, 12, 8
-f 1003 0 3 2 0, 1, 2
-f 1004 0 3 2 6, 8, 10
-f 1005 0 3 2 0, 1, 2
-f 1006 0 3 2 1, 2, 3
-f 1007 0 3 2 0, 1, 2
-f 1008 0 3 2 2, 3, 5
-f 1009 0 3 2 0, 1, 2
-f 1010 0 3 2 3, 4, 2
-f 1011 0 3 2 0, 1, 0
+f 1000 0 3 -2 3 4 2
+f 1001 0 3 -2 0 1 0
+f 1002 0 3 -2 7 9 12
+f 1003 0 3 -2 0 1 2
+f 1004 0 3 -2 6 8 10
+f 1005 0 3 -2 0 1 2
+f 1006 0 3 -2 2 3 5
+f 1007 0 3 -2 0 1 2
+f 1008 0 3 -2 1 2 3
+f 1009 0 3 -2 0 1 2
+f 1010 0 3 -2 8 12 8
+f 1011 0 3 -2 0 1 2
 
 ; --------------------------------------
 
@@ -64,817 +67,771 @@ i "Init" 0 0.1
 
 ; --- EVENTI GENERATI ---
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.156	1000	1.725		-32.12		0		19			1001	66		0
+i "Voce"	3.0266	16.000	1006	10.000		4			2		33			1007	8		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.660	1000	1.663		-31.66		5		13			1001	71		0
+i "Voce"	3.0662	16.000	1002	10.000		4			1		30			1003	2		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.651	1002	1.651		-34.53		9		41			1003	65		0
+i "Voce"	3.1168	12.500	1004	10.000		4			1		10			1005	4		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.985	1004	1.241		-34.89		8		10			1005	61		0
+i "Voce"	3.1175	10.000	1000	10.000		4			1		13			1001	7		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.919	1000	1.824		-30.92		0		17			1001	24		0
+i "Voce"	3.1195	16.000	1006	10.000		1			1		14			1007	5		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.024	1004	1.265		-30.42		6		35			1005	10		0
+i "Voce"	3.1381	12.500	1002	10.000		4			2		10			1003	3		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.842	1004	1.474		-30.45		3		25			1005	17		0
+i "Voce"	3.1594	12.500	1000	10.000		4			2		37			1001	1		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.124	1004	1.699		-30.34		3		13			1005	49		1
+i "Voce"	3.1753	12.500	1006	10.000		4			0		30			1007	11		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.017	1000	1.614		-33.01		3		49			1001	84		0
+i "Voce"	3.1797	16.000	1000	10.000		4			2		16			1001	10		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.042	1006	1.634		-30.21		7		16			1007	32		1
+i "Voce"	3.1967	16.000	1000	10.000		4			1		16			1001	9		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.135	1002	1.135		-33.35		7		8			1003	18		0
+i "Voce"	3.2898	16.000	1006	10.000		3			1		18			1007	6		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	3.084	1000	1.927		-32.44		10		24			1001	12		0
+i "Voce"	7.8104	16.000	1006	10.000		4			1		28			1007	13		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.348	1002	1.078		-32.95		8		28			1003	35		0
+i "Voce"	7.8120	12.500	1010	10.000		4			2		12			1011	17		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.657	1002	1.657		-32.19		7		11			1003	13		0
+i "Voce"	7.8456	12.500	1006	10.000		4			2		11			1007	14		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.381	1002	1.381		-33.23		4		24			1003	69		1
+i "Voce"	7.8463	16.000	1008	10.000		4			1		10			1009	19		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.524	1000	1.219		-32.70		7		31			1001	64		1
+i "Voce"	7.8609	12.500	1000	10.000		4			3		17			1001	31		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.645	1002	1.645		-34.95		7		41			1003	53		0
+i "Voce"	7.8646	16.000	1008	10.000		1			2		19			1009	15		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.424	1000	1.424		-32.55		8		8			1001	58		0
+i "Voce"	7.8728	16.000	1006	10.000		4			1		17			1007	29		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.405	1000	1.503		-32.41		5		26			1001	81		0
+i "Voce"	7.8814	16.000	1000	10.000		4			2		10			1001	28		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.655	1000	1.659		-33.28		3		17			1001	87		0
+i "Voce"	7.8831	12.500	1006	10.000		4			1		25			1007	26		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.131	1004	1.332		-34.14		5		1			1005	78		1
+i "Voce"	7.8847	12.500	1008	10.000		1			2		29			1009	32		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.804	1002	1.804		-33.47		10		1			1003	45		0
+i "Voce"	7.9053	10.000	1000	10.000		4			2		18			1001	24		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.290	1002	1.832		-32.73		0		37			1003	2		0
+i "Voce"	7.9067	10.000	1006	10.000		3			2		20			1007	16		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	3.039	1002	1.899		-33.82		5		1			1003	29		0
+i "Voce"	7.9147	12.500	1000	10.000		4			1		11			1001	18		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.028	1000	1.267		-33.41		4		17			1001	91		0
+i "Voce"	7.9323	16.000	1008	10.000		4			1		15			1009	30		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	3.094	1000	1.934		-32.79		0		38			1001	57		0
+i "Voce"	7.9348	16.000	1008	10.000		4			2		33			1009	23		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.802	1004	1.441		-30.72		5		49			1005	76		0
+i "Voce"	7.9428	10.000	1000	10.000		4			1		20			1001	20		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.841	1002	1.841		-30.96		4		23			1003	52		0
+i "Voce"	7.9485	10.000	1006	10.000		1			1		18			1007	12		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.332	1004	1.066		-32.28		5		17			1005	44		1
+i "Voce"	7.9903	12.500	1008	10.000		4			2		22			1009	21		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.945	1002	1.945		-33.12		10		12			1003	8		0
+i "Voce"	15.3621	12.500	1000	10.000		4			3		14			1001	43		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.024	1000	1.619		-34.51		2		49			1001	25		1
+i "Voce"	15.3942	12.500	1000	10.000		3			2		29			1001	36		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.061	1008	1.648		-32.86		5		25			1009	48		0
+i "Voce"	15.4014	16.000	1006	10.000		4			2		15			1007	34		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.497	1004	1.997		-33.24		10		4			1005	90		0
+i "Voce"	15.4058	16.000	1004	10.000		4			3		20			1005	50		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	3.182	1000	1.989		-34.24		4		37			1001	34		0
+i "Voce"	15.4132	16.000	1006	10.000		1			3		28			1007	37		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.165	1000	1.353		-34.02		5		40			1001	38		0
+i "Voce"	15.4190	16.000	1008	10.000		1			3		24			1009	39		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	3.159	1010	1.974		-31.36		2		16			1011	83		0
+i "Voce"	15.4256	12.500	1008	10.000		1			2		22			1009	54		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.988	1004	1.867		-32.13		8		8			1005	93		0
+i "Voce"	15.4257	16.000	1004	10.000		4			3		14			1005	33		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.663	1000	1.331		-31.15		6		17			1001	77		0
+i "Voce"	15.4302	16.000	1008	10.000		1			4		16			1009	46		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.526	1004	1.579		-34.55		8		43			1005	86		0
+i "Voce"	15.4374	10.000	1006	10.000		4			2		22			1007	41		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.574	1002	1.608		-31.43		4		34			1003	92		0
+i "Voce"	15.4671	10.000	1002	10.000		1			3		27			1003	51		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	2.544	1000	1.590		-33.18		5		28			1001	43		0
+i "Voce"	15.4700	12.500	1006	10.000		4			3		15			1007	38		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0010	1.639	1004	1.311		-31.72		10		28			1005	19		1
+i "Voce"	15.4732	12.500	1006	10.000		1			2		11			1007	42		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0018	1.131	1000	1.131		-31.76		3		34			1001	47		0
+i "Voce"	15.4741	10.000	1002	10.000		4			2		13			1003	48		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0060	2.070	1010	1.656		-33.95		5		34			1011	42		0
+i "Voce"	15.4796	16.000	1006	10.000		4			3		14			1007	52		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0060	1.923	1004	1.202		-32.35		5		44			1005	60		0
+i "Voce"	15.4852	12.500	1002	10.000		3			3		8			1003	49		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0062	1.081	1000	1.081		-34.64		2		47			1001	51		0
+i "Voce"	15.4960	16.000	1008	10.000		1			3		23			1009	47		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0084	1.761	1000	1.101		-34.03		4		32			1001	9		0
+i "Voce"	15.5029	16.000	1006	10.000		4			3		13			1007	53		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0089	2.223	1002	1.390		-34.39		1		1			1003	21		0
+i "Voce"	15.5146	10.000	1010	10.000		1			2		26			1011	40		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0093	1.519	1000	1.519		-34.18		4		35			1001	74		1
+i "Voce"	15.5203	16.000	1008	10.000		4			2		21			1009	35		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0111	1.214	1008	1.214		-32.08		1		19			1009	41		0
+i "Voce"	15.5344	12.500	1006	10.000		4			3		24			1007	45		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0127	1.628	1000	1.303		-34.05		6		28			1001	1		0
+i "Voce"	16.1627	16.000	1008	10.000		4			2		21			1009	64		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0133	1.723	1002	1.378		-30.79		7		1			1003	33		0
+i "Voce"	16.2264	10.000	1006	10.000		4			2		9			1007	56		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0147	2.371	1006	1.482		-33.93		9		33			1007	6		0
+i "Voce"	16.2278	10.000	1010	10.000		4			2		18			1011	70		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0165	1.424	1002	1.424		-34.53		7		42			1003	82		0
+i "Voce"	16.2292	16.000	1006	10.000		4			3		11			1007	66		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0170	2.738	1000	1.711		-31.27		8		20			1001	59		0
+i "Voce"	16.2343	16.000	1006	10.000		4			3		26			1007	63		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0175	2.951	1008	1.844		-31.88		5		41			1009	50		0
+i "Voce"	16.2382	12.500	1004	10.000		3			2		20			1005	72		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0182	2.479	1004	1.983		-33.12		7		41			1005	40		0
+i "Voce"	16.2390	16.000	1000	10.000		4			2		15			1001	62		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0194	1.614	1004	1.614		-30.46		3		21			1005	36		0
+i "Voce"	16.2443	16.000	1000	10.000		1			3		16			1001	65		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0199	2.838	1002	1.773		-31.13		5		7			1003	37		0
+i "Voce"	16.2568	12.500	1010	10.000		4			4		17			1011	61		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0201	1.871	1004	1.871		-33.89		8		2			1005	7		0
+i "Voce"	16.2641	16.000	1002	10.000		1			2		14			1003	67		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0208	1.185	1000	1.185		-32.39		5		36			1001	27		0
+i "Voce"	16.2759	12.500	1002	10.000		4			3		25			1003	57		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0215	3.103	1004	1.939		-34.51		4		36			1005	30		1
+i "Voce"	16.2780	12.500	1002	10.000		4			3		10			1003	55		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0221	1.412	1002	1.129		-31.56		3		37			1003	56		0
+i "Voce"	16.2841	12.500	1000	10.000		4			3		17			1001	58		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0259	1.841	1004	1.151		-33.32		10		30			1005	23		1
+i "Voce"	16.2848	12.500	1006	10.000		1			2		19			1007	60		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0272	1.527	1004	1.222		-32.50		7		47			1005	94		0
+i "Voce"	16.2989	16.000	1000	10.000		4			2		18			1001	71		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0307	1.946	1002	1.946		-30.28		3		23			1003	39		0
+i "Voce"	16.3128	16.000	1010	10.000		4			3		25			1011	59		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0316	1.761	1010	1.761		-32.26		5		39			1011	85		1
+i "Voce"	16.3296	16.000	1002	10.000		3			3		19			1003	68		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0352	2.348	1002	1.467		-32.39		3		45			1003	70		0
+i "Voce"	16.3556	10.000	1000	10.000		4			2		14			1001	69		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0356	3.141	1000	1.963		-33.83		5		24			1001	3		0
+i "Voce"	16.7131	12.500	1002	10.000		4			2		19			1003	75		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0402	1.261	1004	1.261		-31.77		7		35			1005	20		0
+i "Voce"	16.7236	12.500	1008	10.000		4			3		17			1009	79		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0417	1.813	1000	1.813		-33.54		10		26			1001	46		0
+i "Voce"	16.7474	12.500	1004	10.000		4			2		8			1005	85		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0417	1.522	1004	1.522		-33.01		2		41			1005	28		0
+i "Voce"	16.7622	12.500	1006	10.000		4			3		18			1007	81		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0471	1.936	1002	1.936		-30.69		5		49			1003	55		0
+i "Voce"	16.7679	12.500	1004	10.000		4			2		15			1005	92		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0481	2.645	1002	1.653		-34.85		0		23			1003	67		1
+i "Voce"	16.7854	12.500	1004	10.000		4			3		28			1005	77		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0500	1.048	1000	1.048		-31.64		5		3			1001	63		0
+i "Voce"	16.7995	16.000	1002	10.000		4			2		21			1003	88		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0522	1.911	1004	1.528		-30.28		1		25			1005	22		1
+i "Voce"	16.7998	10.000	1000	10.000		4			3		9			1001	93		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0551	1.949	1000	1.949		-32.09		2		7			1001	16		0
+i "Voce"	16.8124	12.500	1002	10.000		1			3		25			1003	73		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0589	1.090	1000	1.090		-31.35		1		44			1001	31		0
+i "Voce"	16.8255	12.500	1000	10.000		1			2		9			1001	76		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0603	1.365	1002	1.092		-31.58		7		20			1003	89		0
+i "Voce"	16.8263	10.000	1000	10.000		4			2		15			1001	83		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0638	2.080	1000	1.664		-30.33		7		34			1001	14		0
+i "Voce"	16.8302	16.000	1006	10.000		4			2		10			1007	89		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0641	1.377	1000	1.377		-32.43		3		11			1001	183		0
+i "Voce"	16.8393	10.000	1004	10.000		4			2		16			1005	74		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0688	1.355	1002	1.355		-34.18		2		47			1003	75		0
+i "Voce"	16.8405	10.000	1006	10.000		4			3		26			1007	78		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0713	2.074	1002	1.660		-34.74		5		28			1003	79		0
+i "Voce"	16.8531	10.000	1002	10.000		1			2		19			1003	82		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0716	1.122	1000	1.122		-30.01		4		32			1001	168		0
+i "Voce"	16.8542	16.000	1002	10.000		4			3		28			1003	80		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0798	1.766	1004	1.413		-34.57		6		10			1005	4		0
+i "Voce"	16.9134	12.500	1000	10.000		4			3		12			1001	91		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0833	2.487	1004	1.554		-30.65		9		17			1005	73		1
+i "Voce"	16.9162	12.500	1006	10.000		1			3		26			1007	87		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0848	1.012	1004	1.012		-30.67		4		39			1005	163		0
+i "Voce"	16.9392	12.500	1008	10.000		4			4		10			1009	86		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0858	1.944	1002	1.944		-33.48		7		46			1003	88		0
+i "Voce"	16.9435	10.000	1002	10.000		4			3		15			1003	84		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0900	1.553	1000	1.553		-31.08		4		4			1001	62		0
+i "Voce"	20.1958	12.500	1008	10.000		4			3		25			1009	99		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0929	1.614	1000	1.291		-34.32		6		31			1001	95		0
+i "Voce"	20.2274	16.000	1008	10.000		4			4		21			1009	106		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0940	1.799	1002	1.439		-30.84		2		4			1003	72		0
+i "Voce"	20.2309	16.000	1006	10.000		4			3		19			1007	102		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0958	1.469	1002	1.175		-32.00		0		46			1003	26		0
+i "Voce"	20.2541	10.000	1000	10.000		4			3		18			1001	104		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.0962	1.536	1002	1.536		-33.59		6		38			1003	80		0
+i "Voce"	20.2741	12.500	1006	10.000		4			4		22			1007	96		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1041	2.063	1000	1.650		-31.06		9		33			1001	68		1
+i "Voce"	20.2950	16.000	1004	10.000		4			3		23			1005	105		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1071	1.286	1004	1.029		-30.48		3		23			1005	128		0
+i "Voce"	20.3033	10.000	1004	10.000		4			3		9			1005	111		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1171	1.933	1000	1.547		-34.58		5		8			1001	150		0
+i "Voce"	20.3034	12.500	1002	10.000		4			2		9			1003	110		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1181	2.736	1002	1.710		-32.21		8		35			1003	120		0
+i "Voce"	20.3131	16.000	1010	10.000		4			2		26			1011	103		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1198	1.725	1000	1.380		-34.98		8		39			1001	11		0
+i "Voce"	20.3144	12.500	1002	10.000		4			3		21			1003	95		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1271	1.812	1002	1.450		-34.30		7		28			1003	123		0
+i "Voce"	20.3161	16.000	1002	10.000		4			2		20			1003	109		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1279	2.024	1004	1.620		-31.87		8		11			1005	5		0
+i "Voce"	20.3188	12.500	1010	10.000		4			3		21			1011	94		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1312	3.023	1004	1.889		-32.76		1		42			1005	174		0
+i "Voce"	20.3328	10.000	1002	10.000		4			4		19			1003	112		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1329	1.228	1000	1.228		-32.58		10		38			1001	162		0
+i "Voce"	20.3442	12.500	1000	10.000		4			4		16			1001	97		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1335	3.088	1002	1.930		-32.92		6		46			1003	154		1
+i "Voce"	20.3449	10.000	1006	10.000		4			3		15			1007	100		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1374	1.706	1004	1.365		-33.92		0		1			1005	177		0
+i "Voce"	20.3568	10.000	1004	10.000		4			2		16			1005	101		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1386	2.079	1000	1.299		-31.08		7		12			1001	113		0
+i "Voce"	20.3850	16.000	1002	10.000		4			2		24			1003	108		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1414	1.685	1004	1.053		-34.56		9		40			1005	134		0
+i "Voce"	20.4174	10.000	1000	10.000		4			3		7			1001	107		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1423	2.103	1004	1.315		-34.39		2		27			1005	171		1
+i "Voce"	28.6427	16.000	1002	10.000		4			4		17			1003	128		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1433	1.280	1004	1.024		-34.05		7		9			1005	145		0
+i "Voce"	28.6593	10.000	1010	10.000		4			4		12			1011	115		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1450	1.942	1000	1.554		-30.15		5		26			1001	146		0
+i "Voce"	28.6779	12.500	1008	10.000		3			3		20			1009	116		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1485	2.629	1000	1.643		-30.13		8		25			1001	148		1
+i "Voce"	28.6882	10.000	1002	10.000		4			3		16			1003	121		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1522	1.695	1000	1.059		-33.10		10		13			1001	99		0
+i "Voce"	28.6922	16.000	1002	10.000		4			4		11			1003	118		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1546	1.521	1004	1.217		-32.93		0		24			1005	124		0
+i "Voce"	28.7111	10.000	1002	10.000		4			3		13			1003	132		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1599	1.901	1002	1.901		-30.50		5		18			1003	104		0
+i "Voce"	28.7183	10.000	1002	10.000		4			3		20			1003	117		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1604	2.252	1004	1.407		-34.45		2		16			1005	179		0
+i "Voce"	28.7325	12.500	1006	10.000		4			4		16			1007	123		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1618	1.612	1002	1.008		-33.73		5		15			1003	118		0
+i "Voce"	28.7355	10.000	1004	10.000		4			4		19			1005	130		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1625	2.474	1002	1.979		-33.71		3		12			1003	160		1
+i "Voce"	28.7444	16.000	1010	10.000		4			4		11			1011	134		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1630	2.039	1010	1.274		-32.23		4		13			1011	140		0
+i "Voce"	28.7467	10.000	1000	10.000		1			4		14			1001	133		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1651	1.812	1000	1.812		-31.77		3		28			1001	136		0
+i "Voce"	28.7569	10.000	1010	10.000		4			4		8			1011	127		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1654	2.334	1004	1.459		-31.95		0		40			1005	172		0
+i "Voce"	28.7599	10.000	1010	10.000		1			4		7			1011	129		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1668	1.340	1004	1.340		-30.02		5		46			1005	101		1
+i "Voce"	28.7606	12.500	1000	10.000		4			3		17			1001	135		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1689	1.953	1002	1.953		-32.93		7		41			1003	135		0
+i "Voce"	28.7772	12.500	1004	10.000		4			4		13			1005	136		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1698	2.368	1002	1.894		-34.77		4		32			1003	141		0
+i "Voce"	28.7790	16.000	1004	10.000		4			4		17			1005	122		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1750	1.797	1002	1.123		-33.13		4		18			1003	169		0
+i "Voce"	28.7811	16.000	1000	10.000		1			3		11			1001	120		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1774	1.473	1002	1.473		-30.12		4		38			1003	151		0
+i "Voce"	28.7851	12.500	1008	10.000		4			4		20			1009	125		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1789	3.074	1002	1.921		-34.64		6		6			1003	181		0
+i "Voce"	28.7955	16.000	1002	10.000		3			4		11			1003	113		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1792	1.350	1004	1.350		-30.01		5		41			1005	100		0
+i "Voce"	28.8036	16.000	1006	10.000		4			4		7			1007	124		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1815	1.571	1004	1.571		-33.14		5		43			1005	147		0
+i "Voce"	28.8077	16.000	1006	10.000		4			4		10			1007	131		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1825	1.736	1002	1.736		-33.15		5		34			1003	138		0
+i "Voce"	28.8341	16.000	1008	10.000		4			4		10			1009	126		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1827	1.001	1000	1.001		-31.49		5		39			1001	158		0
+i "Voce"	28.8352	16.000	1004	10.000		4			4		13			1005	119		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1828	1.513	1002	1.513		-33.78		5		11			1003	173		0
+i "Voce"	29.8077	10.000	1006	10.000		4			3		10			1007	156		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1835	1.862	1004	1.164		-33.53		3		36			1005	155		0
+i "Voce"	29.8162	16.000	1002	10.000		4			5		12			1003	159		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1853	1.536	1004	1.229		-31.16		5		32			1005	153		1
+i "Voce"	29.8468	10.000	1004	10.000		4			4		16			1005	140		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1859	1.547	1002	1.547		-33.49		4		16			1003	114		0
+i "Voce"	29.8547	10.000	1004	10.000		4			4		18			1005	162		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1863	1.652	1002	1.032		-34.59		4		8			1003	166		0
+i "Voce"	29.8588	16.000	1002	10.000		4			5		7			1003	170		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1866	1.295	1000	1.295		-32.77		6		13			1001	161		1
+i "Voce"	29.8621	16.000	1002	10.000		4			3		14			1003	168		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1873	2.724	1002	1.703		-32.73		6		14			1003	111		0
+i "Voce"	29.8668	10.000	1000	10.000		4			5		19			1001	142		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1875	3.194	1000	1.997		-31.84		7		45			1001	143		0
+i "Voce"	29.8714	10.000	1010	10.000		4			4		16			1011	143		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1875	2.497	1002	1.561		-32.39		5		34			1003	125		0
+i "Voce"	29.8736	16.000	1004	10.000		4			4		15			1005	160		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1901	1.967	1004	1.574		-32.99		2		43			1005	117		1
+i "Voce"	29.8739	16.000	1004	10.000		4			5		9			1005	158		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1962	1.499	1004	1.499		-34.66		0		14			1005	109		0
+i "Voce"	29.8806	16.000	1000	10.000		4			5		16			1001	144		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.1985	1.401	1000	1.401		-30.89		4		41			1001	184		0
+i "Voce"	29.8828	16.000	1000	10.000		4			4		15			1001	147		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2025	1.505	1002	1.505		-31.73		10		14			1003	165		1
+i "Voce"	29.8956	16.000	1010	10.000		4			5		9			1011	137		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2029	1.523	1002	1.218		-33.49		6		27			1003	103		0
+i "Voce"	29.8956	12.500	1006	10.000		4			5		14			1007	139		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2033	1.423	1002	1.423		-33.26		7		13			1003	115		0
+i "Voce"	29.8960	16.000	1000	10.000		1			5		6			1001	149		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2057	1.466	1000	1.466		-34.32		3		19			1001	98		0
+i "Voce"	29.8986	12.500	1010	10.000		4			4		18			1011	161		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2062	1.114	1002	1.114		-32.16		5		24			1003	121		1
+i "Voce"	29.9001	10.000	1002	10.000		4			5		12			1003	171		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2069	1.068	1000	1.068		-30.41		0		41			1001	178		0
+i "Voce"	29.9104	10.000	1002	10.000		4			5		15			1003	148		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2130	1.389	1004	1.111		-30.07		6		17			1005	176		0
+i "Voce"	29.9117	10.000	1002	10.000		4			5		11			1003	157		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2146	1.696	1002	1.060		-33.82		5		16			1003	130		0
+i "Voce"	29.9137	16.000	1010	10.000		4			4		6			1011	151		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2162	1.420	1002	1.420		-32.48		2		40			1003	106		1
+i "Voce"	29.9171	12.500	1004	10.000		4			4		9			1005	165		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2170	2.091	1000	1.307		-32.46		0		46			1001	96		0
+i "Voce"	29.9257	12.500	1006	10.000		4			4		19			1007	141		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2177	1.812	1000	1.812		-34.63		4		45			1001	97		0
+i "Voce"	29.9275	16.000	1008	10.000		4			4		12			1009	169		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2187	2.446	1006	1.957		-31.38		7		34			1007	122		0
+i "Voce"	29.9334	10.000	1004	10.000		4			4		7			1005	153		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2215	1.666	1000	1.042		-33.80		2		19			1001	131		1
+i "Voce"	29.9414	10.000	1002	10.000		4			4		20			1003	146		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2218	1.826	1000	1.141		-30.71		2		18			1001	127		1
+i "Voce"	29.9420	12.500	1002	10.000		4			5		8			1003	145		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2227	1.924	1002	1.924		-31.46		4		30			1003	170		0
+i "Voce"	29.9518	16.000	1010	10.000		4			4		10			1011	167		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2233	1.027	1002	1.027		-31.88		4		4			1003	119		0
+i "Voce"	29.9528	10.000	1000	10.000		4			5		10			1001	163		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2256	2.552	1004	1.595		-31.65		9		32			1005	129		0
+i "Voce"	29.9539	16.000	1006	10.000		4			5		14			1007	138		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2272	1.777	1002	1.422		-34.87		0		39			1003	139		0
+i "Voce"	29.9581	16.000	1006	10.000		4			3		13			1007	164		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2272	1.194	1004	1.194		-33.03		7		24			1005	142		0
+i "Voce"	29.9753	16.000	1000	10.000		4			4		10			1001	150		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2278	2.951	1002	1.844		-33.82		6		3			1003	105		0
+i "Voce"	29.9805	12.500	1004	10.000		4			4		14			1005	166		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2283	1.163	1000	1.163		-30.83		0		39			1001	144		0
+i "Voce"	30.9937	10.000	1004	10.000		4			5		7			1005	193		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2284	2.035	1000	1.272		-33.17		4		34			1001	107		0
+i "Voce"	31.0234	16.000	1002	10.000		4			3		17			1003	173		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2297	1.324	1008	1.059		-33.98		2		11			1009	137		0
+i "Voce"	31.0292	16.000	1004	10.000		4			4		18			1005	180		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2311	1.720	1004	1.075		-34.14		10		19			1005	110		1
+i "Voce"	31.0356	10.000	1002	10.000		4			5		10			1003	184		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2383	2.125	1000	1.700		-30.08		9		17			1001	149		1
+i "Voce"	31.0378	10.000	1004	10.000		4			5		13			1005	174		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2395	2.005	1004	1.604		-34.06		4		12			1005	167		1
+i "Voce"	31.0449	12.500	1004	10.000		4			5		17			1005	190		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2407	1.075	1000	1.075		-31.89		2		9			1001	126		0
+i "Voce"	31.0515	10.000	1000	10.000		4			5		12			1001	177		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2419	1.022	1000	1.022		-30.56		0		39			1001	180		0
+i "Voce"	31.0574	12.500	1000	10.000		1			4		17			1001	186		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2425	1.824	1000	1.459		-32.91		8		11			1001	156		0
+i "Voce"	31.0620	16.000	1008	10.000		1			4		12			1009	203		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2466	2.067	1004	1.292		-32.82		7		47			1005	164		0
+i "Voce"	31.0655	12.500	1004	10.000		4			5		15			1005	196		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2477	1.632	1002	1.020		-32.73		2		27			1003	175		0
+i "Voce"	31.0723	16.000	1008	10.000		4			4		13			1009	192		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2533	2.534	1000	1.583		-31.05		5		14			1001	102		0
+i "Voce"	31.0743	16.000	1002	10.000		1			5		17			1003	172		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2579	1.852	1004	1.852		-31.14		10		4			1005	159		0
+i "Voce"	31.0755	10.000	1002	10.000		1			4		19			1003	197		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2608	1.034	1004	1.034		-30.88		5		12			1005	157		0
+i "Voce"	31.0767	12.500	1006	10.000		4			4		16			1007	181		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2621	1.495	1000	1.495		-33.17		0		19			1001	152		0
+i "Voce"	31.0848	16.000	1008	10.000		4			5		6			1009	204		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2635	3.023	1002	1.889		-30.94		6		44			1003	182		0
+i "Voce"	31.0919	16.000	1010	10.000		4			3		9			1011	187		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2663	2.031	1000	1.269		-34.53		4		5			1001	116		0
+i "Voce"	31.0981	10.000	1000	10.000		4			4		13			1001	185		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2732	2.191	1004	1.753		-33.94		4		15			1005	108		0
+i "Voce"	31.0995	12.500	1002	10.000		4			4		15			1003	179		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2886	1.451	1000	1.451		-33.01		6		46			1001	112		0
+i "Voce"	31.1006	12.500	1000	10.000		4			3		7			1001	176		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.2955	2.205	1002	1.764		-32.82		5		30			1003	133		1
+i "Voce"	31.1162	12.500	1008	10.000		4			3		10			1009	195		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6263	2.230	1000	1.394		-30.93		5		31			1001	203		0
+i "Voce"	31.1207	12.500	1002	10.000		4			5		10			1003	178		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6617	1.358	1004	1.086		-30.88		5		36			1005	262		0
+i "Voce"	31.1225	16.000	1010	10.000		4			5		17			1011	200		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6646	1.804	1000	1.804		-33.41		5		24			1001	280		0
+i "Voce"	31.1275	16.000	1008	10.000		1			4		15			1009	191		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6667	1.998	1000	1.249		-31.88		6		38			1001	210		0
+i "Voce"	31.1295	10.000	1000	10.000		4			5		12			1001	194		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6761	2.400	1002	1.920		-31.39		4		4			1003	196		0
+i "Voce"	31.1371	12.500	1002	10.000		1			3		13			1003	202		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6775	1.385	1002	1.385		-31.70		5		17			1003	220		0
+i "Voce"	31.1391	16.000	1002	10.000		1			4		16			1003	188		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6941	1.454	1004	1.454		-32.21		1		35			1005	274		0
+i "Voce"	31.1399	16.000	1010	10.000		4			3		18			1011	198		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6951	1.129	1002	1.129		-30.73		7		40			1003	213		0
+i "Voce"	31.1412	10.000	1002	10.000		4			5		18			1003	201		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6966	2.833	1004	1.771		-30.30		5		17			1005	246		1
+i "Voce"	31.1481	16.000	1004	10.000		4			4		6			1005	199		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6982	1.428	1000	1.428		-32.97		6		26			1001	247		0
+i "Voce"	31.1510	16.000	1010	10.000		4			4		8			1011	182		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6990	1.282	1000	1.282		-34.48		8		22			1001	206		0
+i "Voce"	31.1591	10.000	1006	10.000		4			4		16			1007	175		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.6998	1.199	1004	1.199		-34.66		2		14			1005	221		0
+i "Voce"	31.1641	16.000	1008	10.000		4			4		8			1009	189		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7140	1.554	1000	1.554		-32.71		3		44			1001	259		0
+i "Voce"	31.1971	16.000	1004	10.000		4			3		8			1005	183		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7170	3.166	1002	1.979		-34.47		2		11			1003	240		0
+i "Voce"	31.7012	12.500	1004	10.000		4			4		17			1005	215		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7171	2.270	1000	1.816		-30.54		2		16			1001	193		1
+i "Voce"	31.7121	16.000	1000	10.000		1			4		18			1001	220		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7176	1.676	1002	1.676		-33.53		0		2			1003	245		0
+i "Voce"	31.7322	16.000	1008	10.000		1			3		17			1009	208		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7189	1.613	1004	1.291		-30.46		5		6			1005	225		0
+i "Voce"	31.7337	16.000	1010	10.000		4			5		8			1011	230		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7205	1.666	1002	1.333		-30.50		4		27			1003	192		0
+i "Voce"	31.7349	16.000	1006	10.000		4			4		8			1007	206		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7223	2.065	1004	1.652		-33.85		6		41			1005	251		0
+i "Voce"	31.7362	10.000	1004	10.000		1			3		9			1005	211		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7271	1.967	1004	1.574		-32.39		4		20			1005	249		0
+i "Voce"	31.7370	10.000	1010	10.000		4			4		10			1011	210		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7281	3.024	1000	1.890		-31.02		8		32			1001	186		0
+i "Voce"	31.7462	12.500	1000	10.000		4			4		17			1001	224		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7323	2.152	1002	1.722		-31.80		6		1			1003	273		1
+i "Voce"	31.7548	16.000	1010	10.000		1			5		7			1011	228		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7363	1.048	1000	1.048		-30.35		6		38			1001	204		0
+i "Voce"	31.7564	16.000	1004	10.000		4			4		15			1005	212		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7367	2.092	1004	1.308		-32.59		6		41			1005	223		0
+i "Voce"	31.7575	10.000	1002	10.000		1			3		15			1003	209		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7389	1.951	1002	1.951		-32.47		5		45			1003	263		0
+i "Voce"	31.7606	12.500	1008	10.000		4			4		12			1009	227		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7410	2.623	1002	1.639		-33.54		3		3			1003	236		0
+i "Voce"	31.7652	12.500	1002	10.000		4			5		12			1003	218		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7437	1.700	1004	1.700		-34.15		4		33			1005	241		1
+i "Voce"	31.7736	10.000	1002	10.000		4			5		8			1003	221		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7468	2.037	1000	1.629		-30.62		5		38			1001	212		0
+i "Voce"	31.7750	16.000	1010	10.000		1			4		17			1011	219		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7477	2.239	1004	1.792		-30.00		3		11			1005	197		0
+i "Voce"	31.7751	16.000	1004	10.000		4			4		12			1005	222		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7517	1.818	1002	1.136		-31.04		7		1			1003	224		0
+i "Voce"	31.7761	10.000	1004	10.000		4			5		17			1005	216		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7527	1.174	1000	1.174		-34.31		2		48			1001	272		0
+i "Voce"	31.7828	12.500	1004	10.000		4			5		10			1005	226		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7530	2.439	1002	1.951		-31.26		4		11			1003	269		0
+i "Voce"	31.7955	16.000	1000	10.000		4			5		6			1001	223		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7541	2.449	1000	1.959		-32.91		6		19			1001	254		0
+i "Voce"	31.8007	12.500	1010	10.000		4			5		12			1011	205		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7546	1.925	1000	1.925		-30.15		9		24			1001	208		0
+i "Voce"	31.8043	16.000	1002	10.000		1			5		17			1003	207		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7576	1.880	1004	1.504		-31.75		5		11			1005	209		0
+i "Voce"	31.8072	16.000	1008	10.000		4			3		6			1009	213		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7589	1.420	1000	1.420		-29.91		9		13			1001	238		1
+i "Voce"	31.8285	10.000	1002	10.000		1			4		7			1003	214		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7598	1.861	1000	1.861		-34.08		1		30			1001	188		0
+i "Voce"	31.8326	10.000	1000	10.000		4			4		13			1001	229		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7610	1.808	1002	1.808		-32.57		3		9			1003	200		0
+i "Voce"	31.8579	10.000	1010	10.000		4			3		14			1011	225		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7626	1.833	1000	1.833		-34.18		4		9			1001	185		0
+i "Voce"	31.8933	10.000	1004	10.000		4			3		6			1005	231		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7647	1.463	1000	1.463		-32.41		5		42			1001	268		0
+i "Voce"	31.9382	12.500	1010	10.000		4			5		14			1011	232		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7647	1.173	1004	1.173		-32.76		7		10			1005	279		0
+i "Voce"	51.3491	1.187	1006	1.187		0			1		19			1007	239		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7657	1.731	1010	1.731		-34.30		3		45			1011	229		0
+i "Voce"	51.3558	1.187	1000	1.187		0			1		37			1001	233		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7662	2.434	1000	1.947		-34.16		7		25			1001	226		1
+i "Voce"	51.3991	1.187	1006	1.187		0			2		32			1007	236		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7663	3.089	1004	1.931		-30.43		4		3			1005	258		0
+i "Voce"	51.4139	1.484	1006	1.187		1			2		29			1007	235		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7715	3.103	1004	1.940		-31.31		4		45			1005	261		0
+i "Voce"	51.4255	1.900	1008	1.187		1			0		39			1009	234		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7720	1.938	1002	1.938		-31.25		0		23			1003	239		0
+i "Voce"	51.4667	1.484	1008	1.187		0			2		19			1009	237		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7744	2.233	1010	1.786		-30.12		3		18			1011	195		0
+i "Voce"	60.6989	3.061	1000	2.449		1			3		37			1001	256		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7748	2.105	1002	1.684		-34.59		8		40			1003	232		1
+i "Voce"	60.7757	3.918	1006	2.449		0			1		32			1007	255		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7749	1.772	1004	1.772		-33.65		1		45			1005	243		0
+i "Voce"	60.7822	2.449	1000	2.449		0			2		32			1001	251		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7758	3.160	1000	1.975		-33.98		3		24			1001	255		0
+i "Voce"	60.8339	3.061	1008	2.449		0			2		36			1009	247		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7760	1.130	1000	1.130		-34.38		4		31			1001	244		1
+i "Voce"	60.8340	3.918	1000	2.449		2			3		22			1001	263		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7774	1.836	1004	1.836		-31.08		3		44			1005	205		0
+i "Voce"	60.8416	2.449	1000	2.449		0			3		28			1001	264		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7779	1.802	1004	1.126		-34.42		5		34			1005	215		0
+i "Voce"	60.8538	3.061	1000	2.449		0			4		39			1001	244		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7784	1.542	1002	1.234		-32.10		6		45			1003	202		0
+i "Voce"	60.8586	3.061	1008	2.449		1			3		19			1009	241		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7797	1.534	1000	1.534		-34.02		6		47			1001	190		0
+i "Voce"	60.8644	3.918	1008	2.449		0			4		25			1009	252		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7798	1.890	1000	1.890		-31.42		4		45			1001	217		1
+i "Voce"	60.8762	2.449	1000	2.449		0			3		20			1001	253		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7839	1.777	1004	1.777		-30.22		4		31			1005	257		0
+i "Voce"	60.8811	3.061	1008	2.449		0			2		23			1009	258		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7853	1.665	1002	1.332		-30.16		3		43			1003	228		0
+i "Voce"	60.8811	2.449	1006	2.449		0			3		33			1007	240		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7862	2.142	1002	1.339		-31.21		1		27			1003	233		1
+i "Voce"	60.8833	3.918	1008	2.449		0			3		33			1009	246		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7862	1.983	1002	1.239		-29.99		5		48			1003	276		0
+i "Voce"	60.8879	2.449	1000	2.449		0			1		16			1001	259		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7897	1.798	1010	1.124		-32.47		6		47			1011	237		1
+i "Voce"	60.8896	3.061	1000	2.449		0			3		30			1001	261		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7956	1.172	1000	1.172		-31.43		8		14			1001	216		0
+i "Voce"	60.8904	2.449	1000	2.449		0			2		30			1001	266		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7956	1.329	1000	1.329		-30.76		6		40			1001	231		0
+i "Voce"	60.8938	2.449	1000	2.449		0			3		12			1001	242		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7962	2.016	1004	1.260		-29.94		5		1			1005	266		1
+i "Voce"	60.8941	3.918	1000	2.449		0			3		15			1001	250		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.7979	3.093	1004	1.933		-32.18		5		12			1005	265		1
+i "Voce"	60.9018	3.918	1006	2.449		1			2		26			1007	243		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8007	2.116	1004	1.323		-34.45		5		34			1005	252		0
+i "Voce"	60.9036	2.449	1000	2.449		0			4		24			1001	260		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8007	1.701	1004	1.701		-31.23		0		48			1005	191		0
+i "Voce"	60.9064	3.918	1000	2.449		1			3		25			1001	245		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8017	1.562	1000	1.249		-30.37		4		24			1001	264		0
+i "Voce"	60.9108	3.918	1006	2.449		0			2		31			1007	248		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8035	2.279	1004	1.424		-32.41		10		25			1005	248		0
+i "Voce"	60.9160	2.449	1006	2.449		0			3		13			1007	254		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8053	2.217	1000	1.386		-30.90		8		32			1001	256		1
+i "Voce"	60.9451	2.449	1006	2.449		0			3		29			1007	262		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8073	2.069	1002	1.655		-31.72		3		45			1003	277		0
+i "Voce"	60.9505	3.918	1006	2.449		0			2		12			1007	257		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8075	1.966	1002	1.966		-34.41		2		12			1003	267		0
+i "Voce"	60.9760	2.449	1006	2.449		0			3		12			1007	265		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8079	1.884	1006	1.507		-30.35		1		28			1007	271		0
+i "Voce"	62.9735	2.740	1006	2.740		0			4		29			1007	292		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8086	3.178	1000	1.986		-31.08		4		37			1001	199		0
+i "Voce"	62.9803	4.384	1000	2.740		0			3		34			1001	279		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8130	1.869	1000	1.168		-33.37		6		31			1001	187		0
+i "Voce"	62.9876	3.425	1006	2.740		0			2		12			1007	281		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8140	2.769	1004	1.731		-34.06		3		9			1005	227		0
+i "Voce"	63.0084	2.740	1006	2.740		1			2		18			1007	282		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8142	1.610	1010	1.610		-32.33		6		36			1011	230		1
+i "Voce"	63.0096	3.425	1006	2.740		0			2		23			1007	280		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8163	2.047	1002	1.280		-32.00		4		45			1003	270		0
+i "Voce"	63.0114	3.425	1000	2.740		0			3		30			1001	275		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8176	3.019	1004	1.887		-30.25		3		1			1005	189		0
+i "Voce"	63.0308	4.384	1008	2.740		0			3		23			1009	278		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8191	1.473	1004	1.473		-31.09		8		1			1005	218		0
+i "Voce"	63.0337	4.384	1000	2.740		0			2		17			1001	284		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8249	1.990	1000	1.990		-34.65		0		43			1001	235		0
+i "Voce"	63.0353	4.384	1006	2.740		1			2		15			1007	291		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8264	1.778	1000	1.778		-30.43		8		26			1001	198		0
+i "Voce"	63.0409	2.740	1000	2.740		0			1		24			1001	274		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8274	1.493	1004	1.493		-31.31		5		36			1005	250		0
+i "Voce"	63.0449	3.425	1008	2.740		0			3		34			1009	287		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8293	1.776	1000	1.421		-31.16		10		28			1001	260		0
+i "Voce"	63.0452	4.384	1008	2.740		2			3		23			1009	286		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8299	1.705	1002	1.364		-33.63		10		31			1003	211		0
+i "Voce"	63.0584	3.425	1008	2.740		0			1		14			1009	271		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8355	3.194	1002	1.996		-31.90		9		16			1003	278		0
+i "Voce"	63.0590	4.384	1008	2.740		0			4		12			1009	267		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8389	1.757	1000	1.098		-33.34		5		4			1001	207		0
+i "Voce"	63.0705	4.384	1008	2.740		0			2		11			1009	288		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8417	1.376	1004	1.376		-30.15		5		36			1005	201		0
+i "Voce"	63.0722	3.425	1006	2.740		0			2		36			1007	269		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8535	2.030	1004	1.269		-33.75		7		29			1005	219		0
+i "Voce"	63.0727	4.384	1008	2.740		1			1		21			1009	268		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8675	1.671	1002	1.337		-32.21		6		29			1003	194		0
+i "Voce"	63.0795	4.384	1006	2.740		1			1		33			1007	285		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	0.8691	1.981	1000	1.585		-33.23		2		44			1001	275		1
+i "Voce"	63.0805	2.740	1006	2.740		0			2		32			1007	290		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6151	1.588	1006	1.270		-30.93		2		43			1007	315		0
+i "Voce"	63.0872	4.384	1006	2.740		0			3		37			1007	270		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6232	2.148	1000	1.718		-33.08		8		33			1001	301		1
+i "Voce"	63.0904	4.384	1008	2.740		0			2		38			1009	289		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6414	2.691	1000	1.682		-33.06		5		3			1001	328		0
+i "Voce"	63.1197	2.740	1006	2.740		0			3		37			1007	277		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6447	1.418	1002	1.134		-30.13		3		19			1003	297		1
+i "Voce"	63.1396	4.384	1000	2.740		0			4		34			1001	283		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6489	1.818	1004	1.818		-32.76		6		20			1005	298		0
+i "Voce"	63.1682	3.425	1008	2.740		0			2		25			1009	276		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6625	2.309	1006	1.847		-29.99		8		15			1007	299		0
+i "Voce"	66.0522	3.942	1008	3.153		2			3		35			1009	301		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6635	2.083	1002	1.302		-31.98		7		4			1003	296		0
+i "Voce"	66.0542	5.045	1000	3.153		3			3		34			1001	312		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6668	2.447	1004	1.958		-31.47		10		15			1005	302		0
+i "Voce"	66.0607	5.045	1000	3.153		3			3		31			1001	318		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6730	2.374	1000	1.484		-33.56		8		33			1001	317		0
+i "Voce"	66.0691	3.153	1006	3.153		2			2		30			1007	294		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6808	2.258	1000	1.806		-34.18		5		5			1001	323		0
+i "Voce"	66.0803	3.153	1006	3.153		3			3		23			1007	307		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6857	2.132	1000	1.705		-33.31		7		22			1001	324		0
+i "Voce"	66.0918	3.153	1006	3.153		2			2		15			1007	311		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6893	1.338	1000	1.338		-30.72		4		40			1001	303		1
+i "Voce"	66.0933	5.045	1000	3.153		3			3		35			1001	305		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6924	3.166	1004	1.979		-30.50		5		44			1005	329		0
+i "Voce"	66.0935	3.153	1000	3.153		3			3		36			1001	314		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.6962	1.673	1002	1.338		-32.22		8		26			1003	327		0
+i "Voce"	66.0986	5.045	1000	3.153		3			2		26			1001	319		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7030	1.580	1004	1.264		-30.22		5		45			1005	300		0
+i "Voce"	66.1001	5.045	1006	3.153		3			4		27			1007	302		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7041	2.330	1000	1.864		-29.98		1		23			1001	282		0
+i "Voce"	66.1037	5.045	1000	3.153		3			3		12			1001	313		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7045	1.613	1000	1.291		-32.77		1		33			1001	290		1
+i "Voce"	66.1144	3.942	1008	3.153		2			4		26			1009	304		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7050	1.795	1000	1.122		-32.75		8		34			1001	325		0
+i "Voce"	66.1160	3.942	1008	3.153		3			2		36			1009	320		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7050	1.472	1004	1.472		-33.65		8		9			1005	319		1
+i "Voce"	66.1241	3.942	1008	3.153		2			2		39			1009	299		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7052	2.486	1002	1.989		-33.58		6		26			1003	308		0
+i "Voce"	66.1305	3.153	1000	3.153		3			4		18			1001	297		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7106	2.874	1004	1.796		-30.36		1		7			1005	286		0
+i "Voce"	66.1337	3.153	1000	3.153		3			3		14			1001	308		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7107	1.516	1002	1.213		-34.18		10		15			1003	331		0
+i "Voce"	66.1431	3.942	1006	3.153		3			3		18			1007	309		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7136	1.594	1000	1.594		-33.00		1		47			1001	289		1
+i "Voce"	66.1438	5.045	1006	3.153		3			4		20			1007	315		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7215	1.623	1004	1.014		-32.71		5		10			1005	281		0
+i "Voce"	66.1472	3.942	1006	3.153		3			3		29			1007	298		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7228	2.050	1004	1.281		-33.04		6		29			1005	326		0
+i "Voce"	66.1696	3.942	1006	3.153		3			2		21			1007	310		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7304	2.010	1004	1.256		-32.77		3		17			1005	309		0
+i "Voce"	66.1745	3.942	1000	3.153		3			2		14			1001	296		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7338	1.309	1002	1.309		-31.27		0		21			1003	306		0
+i "Voce"	66.1809	3.942	1008	3.153		2			4		17			1009	316		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7352	3.077	1000	1.923		-32.92		4		37			1001	314		1
+i "Voce"	66.1917	5.045	1000	3.153		2			5		13			1001	293		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7384	2.061	1006	1.649		-32.12		6		7			1007	320		0
+i "Voce"	66.1949	3.153	1000	3.153		2			4		32			1001	303		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7390	1.065	1004	1.065		-31.02		2		15			1005	291		1
+i "Voce"	66.2010	5.045	1008	3.153		3			3		21			1009	300		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7407	1.629	1002	1.303		-32.66		6		15			1003	311		0
+i "Voce"	66.2382	3.942	1000	3.153		3			3		23			1001	295		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7448	2.614	1002	1.634		-33.64		5		14			1003	330		0
+i "Voce"	69.0571	3.561	1006	3.561		2			2		22			1007	331		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7473	1.975	1006	1.580		-32.97		10		5			1007	318		0
+i "Voce"	69.1052	5.698	1006	3.561		3			4		14			1007	322		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7483	1.273	1004	1.273		-30.08		3		13			1005	322		0
+i "Voce"	69.1073	3.561	1006	3.561		2			2		17			1007	341		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7490	2.125	1006	1.328		-34.24		4		24			1007	304		0
+i "Voce"	69.1082	3.561	1000	3.561		3			2		19			1001	334		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7494	1.635	1010	1.308		-34.15		7		14			1011	316		0
+i "Voce"	69.1286	5.698	1006	3.561		3			4		35			1007	348		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7512	2.899	1008	1.812		-31.04		1		16			1009	295		0
+i "Voce"	69.1370	5.698	1000	3.561		3			4		36			1001	330		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7514	1.507	1000	1.507		-33.03		4		25			1001	321		0
+i "Voce"	69.1483	5.698	1008	3.561		3			3		39			1009	323		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7528	2.860	1002	1.787		-33.61		7		3			1003	288		0
+i "Voce"	69.1494	4.452	1000	3.561		3			4		38			1001	332		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7545	1.200	1004	1.200		-33.67		6		41			1005	283		1
+i "Voce"	69.1524	5.698	1008	3.561		3			4		32			1009	353		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7556	2.951	1004	1.844		-32.91		5		33			1005	307		0
+i "Voce"	69.1633	4.452	1008	3.561		3			3		39			1009	329		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7737	1.351	1002	1.351		-31.36		5		42			1003	332		0
+i "Voce"	69.1708	4.452	1008	3.561		3			2		18			1009	321		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7760	1.452	1002	1.162		-30.27		7		30			1003	305		0
+i "Voce"	69.1740	4.452	1008	3.561		3			4		36			1009	358		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7760	2.455	1002	1.964		-30.95		5		29			1003	284		0
+i "Voce"	69.1784	5.698	1006	3.561		3			3		39			1007	346		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7781	2.156	1000	1.725		-33.15		8		28			1001	285		0
+i "Voce"	69.1811	3.561	1000	3.561		3			3		12			1001	367		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7852	1.285	1000	1.028		-32.42		4		43			1001	287		0
+i "Voce"	69.1856	5.698	1006	3.561		2			4		35			1007	352		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7940	2.273	1008	1.421		-32.67		7		32			1009	292		0
+i "Voce"	69.1886	4.452	1000	3.561		3			4		12			1001	339		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.7958	1.913	1000	1.913		-30.55		0		38			1001	294		0
+i "Voce"	69.1908	4.452	1000	3.561		2			4		36			1001	361		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.8053	1.965	1004	1.965		-34.10		1		9			1005	293		0
+i "Voce"	69.1927	5.698	1000	3.561		3			2		12			1001	338		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.8096	2.430	1000	1.519		-33.30		2		31			1001	313		0
+i "Voce"	69.1934	4.452	1008	3.561		3			4		33			1009	345		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.8399	1.719	1000	1.074		-31.40		7		6			1001	312		0
+i "Voce"	69.1943	5.698	1008	3.561		3			2		17			1009	357		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	1.8455	1.703	1002	1.064		-31.88		2		26			1003	310		0
+i "Voce"	69.1998	3.561	1006	3.561		3			2		26			1007	343		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	2.9583	1.928	1002	1.928		-32.62		5		17			1003	336		0
+i "Voce"	69.2019	4.452	1000	3.561		3			2		34			1001	337		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	2.9601	2.252	1002	1.407		-30.17		6		7			1003	379		0
+i "Voce"	69.2026	3.561	1000	3.561		3			2		36			1001	366		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	2.9603	1.228	1002	1.228		-32.43		3		36			1003	410		0
+i "Voce"	69.2060	5.698	1008	3.561		3			5		26			1009	328		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	2.9719	2.091	1004	1.307		-30.66		6		36			1005	395		1
+i "Voce"	69.2073	5.698	1006	3.561		3			4		16			1007	359		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	2.9875	2.017	1000	1.614		-31.58		8		27			1001	367		0
+i "Voce"	69.2109	3.561	1006	3.561		2			3		15			1007	325		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0014	3.187	1004	1.992		-32.36		1		46			1005	416		0
+i "Voce"	69.2222	3.561	1006	3.561		3			4		38			1007	344		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0017	3.099	1002	1.937		-33.62		5		8			1003	386		0
+i "Voce"	69.2304	5.698	1008	3.561		3			3		32			1009	324		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0030	2.230	1000	1.784		-33.36		3		38			1001	402		0
+i "Voce"	69.2359	4.452	1006	3.561		3			3		32			1007	360		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0064	2.816	1000	1.760		-32.57		2		15			1001	358		0
+i "Voce"	69.2386	4.452	1006	3.561		2			2		14			1007	350		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0098	2.168	1006	1.734		-32.06		6		13			1007	383		1
+i "Voce"	69.2398	5.698	1006	3.561		3			2		38			1007	327		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0119	1.642	1004	1.642		-30.63		4		15			1005	409		1
+i "Voce"	69.2439	5.698	1006	3.561		3			4		28			1007	335		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0131	1.358	1000	1.358		-32.62		0		22			1001	343		0
+i "Voce"	69.2466	3.561	1006	3.561		2			5		29			1007	362		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0138	2.468	1010	1.542		-32.47		4		28			1011	407		0
+i "Voce"	69.2490	3.561	1006	3.561		3			3		38			1007	368		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0179	2.402	1008	1.502		-30.63		0		46			1009	374		0
+i "Voce"	69.2518	5.698	1000	3.561		3			4		38			1001	342		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0182	3.133	1002	1.958		-30.61		2		45			1003	338		1
+i "Voce"	69.2615	5.698	1000	3.561		3			2		26			1001	340		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0214	1.604	1002	1.283		-29.64		5		28			1003	368		0
+i "Voce"	69.2621	3.561	1000	3.561		3			2		18			1001	347		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0234	1.435	1006	1.148		-31.59		6		30			1007	354		0
+i "Voce"	69.2629	4.452	1008	3.561		3			2		28			1009	364		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0235	1.769	1000	1.415		-31.33		0		12			1001	403		1
+i "Voce"	69.2634	5.698	1000	3.561		3			4		19			1001	349		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0236	3.045	1004	1.903		-32.55		5		19			1005	337		1
+i "Voce"	69.2670	3.561	1006	3.561		3			5		33			1007	356		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0237	1.463	1008	1.463		-33.06		5		22			1009	390		0
+i "Voce"	69.2739	5.698	1008	3.561		3			4		14			1009	326		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0280	1.853	1002	1.853		-31.95		3		29			1003	333		0
+i "Voce"	69.2772	5.698	1006	3.561		3			5		33			1007	351		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0295	1.474	1000	1.474		-29.93		2		4			1001	413		0
+i "Voce"	69.2986	4.452	1000	3.561		2			4		37			1001	333		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0380	1.789	1000	1.118		-31.43		8		12			1001	360		0
+i "Voce"	69.3028	5.698	1008	3.561		3			3		33			1009	363		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0395	2.230	1008	1.784		-33.20		1		2			1009	404		0
+i "Voce"	69.3117	5.698	1006	3.561		3			4		18			1007	354		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0408	1.672	1006	1.337		-30.15		4		36			1007	417		0
+i "Voce"	71.6508	3.902	1006	3.902		3			5		13			1007	403		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0416	1.275	1002	1.275		-31.59		7		39			1003	362		0
+i "Voce"	71.6910	6.243	1008	3.902		3			2		17			1009	390		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0468	1.644	1000	1.315		-30.79		3		35			1001	405		0
+i "Voce"	71.7103	6.243	1008	3.902		3			4		15			1009	402		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0482	2.228	1000	1.392		-29.95		5		37			1001	384		1
+i "Voce"	71.7124	3.902	1000	3.902		3			6		25			1001	372		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0483	2.010	1000	1.608		-30.14		5		11			1001	373		0
+i "Voce"	71.7132	3.902	1000	3.902		3			5		17			1001	395		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0504	1.741	1002	1.741		-31.20		5		13			1003	401		0
+i "Voce"	71.7133	6.243	1006	3.902		3			5		24			1007	371		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0515	1.678	1002	1.678		-32.32		2		3			1003	335		0
+i "Voce"	71.7270	6.243	1008	3.902		3			4		23			1009	401		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0540	2.075	1004	1.660		-31.09		5		29			1005	344		0
+i "Voce"	71.7293	6.243	1000	3.902		3			5		19			1001	388		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0541	1.883	1000	1.883		-30.52		5		12			1001	353		0
+i "Voce"	71.7416	4.877	1000	3.902		3			5		36			1001	389		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0644	1.837	1002	1.837		-32.62		5		20			1003	378		0
+i "Voce"	71.7416	3.902	1006	3.902		3			5		24			1007	400		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0651	2.170	1000	1.356		-30.05		0		34			1001	376		0
+i "Voce"	71.7440	4.877	1008	3.902		2			6		32			1009	397		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0651	1.393	1004	1.114		-32.38		8		8			1005	400		0
+i "Voce"	71.7468	3.902	1000	3.902		2			5		15			1001	384		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0652	1.667	1008	1.667		-31.60		2		14			1009	352		0
+i "Voce"	71.7488	4.877	1008	3.902		3			5		18			1009	387		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0658	1.932	1008	1.546		-33.03		6		37			1009	396		1
+i "Voce"	71.7498	6.243	1008	3.902		2			3		33			1009	379		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0686	1.313	1004	1.051		-30.31		3		29			1005	359		0
+i "Voce"	71.7553	4.877	1000	3.902		3			4		31			1001	398		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0693	1.794	1000	1.121		-31.95		6		11			1001	397		0
+i "Voce"	71.7576	3.902	1006	3.902		2			4		28			1007	381		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0707	1.545	1004	1.545		-30.23		8		7			1005	372		0
+i "Voce"	71.7581	4.877	1000	3.902		3			5		27			1001	375		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0720	1.820	1002	1.820		-31.73		5		26			1003	349		0
+i "Voce"	71.7632	4.877	1006	3.902		3			5		20			1007	396		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0724	1.937	1008	1.210		-32.56		2		20			1009	415		0
+i "Voce"	71.7664	4.877	1008	3.902		2			5		35			1009	383		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0726	2.991	1004	1.869		-32.33		3		27			1005	398		0
+i "Voce"	71.7727	4.877	1000	3.902		2			4		39			1001	370		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0729	1.582	1002	1.582		-31.02		2		20			1003	408		0
+i "Voce"	71.7737	6.243	1008	3.902		3			4		21			1009	405		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0739	1.610	1002	1.610		-30.44		5		11			1003	334		0
+i "Voce"	71.7791	3.902	1006	3.902		3			4		14			1007	394		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0775	1.675	1004	1.675		-29.76		7		19			1005	341		0
+i "Voce"	71.7791	6.243	1000	3.902		2			4		25			1001	373		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0789	1.988	1004	1.591		-30.03		2		28			1005	339		0
+i "Voce"	71.7797	3.902	1000	3.902		3			3		13			1001	377		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0808	1.273	1002	1.273		-30.73		4		31			1003	375		1
+i "Voce"	71.7813	6.243	1008	3.902		2			4		32			1009	376		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0814	2.649	1002	1.656		-33.27		6		3			1003	391		0
+i "Voce"	71.7817	4.877	1008	3.902		3			3		13			1009	393		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0818	2.097	1000	1.677		-31.76		2		32			1001	385		0
+i "Voce"	71.7888	3.902	1006	3.902		3			5		34			1007	382		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0822	2.630	1000	1.644		-29.73		5		13			1001	366		0
+i "Voce"	71.7926	6.243	1006	3.902		3			3		28			1007	374		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0828	2.353	1004	1.470		-30.47		1		45			1005	363		0
+i "Voce"	71.7930	6.243	1006	3.902		3			3		33			1007	404		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0833	1.258	1004	1.258		-30.92		5		23			1005	364		0
+i "Voce"	71.7966	3.902	1000	3.902		2			4		25			1001	378		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0839	2.815	1000	1.759		-29.67		6		31			1001	389		0
+i "Voce"	71.7975	3.902	1000	3.902		3			5		34			1001	369		0
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0857	1.382	1000	1.106		-31.80		8		45			1001	411		0
+i "Voce"	71.8497	4.877	1000	3.902		3			5		38			1001	391		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0893	2.302	1000	1.439		-29.93		9		16			1001	392		1
+i "Voce"	71.8507	6.243	1008	3.902		2			3		17			1009	392		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0901	1.898	1010	1.518		-30.76		3		41			1011	380		0
+i "Voce"	71.8523	6.243	1006	3.902		2			4		35			1007	380		1
 ;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0940	2.325	1002	1.453		-32.01		0		44			1003	399		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0988	1.906	1004	1.906		-30.90		2		14			1005	348		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.0999	1.388	1000	1.388		-32.41		2		40			1001	361		1
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1026	3.118	1010	1.948		-33.23		4		4			1011	414		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1031	1.956	1004	1.222		-31.84		1		16			1005	406		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1060	1.111	1008	1.111		-33.10		4		36			1009	342		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1087	1.893	1002	1.515		-30.27		8		19			1003	371		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1094	1.997	1008	1.997		-33.17		6		24			1009	382		1
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1114	2.250	1004	1.406		-32.88		2		37			1005	355		1
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1128	2.181	1004	1.745		-32.97		8		24			1005	370		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1152	1.936	1000	1.549		-29.97		6		25			1001	365		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1255	2.305	1000	1.844		-30.32		1		23			1001	387		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1283	1.504	1004	1.203		-30.71		3		37			1005	350		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1296	3.168	1004	1.980		-30.60		0		31			1005	412		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1312	1.321	1000	1.321		-31.86		4		22			1001	418		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1316	1.651	1004	1.651		-33.10		10		39			1005	356		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1337	1.183	1004	1.183		-31.16		5		29			1005	357		1
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1344	1.249	1000	1.249		-30.31		4		12			1001	377		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1351	1.380	1000	1.104		-29.74		3		42			1001	388		1
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1357	1.208	1000	1.208		-31.20		5		27			1001	369		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1378	1.918	1000	1.534		-33.42		1		10			1001	347		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1385	2.257	1002	1.410		-32.97		2		30			1003	351		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1390	1.447	1002	1.447		-31.31		6		5			1003	393		0
-;			at		dur		tab		armonica	ampiezza	ottava	registro	niente	id_comp	nonlinearMode
-i "Voce"	3.1600	1.664	1002	1.664		-32.63		2		35			1003	346		0
+i "Voce"	71.8675	4.877	1000	3.902		3			4		19			1001	399		1
 
 ; ---------------------
 
