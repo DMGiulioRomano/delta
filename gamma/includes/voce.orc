@@ -17,6 +17,8 @@ instr Voce
     i_IdComp         = p10            ; ID del comportamento
     ; Nuovo parametro per la modalità di NonlinearFunc. Default a 3 (caos vero) se non fornito.
     i_NonlinearMode  = (p11 == 0 ? 3 : p11)
+    i_SensoMovimento = (p12 == 0 ? 1 : p12) ; <-- NUOVO: Riceve p12, default a 1 (antiorario)
+    i_ifnAttacco     = (p13 == 0 ? 10 : p13) ; <-- NUOVO: Riceve p13, default a 10 (lineare)
 
     ; -----------------------------------------------------------------------
     ; 2. PREPARAZIONE DELLE SEQUENZE
@@ -93,7 +95,7 @@ instr Voce
             exitnow
         endif
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
-        schedule "eventoSonoro", i_EventAttack - p2, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, 2, gi_Index,i_IdComp
+        schedule "eventoSonoro", i_EventAttack - p2, i_EventDuration, i_Amp, i_Freq1, i_Pos, i_RitmoCorrente, i_Freq2, i_ifnAttacco, gi_Index,i_IdComp, i_SensoMovimento
 
         ; -------- 3.7 AGGIORNAMENTO INDICI E TEMPO --------
         i_EventIdx += 1

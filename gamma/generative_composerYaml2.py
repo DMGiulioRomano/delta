@@ -129,19 +129,36 @@ class GenerativeComposer:
         self.base_path = Path(__file__).parent
         self.output_path = self.base_path / output_dir
         self.output_path.mkdir(exist_ok=True)
+        self.wav_output_path = self.output_path / "wav"
+        self.wav_output_path.mkdir(exist_ok=True)
         
         self.time_scheduler = TimeScheduler()
         
         # Mappa per le tabelle di Csound. Verrà popolata dinamicamente.
         self.rhythm_table_map = {}
         self.next_table_id = 1000
-        
+
+        self.envelope_map = {
+            'lineare': 2,
+            'impulsivo': 3,
+            'lento': 4,
+            'sostenuto': 5
+        }
+        self.default_envelope = 'lineare'
+
         # Mappa per tradurre la dinamica in un indice per Csound
         self.dynamic_to_index = {
             'ppp': 0, 'pp': 1, 'p': 2, 'mf': 3, 'f': 4, 'ff': 5, 'fff': 6
         }
         self.id_comp_counter = 0
-
+        self.section_envelope_map = {
+            'continua': 20,
+            'diminuendo_rapido': 21,
+            'plateau_forte': 22,
+            'crescendo_diminuendo': 23,
+            'impulso': 24
+        }
+        self.default_section_envelope = 'continua'
     def _valida_parametri(self, params):
         """
         Valida un set di parametri generati per assicurarsi che siano
@@ -204,8 +221,61 @@ class GenerativeComposer:
             
             params[key] = val
 
+        # --- nonlinear_mode ---
+        # Cerchiamo la maschera per nonlinear_mode
+        nonlinear_mask = mask.get('nonlinear_mode')
+        if nonlinear_mask:
+            # Se la maschera esiste, generiamo il valore da essa
+            if 'value' in nonlinear_mask:
+                params['nonlinear_mode'] = nonlinear_mask['value']
+            elif 'choices' in nonlinear_mask:
+                params['nonlinear_mode'] = random.choices(
+                    nonlinear_mask['choices'], 
+                    weights=nonlinear_mask.get('weights'), 
+                    k=1
+                )[0]
+            else:
+                # Fallback se la maschera è malformata
+                params['nonlinear_mode'] = 3
+        else:
+            # Default se la chiave 'nonlinear_mode' è completamente assente
+            params['nonlinear_mode'] = 3 # Modalità Caos "Vero" di default
+
+        # --- senso_movimento ---
+        mov_mask = mask.get('senso_movimento')
+        if mov_mask:
+            if 'value' in mov_mask:
+                params['senso_movimento'] = mov_mask['value']
+            elif 'choices' in mov_mask:
+                params['senso_movimento'] = random.choices(
+                    mov_mask['choices'], 
+                    weights=mov_mask.get('weights'), 
+                    k=1
+                )[0]
+            else:
+                params['senso_movimento'] = 1 # Fallback se la maschera è malformata
+        else:
+            # Default se la chiave 'senso_movimento' è assente
+            params['senso_movimento'] = 1
+
+        # --- inviluppo_attacco ---
+        env_mask = mask.get('inviluppo_attacco')
+        chosen_envelope_name = self.default_envelope
+        if env_mask:
+            if 'value' in env_mask:
+                chosen_envelope_name = env_mask['value']
+            elif 'choices' in env_mask:
+                chosen_envelope_name = random.choices(
+                    env_mask['choices'],
+                    weights=env_mask.get('weights'),
+                    k=1
+                )[0]
+        # Traduci il nome dell'inviluppo nel suo numero di tabella Csound
+        params['ifn_attacco'] = self.envelope_map.get(chosen_envelope_name, self.envelope_map[self.default_envelope])
+
+        # --- dinamica ---
+        dynamic_mask = mask.get('dinamica')
         if 'dinamica' in mask:
-            dynamic_mask = mask['dinamica']
             # Assumiamo che la dinamica sia sempre una scelta pesata
             if 'choices' in dynamic_mask:
                 dynamic_str = random.choices(
@@ -286,6 +356,18 @@ class GenerativeComposer:
                 if 'distribution' in s:
                     interp_mask[key]['distribution'] = s['distribution']
 
+            elif 'value' in s:
+                # Controlla se il valore è un numero (int o float)
+                if isinstance(s['value'], (int, float)):
+                    # Se è un numero, possiamo interpolarlo (es. per senso_movimento).
+                    i_value = s['value'] + (e['value'] - s['value']) * progress
+                    interp_mask[key]['value'] = i_value
+                else:
+                    # Se è una stringa (es. per inviluppo_attacco), non possiamo interpolare.
+                    # Semplicemente usiamo il valore dello stato iniziale.
+                    # Questo garantisce che un valore fisso rimanga tale.
+                    interp_mask[key] = s
+
             # --- Percorso 3: La maschera definisce scelte pesate ---
             elif 'choices' in s:
                 # Per le scelte pesate, la transizione è un "cross-fade" dei pesi
@@ -304,130 +386,177 @@ class GenerativeComposer:
         
         return interp_mask
 
-    def process_composition(self, composition_structure):
-        """Elabora l'intera struttura della composizione, generando la sequenza di eventi."""
-        full_sequence = []
-        current_time_offset = 0.0
+
+    # Inserisci questo blocco di codice all'interno della classe GenerativeComposer
+
+    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio):
+        """
+        Processa un singolo layer (reale o virtuale) e restituisce i suoi eventi e onsets.
+        Questa è una funzione helper per process_composition.
+        """
+        layer_events = []
+        layer_onsets = []
+        layer_name = layer.get('nome_layer', "Layer Singolo (compatibilità)")
+
+        print(f"\n  -- Processando {layer_name} --")
+
+        # --- 1. IDENTIFICA TIPO E TIMING DEL LAYER ---
+        is_static_layer = 'stato_unico' in layer
+        timing_model = layer.get('timing_model', {})
+        num_attivazioni = layer.get('num_attivazioni', 10)
         
-        MAX_DURATION_MULTIPLIER = 1.6
+        print(f"     > Tipo: {'Statico' if is_static_layer else 'Dinamico'}")
+        print(f"     > Numero attivazioni: {num_attivazioni}")
+
+        # --- 2. CALCOLA CUSCINETTO E ONSETS PER QUESTO SPECIFICO LAYER ---
+        mask_for_buffer = layer.get('stato_unico') if is_static_layer else layer.get('stato_finale')
+        if not mask_for_buffer or 'durata_armonica' not in mask_for_buffer or 'range' not in mask_for_buffer['durata_armonica']:
+            print(f"     > ERRORE: Maschera 'durata_armonica' mal definita o mancante per il layer '{layer_name}'. Impossibile calcolare il buffer. Layer saltato.")
+            return [], []
+            
+        max_harmonic_dur_unscaled = mask_for_buffer['durata_armonica']['range'][1]
+        max_harmonic_dur_scaled = max_harmonic_dur_unscaled * time_ratio
+        # 2b. Cerca la maschera per 'moltiplicatore_durata'
+        moltiplicatore_mask = mask_for_buffer.get('moltiplicatore_durata')
+        max_duration_multiplier = 1.0 # Default se non specificato
+
+        if moltiplicatore_mask and 'choices' in moltiplicatore_mask:
+            # Se la maschera esiste, trova il valore massimo tra le scelte possibili
+            max_duration_multiplier = max(moltiplicatore_mask['choices'])
+        
+        print(f"     > Max Durata Armonica: {max_harmonic_dur_scaled:.2f}s, Max Moltiplicatore: {max_duration_multiplier:.2f}x")
+
+        # 2c. Calcola il cuscinetto usando il VERO moltiplicatore massimo
+        safety_buffer = max_harmonic_dur_scaled * max_duration_multiplier
+        
+        print(f"     > Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s")
+        
+        generation_duration = scaled_section_duration - safety_buffer
+        
+        if generation_duration <= 0:
+            print(f"     > ATTENZIONE: Cuscinetto di sicurezza ({safety_buffer:.2f}s) > durata sezione. Nessun evento generato per questo layer.")
+            cluster_onsets = []
+        else:
+            cluster_onsets = self.time_scheduler.generate_onsets(
+                timing_model, generation_duration, num_attivazioni
+            )
+
+        absolute_onsets_for_layer = [o + current_time_offset for o in cluster_onsets]
+        layer_onsets.extend(absolute_onsets_for_layer)
+        
+        # --- 3. GENERA GLI EVENTI PER IL LAYER ---
+        for onset in cluster_onsets:
+            # Ottieni la maschera di controllo (statica o interpolata) per il layer
+            if is_static_layer:
+                center_mask = layer['stato_unico']
+            else:
+                progress = onset / scaled_section_duration if scaled_section_duration > 0 else 0
+                start_mask = layer['stato_iniziale']
+                end_mask = layer['stato_finale']
+                center_mask = self._interpolate_mask(start_mask, end_mask, progress)
+            
+            dens_range = center_mask.get('densita_cluster', {'range': [1,1]})['range']
+            num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
+            
+            for _ in range(num_events_in_cluster):
+                for attempt in range(10):
+                    event_mask = center_mask.copy()
+                    if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
+                        current_range = event_mask['durata_armonica']['range']
+                        scaled_range = [val * time_ratio for val in current_range]
+                        event_mask['durata_armonica'] = event_mask['durata_armonica'].copy()
+                        event_mask['durata_armonica']['range'] = scaled_range
+
+                    params = self._generate_params_from_mask(event_mask)
+                    
+                    if self._valida_parametri(params):
+                        rhythm_tuple = tuple(params['ritmi'])
+                        if rhythm_tuple not in self.rhythm_table_map:
+                            self.rhythm_table_map[rhythm_tuple] = {
+                                'ritmi_tab_num': self.next_table_id, 'pos_tab_num': self.next_table_id + 1
+                            }
+                            self.next_table_id += 2
+                        
+                        params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
+                        params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
+                        
+                        jitter_scale = params.get('onset_jitter', 0.05)
+                        jitter = np.random.normal(loc=0.0, scale=jitter_scale)
+                        event_time = current_time_offset + onset + jitter
+                        
+                        event_data = {'type': 'voce', 'time': event_time, 'params': params}
+                        layer_events.append(event_data)
+                        break
+                else:
+                    print(f"     > ATTENZIONE: Impossibile generare parametri validi per un evento nel layer '{layer_name}'.")
+
+        print(f"     > Eventi 'voce' generati per questo layer: {len(layer_events)}")
+        return layer_events, layer_onsets
+
+
+    def process_composition(self, composition_structure):
+        """
+        Elabora l'intera struttura della composizione, gestendo sezioni
+        con e senza la struttura a layer per retrocompatibilità.
+        """
+        full_sequence = []
+        all_onsets = []
+        current_time_offset = 0.0
         
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
             print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s) ---")
 
-            section_events_for_logging = []
-
-            # --- 1. APPLICA IL RATIO TEMPORALE ---
-            # Ottieni il ratio, con 1.0 come default se non specificato.
+            # --- 1. GESTIONE PARAMETRI A LIVELLO DI SEZIONE ---
             time_ratio = section.get('ratio_temporale', 1.0)
-
-            # Calcola la durata effettiva e scalata della sezione.
             scaled_section_duration = section['durata'] * time_ratio
 
-            print(f"  > Ratio temporale: {time_ratio}x. Durata effettiva: {scaled_section_duration:.2f}s")
-
-            # --- 1. DETERMINA IL TIPO DI SEZIONE (STATICA O DINAMICA) ---
-            is_static_section = 'stato_unico' in section
-            if is_static_section:
-                print("  > Tipo sezione: Statica (usa 'stato_unico')")
-            else:
-                print("  > Tipo sezione: Dinamica (usa 'stato_iniziale' -> 'stato_finale')")
-
-
-            # --- 2. CALCOLA IL CUSCINETTO DI SICUREZZA ---
-            # Se la sezione è statica, usa 'stato_unico', altrimenti usa 'stato_finale'.
-            mask_for_buffer = section['stato_unico'] if is_static_section else section['stato_finale']
-            
-            # Estrai la durata armonica massima *prima* di scalarla...
-            max_harmonic_dur_unscaled = mask_for_buffer['durata_armonica']['range'][1]
-            # ...e poi scalala per il calcolo del cuscinetto.
-            max_harmonic_dur_scaled = max_harmonic_dur_unscaled * time_ratio
-            safety_buffer = max_harmonic_dur_scaled * MAX_DURATION_MULTIPLIER
-            
-            generation_duration = scaled_section_duration - safety_buffer
-
-            print(f"  > Durata totale: {section['durata']}s. Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
-            print(f"  > Gli eventi verranno generati entro una finestra di {generation_duration:.2f}s.")
-            
-            if generation_duration <= 0:
-                print(f"  > ATTENZIONE: Il cuscinetto di sicurezza è maggiore della durata della sezione. Nessun evento generato.")
-                cluster_onsets = []
-            else:
-                cluster_onsets = self.time_scheduler.generate_onsets(
-                    section['timing_model'], generation_duration, section['num_attivazioni']
-                )
-
-            # --- 3. GENERAZIONE DEGLI EVENTI PER OGNI ATTIVAZIONE ---
-            for onset in cluster_onsets:
-                
-                # --- 3a. OTTIENI LA MASCHERA DI CONTROLLO (center_mask) ---
-                if is_static_section:
-                    # Per una sezione statica, la maschera è sempre la stessa.
-                    center_mask = section['stato_unico']
+            section_env_name = section.get('inviluppo_sezione', self.default_section_envelope)
+            if section_env_name:
+                if section_env_name in self.section_envelope_map:
+                    table_num = self.section_envelope_map[section_env_name]
+                    env_event = {
+                        'type': 'section_env',
+                        'time': current_time_offset,
+                        'params': {'durata': scaled_section_duration, 'table_num': table_num}
+                    }
+                    full_sequence.append(env_event)
+                    print(f"  > Inviluppo di sezione globale: '{section_env_name}' (tabella f{table_num})")
                 else:
-                    # Per una sezione dinamica, calcola la progressione e interpola.
-                    progress = onset / section['durata'] if section['durata'] > 0 else 0
-                    start_mask = section['stato_iniziale']
-                    end_mask = section['stato_finale']
-                    center_mask = self._interpolate_mask(start_mask, end_mask, progress)
+                    print(f"  > ATTENZIONE: Inviluppo di sezione '{section_env_name}' non trovato. Verrà ignorato.")
 
-                # --- 3b. GENERA IL CLUSTER DI EVENTI ---
-                dens_range = center_mask['densita_cluster']['range']
-                num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
-                
-                for _ in range(num_events_in_cluster):
-                    for attempt in range(10): # Ciclo di tentativi di generazione
+            # --- 2. GESTIONE DEI LAYER (CON RETROCOMPATIBILITÀ) ---
 
-                        event_mask = center_mask.copy()
-                        
-                        if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
-                            current_range = event_mask['durata_armonica']['range']
-                            scaled_range = [val * time_ratio for val in current_range]
-                            # Modifichiamo il dizionario del range direttamente
-                            event_mask['durata_armonica'] = event_mask['durata_armonica'].copy() # Evita side-effects
-                            event_mask['durata_armonica']['range'] = scaled_range
+            # Se la chiave 'layers' esiste, usiamo il nuovo sistema polifonico
+            if 'layers' in section:
+                print(f"  > Rilevata struttura multi-layer.")
+                for layer in section['layers']:
+                    layer_events, layer_onsets = self._process_layer(
+                        layer, current_time_offset, scaled_section_duration, time_ratio
+                    )
+                    full_sequence.extend(layer_events)
+                    all_onsets.extend(layer_onsets)
+            
+            # Altrimenti, usiamo il vecchio sistema monofonico
+            else:
+                print(f"  > Rilevata struttura a layer singolo (retrocompatibilità).")
+                # Il "layer virtuale" è la sezione stessa.
+                # La nostra funzione helper _process_layer può processarla direttamente.
+                layer_events, layer_onsets = self._process_layer(
+                    section, current_time_offset, scaled_section_duration, time_ratio
+                )
+                full_sequence.extend(layer_events)
+                all_onsets.extend(layer_onsets)
 
-                        params = self._generate_params_from_mask(event_mask)
-                        
-                        if self._valida_parametri(params):
-                            # Mappatura delle tabelle di ritmi
-                            rhythm_tuple = tuple(params['ritmi'])
-                            if rhythm_tuple not in self.rhythm_table_map:
-                                self.rhythm_table_map[rhythm_tuple] = {
-                                    'ritmi_tab_num': self.next_table_id,
-                                    'pos_tab_num': self.next_table_id + 1
-                                }
-                                self.next_table_id += 2
-                            
-                            params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
-                            params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
-                            
-                            # Calcolo del tempo finale con jitter configurabile
-                            # 1. Ottieni la scala del jitter dai parametri generati.
-                            #    Usa .get() per fornire un valore di default (es. 0.05) se 
-                            #    'onset_jitter' non è stato definito nella maschera YAML.
-                            jitter_scale = params.get('onset_jitter', 0.05)
-                            
-                            # 2. Genera il valore di jitter usando la scala ottenuta.
-                            jitter = np.random.normal(loc=0.0, scale=jitter_scale)
-                            event_time = current_time_offset + onset + jitter
-                            
-                            event_data = {'time': event_time, 'params': params}
-                            full_sequence.append(event_data)
-                            section_events_for_logging.append(event_data)
-                            break # Esce dal ciclo di tentativi se la generazione ha successo
-                    else:
-                        # Questo blocco viene eseguito se il ciclo `for attempt` finisce senza un `break`.
-                        print("  > ATTENZIONE: Impossibile generare parametri validi dopo 10 tentativi.")
-                        pass
-                        
-            print(f"  > Comportamenti generati per questa sezione: {len(section_events_for_logging)}")
+            # --- 3. AGGIORNA IL TEMPO PER LA PROSSIMA SEZIONE ---
             current_time_offset += scaled_section_duration
         
+        # Ordina la sequenza finale per tempo e restituisci
         full_sequence.sort(key=lambda e: e['time'])
-        print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori.")
+        num_voce_events = len([e for e in full_sequence if e.get('type') == 'voce'])
+        print(f"\n✓ Elaborazione completata. Generati {num_voce_events} eventi 'voce' totali.")
         print(f"Mappati {len(self.rhythm_table_map)} pattern di ritmi unici a tabelle Csound.")
-        return full_sequence
+        return full_sequence, all_onsets
 
 
     def generate_csd(self, composition_name, events):
@@ -453,16 +582,25 @@ class GenerativeComposer:
         for event in events:
             p = event['params']
             event_time = max(event['time'], 0.001)
-            score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tampiezza\tottava\tregistro\tniente\tid_comp\tnonlinearMode\n"
-            score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
-                            f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]}\t\t\t'
-                            f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}\n')
-            last_event_time = max(last_event_time, event_time + p["durata_totale"])
+            if event['type'] == 'voce':
+                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\n"
+                score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
+                                f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]}\t\t\t'
+                                f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}'
+                                f'\t\t{p["senso_movimento"]}\t\t{p["ifn_attacco"]}\n')
+                last_event_time = max(last_event_time, event_time + p["durata_totale"])
+            
+            elif event['type'] == 'section_env':
+                score_lines += f'; --- Inviluppo per la sezione ---\n'
+                score_lines += f'i "InviluppoSezione"\t{event_time:.4f}\t{p["durata"]:.3f}\t{p["table_num"]}\n'
+                last_event_time = max(last_event_time, event_time + p["durata"])
+        wav_file_path = self.wav_output_path / f"{composition_name}.wav"
+        csd_file_path = self.output_path / f"{composition_name}.csd"
 
         # 3. Assembla il file finale usando il NUOVO template e i NUOVI placeholder
         template = self.get_csd_template()
         csd_content = template.format(
-            composition_name=composition_name,
+            wav_file_path=wav_file_path, 
             score_tables=score_tables, 
             score_lines=score_lines,
             durata_totale=last_event_time + 10,
@@ -470,21 +608,21 @@ class GenerativeComposer:
             registri_macro = REGISTRI_RANGE[1],
             intervalli_macro = INTERVALLI_PER_OTTAVA
         )
-        file_path = self.output_path / f"{composition_name}.csd"
-        with open(file_path, 'w') as f:
+
+        with open(csd_file_path, 'w') as f:
             f.write(csd_content)
         
-        return file_path
+        return csd_file_path, wav_file_path
     
     def get_csd_template(self):
         """Restituisce il template CSD master."""
         return """
 <CsoundSynthesizer>
 <CsOptions>
--o "{composition_name}.wav" -W -d
+-o "{wav_file_path}" -W -d -m0
 </CsOptions>
 <CsInstruments>
-sr = 44100
+sr = 96000
 ksmps = 32
 nchnls = 2
 0dbfs = 1
@@ -501,8 +639,10 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
+gk_SectionEnv init 1 
 gi_debug init 1
 
+#include "../includes/inviluppoSezione.orc"
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
 #include "../includes/NonlinearFunc.udo"
@@ -523,7 +663,22 @@ endin
 <CsScore>
 f 0 {durata_totale} ; Evento f fittizio per definire la durata totale
 f1 0 4096 10 1
-f2 0 1024 6 0 512 0.5 512 1 ; Envelope per il suono
+
+
+; --- TABELLE DEGLI INVILUPPI DI ATTACCO ---
+; ifn | nome        | descrizione
+;--------------------------------------------------------------------------------
+f 2 0 [2^20] 6 0 [2^19] 0.5 [2^19] 1 ; Envelope per il suono
+f 3 0 [2^12] 6 0 [2^5] 0.5 [2^12-2^5] 1.0  ; Impulsivo:   Attacco rapidissimo, decadimento lento
+f 4 0 [2^20] 6 0 [2^20-2^5] .5 [2^5] 1.0 ; Lento (Swell): Attacco lento, decadimento più rapido
+f 5 0 [2^20] 6 0 [2^5] 0.5 [2^20-2^6] 0.5 [2^5] 1.0 ; Sostenuto: Attacco, lungo sustain al picco, decadimento
+
+
+f 20 0 4096 7 1 4096 1              ; 20: crescendo_lento (lineare da 0 a 1)
+f 21 0 4096 7 1 4096 0.001              ; 21: diminuendo_rapido (lineare da 1 a 0)
+f 22 0 4096 10 1                    ; 22: plateau_forte (costante a 1)
+f 23 0 4096 6 0.001 2048 1 2048 0.001       ; 23: crescendo_diminuendo (triangolare)
+f 24 0 4096 6 0.001 128 1 [4096-128] 0.001       ; 23: crescendo_diminuendo (triangolare)
 
 ; --- TABELLE DI DATI PER LA PARTITURA ---
 {score_tables}
@@ -547,7 +702,7 @@ class CompositionDebugger:
     def __init__(self, output_dir): 
         self.output_path = Path(output_dir) 
 
-    def plot_piano_roll(self, events, composition_name, composition_structure): 
+    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure): 
         print("\n--- Avvio Debugging Visivo: Generazione Grafico ---")
         if not events:
             print("Nessun evento da visualizzare.")
@@ -556,14 +711,18 @@ class CompositionDebugger:
         plot_data = []
         max_time = 0
         for event in events:
-            p = event['params']
-            start = event['time']
-            duration = p['durata_totale']
-            end = start + duration
-            pitch = p['ottava'] + (p['registro'] / 10.0)
-            amp_norm = p.get('dynamic_index', 3) / 6.0  # Normalizza l'indice (0-6) a (0-1)
-            plot_data.append({'start': start, 'end': end, 'pitch': pitch, 'amp_norm': amp_norm})
-            if end > max_time: max_time = end
+            if event.get('type') == 'voce':
+                p = event['params']
+                start = event['time']
+                
+                # Questa riga non causerà più errori perché la eseguiamo solo su eventi di tipo 'voce'
+                duration = p['durata_totale'] 
+                
+                end = start + duration
+                pitch = p['ottava'] + (p['registro'] / 10.0)
+                amp_norm = p.get('dynamic_index', 3) / 6.0  # Normalizza l'indice (0-6) a (0-1)
+                plot_data.append({'start': start, 'end': end, 'pitch': pitch, 'amp_norm': amp_norm})
+                if end > max_time: max_time = end
 
         plt.style.use('seaborn-v0_8-darkgrid')
         fig, ax = plt.subplots(figsize=(20, 10))
@@ -573,6 +732,43 @@ class CompositionDebugger:
                 item['end'] - item['start'], 0.08,
                 color=plt.cm.viridis(item['amp_norm']), alpha=0.7
             ))
+
+        print("  > Aggiungo marker di attivazione...")
+        for onset_time in all_onsets:
+            ax.axvline(x=onset_time, 
+                       color='dodgerblue', 
+                       linestyle=':', 
+                       linewidth=0.9, 
+                       alpha=0.7, 
+                       label='Attivazione') # Aggiungiamo un'etichetta per la legenda
+
+        print("  > Aggiungo marker dei breakpoint...")
+        # Calcoliamo la posizione y per i marker, appena sotto il bordo superiore
+        y_pos_marker = ax.get_ylim()[1] - 0.2 
+        breakpoint_time_offset = 0.0
+
+        for section in composition_structure:
+            time_ratio = section.get('ratio_temporale', 1.0)
+            scaled_duration = section['durata'] * time_ratio
+            
+            timing_model = section.get('timing_model', {})
+            if timing_model.get('type') == 'breakpoint':
+                for point in timing_model.get('points', []):
+                    # Calcola il tempo assoluto del punto
+                    abs_time = breakpoint_time_offset + (point[0] * scaled_duration)
+                    ax.scatter(
+                        [abs_time], [y_pos_marker], 
+                        marker='v',          # Triangolo che punta in giù
+                        color='gold',        # Colore distintivo
+                        s=100,               # Dimensione
+                        edgecolor='black',   # Bordo per visibilità
+                        zorder=5,            # Assicura che sia disegnato sopra
+                        label='Breakpoint'   # Etichetta per la legenda
+                    )
+            
+            # Aggiorna l'offset temporale per la prossima sezione
+            breakpoint_time_offset += scaled_duration
+
 
         ax.set_xlim(0, max_time)
         ax.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
@@ -592,11 +788,21 @@ class CompositionDebugger:
         
         handles, labels = ax.get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
-        ax.legend(by_label.values(), by_label.keys())
+        # Posiziona la legenda FUORI dal grafico.
+        # 'bbox_to_anchor' definisce la posizione: (0.5, -0.1) significa
+        # centrata orizzontalmente (0.5) e posizionata leggermente sotto l'asse x (-0.1).
+        # 'loc='upper center'' dice come ancorare la legenda a quel punto.
+        # 'ncol' definisce il numero di colonne per la legenda.
+        fig.legend(by_label.values(), by_label.keys(), 
+                   loc='upper center', 
+                   bbox_to_anchor=(0.5, 0.05), # Posiziona appena sopra l'asse x
+                   ncol=len(by_label))
+
+        # Salva il grafico. 'bbox_inches='tight'' è importante per assicurarsi
+        # che la legenda esterna non venga tagliata.
         plot_filename = self.output_path / f"{composition_name}_visual.png"
-        plt.savefig(plot_filename, dpi=150)
-        plt.close()
-        
+        plt.savefig(plot_filename, dpi=150, bbox_inches='tight')
+        plt.close()        
         print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
         
 if __name__ == "__main__":
@@ -605,6 +811,9 @@ if __name__ == "__main__":
     # Imposta su True per renderizzare automaticamente il file audio.
     # Imposta su False per generare solo il file .csd e il grafico.
     RENDER_AUTOMATICAMENTE = True
+    # Imposta su True per aprire il file .wav al termine del rendering.
+    # Funziona solo se RENDER_AUTOMATICAMENTE è True.
+    APRI_FILE_DOPO_RENDER = True
     # ===================================================================
     # 1. Controllo degli argomenti
     if len(sys.argv) < 2:
@@ -625,29 +834,42 @@ if __name__ == "__main__":
     debugger = CompositionDebugger(composer.output_path)
     
     # 4. Genera la sequenza di eventi
-    event_sequence = composer.process_composition(composition_structure)
+    event_sequence, all_onsets = composer.process_composition(composition_structure)
+    csd_file_path = None
+    wav_file_path = None # Inizializza anche il percorso del wav
     
     if event_sequence:
         # 5. Visualizza la sequenza
-        debugger.plot_piano_roll(event_sequence, composition_name, composition_structure)
+        debugger.plot_piano_roll(event_sequence, all_onsets, composition_name, composition_structure)
         
         # 6. Genera il file CSD finale
-        csd_file_path = composer.generate_csd(composition_name, event_sequence)
+        csd_file_path, wav_file_path = composer.generate_csd(composition_name, event_sequence)
     else:
         print("\nERRORE: Nessun evento generato. Controlla la configurazione della composizione.")
-    # 7. ESECUZIONE AUTOMATICA DI CSOUND (se abilitata)
+
+    # 7. ESECUZIONE AUTOMATICA DI CSOUND
     if RENDER_AUTOMATICAMENTE and csd_file_path:
         print("\n--- AVVIO RENDERING CON CSOUND ---")
-        print(f"Eseguo il comando: csound \"{csd_file_path}\"")
+        # ... (stampa del comando) ...
         try:
-            # Costruisci il comando come una lista di argomenti
             command = ['csound', str(csd_file_path)]
-            
-            # Esegui il comando. L'output di Csound apparirà nel terminale.
-            # Lo script Python attenderà il completamento di Csound.
             subprocess.run(command, check=True)
-            
             print("\n✓ Rendering Csound completato con successo.")
+
+            # Logica per aprire il file
+            if APRI_FILE_DOPO_RENDER and wav_file_path:
+                print(f"Apertura del file audio generato: {wav_file_path}")
+                try:
+                    if not wav_file_path.exists():
+                        print(f"ATTENZIONE: File .wav non trovato a '{wav_file_path}'. Impossibile aprirlo.")
+                    else:
+                        open_command = ['open', str(wav_file_path)]
+                        subprocess.run(open_command, check=True)
+                except Exception as e:
+                    print(f"\nERRORE: Impossibile aprire il file audio.")
+                    print(f"Dettagli: {e}")
+                    print("Questo comando funziona solo su macOS.")
+
         except FileNotFoundError:
             print("\nERRORE CRITICO: Comando 'csound' non trovato.")
             print("Assicurati che Csound sia installato e che il suo eseguibile sia nel PATH di sistema.")

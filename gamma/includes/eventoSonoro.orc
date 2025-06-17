@@ -33,9 +33,11 @@ instr eventoSonoro
    iradi = (iwhichZero > 0 ? (iwhichZero - 1) * iPeriod : 0)
    ifreq2 = limit(p8, 20, sr/2)
 
-   ifn = p9
+   ifn_shape = (p9 == 0 ? 2 : p9) ; <-- MODIFICA: Riceve p9, default a 10 (lineare)
    id_evento=p10
    id_comportamento=p11
+   i_senso = (p12 == 0 ? 1 : p12) ; <-- NUOVO: Riceve il senso di movimento, default a 1
+
    $DEBUG_Evento_print_Pfields
    if p7 == 0 then
       prints "ERROR\n"
@@ -46,9 +48,10 @@ instr eventoSonoro
    ; Position and Envelope Generation
    ;--------------------------------------------------------------
    kndx line 0, p3, 1
-   ktab tab kndx, ifn, 1
+   ktab tab kndx, ifn_shape, 1
+
    
-   krad = iradi + (ktab * iPeriod)
+   krad = iradi + (ktab * iPeriod * i_senso)
    kEnv = abs(sin(krad * iHR / 2))
    ;--------------------------------------------------------------
    ; Sound Generation and Spatialization
@@ -56,8 +59,9 @@ instr eventoSonoro
    kfreq = ifreq1 ; Semplificato a frequenza costante per ora
    
    asig poscil3 iamp, kfreq
-   asigEnv = asig * kEnv
-   
+   asigLocalEnv = asig * kEnv
+   asigEnv = asigLocalEnv * gk_SectionEnv
+
    kMid = cos(krad)
    kSide = sin(krad)
    

@@ -1,0 +1,150 @@
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: 1.4
+    num_attivazioni: 10
+    #inviluppo_sezione: 'impulso' # Nome del nuovo inviluppo globale
+    timing_model:
+        type: "stochastic"
+    stato_unico:
+        ottava:           {range: [2, 9], distribution: "uniform"}
+        registro:         {range: [10, 50], distribution: "uniform"}
+        dinamica:         {choices: ['mf']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [1, 10]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: .3
+    num_attivazioni: 8
+    timing_model:
+        type: "stochastic"
+    stato_unico:
+        ottava:           {range: [4, 8], distribution: "uniform"}
+        registro:         {range: [10, 50], distribution: "uniform"}
+        dinamica:         {choices: ['p']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [1, 10]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+        senso_movimento: {choices: [-1, -1], weights: [0.9, 0.1]}
+
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: .8
+    num_attivazioni: 1
+    timing_model:
+        type: "linear"
+    stato_unico:
+        ottava:           {range: [2, 9], distribution: "uniform"}
+        registro:         {range: [10, 50], distribution: "uniform"}
+        dinamica:         {choices: ['mf']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [30, 70]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: 1.4
+    num_attivazioni: 7
+    timing_model:
+        type: "stochastic"
+        shape: 3.0
+    stato_iniziale:
+        ottava:           {range: [1, 9], distribution: "uniform"}
+        registro:         {range: [20, 20], distribution: "uniform"}
+        dinamica:         {choices: ['ppp']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [30, 60]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [2, 3], weights: [0.8, 0.2]}
+    stato_finale:
+        ottava:           {range: [1, 9], distribution: "uniform"}
+        registro:         {range: [10, 20], distribution: "uniform"}
+        dinamica:         {choices: ['mf']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [100, 200]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [2, 3], weights: [0.8, 0.2]}
+
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: .3
+    num_attivazioni: 7
+    timing_model:
+        type: "stochastic"
+        shape: 3.0
+    stato_iniziale:
+        ottava:           {range: [1, 9], distribution: "uniform"}
+        registro:         {range: [20, 20], distribution: "uniform"}
+        dinamica:         {choices: ['ff']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [30, 60]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [2, 3], weights: [0.8, 0.2]}
+    stato_finale:
+        ottava:           {range: [1, 9], distribution: "uniform"}
+        registro:         {range: [10, 20], distribution: "uniform"}
+        dinamica:         {choices: ['mf']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [80, 120]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [2, 3], weights: [0.8, 0.2]}
+
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: 1
+    num_attivazioni: 3
+    timing_model:
+        type: "stochastic"
+        shape: 3.0
+    stato_iniziale:
+        ottava:           {range: [4, 4], distribution: "uniform"}
+        registro:         {range: [20, 20], distribution: "uniform"}
+        dinamica:         {choices: ['ff']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [1, 3]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [1, 1], weights: [0.8, 0.2]}
+    stato_finale:
+        ottava:           {range: [1, 3], distribution: "uniform"}
+        registro:         {range: [10, 20], distribution: "uniform"}
+        dinamica:         {choices: ['mf']}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [1, 3]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [1, 1], weights: [0.8, 0.2]}
+-
+    nome_sezione: "I. Contrappunto di Texture"
+    durata: 45
+    inviluppo_sezione: 'crescendo_diminuendo'
+    layers:
+      - nome_layer: "Drone Basso e Lento"
+        num_attivazioni: 1
+        timing_model: { type: "lineare", shape: 2.0 }
+        stato_iniziale:
+          ottava: { range: [0, 1] }
+          registro: { range: [1, 10] }
+          dinamica: { choices: ['mf'] }
+          durata_armonica: { range: [30, 40] }
+          densita_cluster: { range: [1, 2] }
+        stato_finale:
+          ottava: { range: [0, 1] }
+          registro: { range: [5, 20] }
+          dinamica: { choices: ['mf'] }
+          durata_armonica: { range: [30, 40] }
+          inviluppo_attacco: { choices: ['lento', 'sostenuto'] }
+          densita_cluster: { range: [2, 3] }
+
+      - nome_layer: "Scintillii Acuti e Stocastici"
+        num_attivazioni: 120
+        timing_model: { type: "stochastic" }
+        stato_unico:
+          ottava: { range: [7, 9] }
+          registro: { mean: 25, std: 10 }
+          dinamica: { choices: ['ppp', 'p'] }
+          durata_armonica: { range: [0.2, 0.8] }
+          nonlinear_mode: { choices: [3] }
+          onset_jitter: { range: [0.0, 0.1] }
+          densita_cluster: { range: [1, 6] }

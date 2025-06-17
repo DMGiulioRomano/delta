@@ -25,24 +25,25 @@
         nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
 
 -   nome_sezione: "II. Nascita Lenta di Cluster"
-    durata: 30
+    durata: 20
     ratio_temporale: 1.0
     num_attivazioni: 6
     timing_model:
-        type: "stochastic"
+        type: "linear"
     stato_iniziale:
-        ottava:           {range: [0, 2], distribution: "uniform"}
-        registro:         {range: [10, 40], distribution: "uniform"}
-        dinamica:         {choices: ['ppp', 'pp', 'p'], weights: [0.8, 0.15, 0.05]}
+        ottava:           {range: [2, 5], distribution: "uniform"}
+        registro:         {range: [10, 20], distribution: "uniform"}
+        dinamica:         {choices: ['ppp']}
         durata_armonica:  {range: [1, 1]}
         densita_cluster:  {range: [3, 5]}
         tipo_ritmi:       {choices: ['piccoli']}
         nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+
     stato_finale:
-        ottava:           {range: [3, 7], distribution: "uniform"}
-        registro:         {range: [13, 40], distribution: "uniform"}
-        dinamica:         {choices: ['p', 'mf'], weights: [.3,0.8]}
-        durata_armonica:  {range: [5, 5]}
+        ottava:           {range: [2, 5], distribution: "uniform"}
+        registro:         {range: [1, 40], distribution: "uniform"}
+        dinamica:         {choices: ['mf']}
+        durata_armonica:  {range: [2, 2]}
         densita_cluster:  {range: [30, 70]}
         tipo_ritmi:       {choices: ['piccoli']}
         nonlinear_mode:   {choices: [0, 1], weights: [0.4, 0.6]}

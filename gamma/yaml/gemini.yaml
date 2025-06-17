@@ -5,8 +5,8 @@
     # --- Identificativi della Sezione ---
     nome_sezione: "I. Eruzione, Stasi e Collasso"
     durata: 60
-    ratio_temporale: 0.3 # Usiamo la durata esatta di 60 secondi
-    num_attivazioni: 20   # Molte attivazioni per creare una texture densa al culmine
+    ratio_temporale: 2 # Usiamo la durata esatta di 60 secondi
+    num_attivazioni: 70   # Molte attivazioni per creare una texture densa al culmine
 
     # --------------------------------------------------------------------------
     # MODELLO TEMPORALE: Il cuore della narrazione musicale
@@ -49,13 +49,14 @@
     stato_iniziale:
         ottava:                 {range: [0, 3]}         # Molto grave
         registro:               {range: [1, 5]}         # Ristretto
-        dinamica:               {choices: ['ppp']}      # Appena udibile
-        durata_armonica:        {range: [10.0, 15.0]}   # Suoni lunghissimi e lenti
+        dinamica:         {choices: ['ppp', 'pp', 'p'], weights: [0.8, 0.15, 0.05]}
+        durata_armonica:        {range: [20.0, 30.0]}   # Suoni lunghissimi e lenti
         moltiplicatore_durata:  {choices: [1.0]}        # Nessuna sovrapposizione
         densita_cluster:        {range: [1, 4]}         # Suoni isolati
         onset_jitter:           {range: [0.0, 0.01]}    # Ritmicamente precisissimo
         tipo_ritmi:             {choices: ['grandi']}   # Ritmi molto lenti
         nonlinear_mode:         {choices: [0]}          # Comportamento stabile, convergente
+        inviluppo_attacco:      {value: 'impulsivo'}
 
     # --------------------------------------------------------------------------
     # STATO FINALE: Il punto di arrivo "Caotico" (corrisponde a valore = 1.0)
@@ -63,10 +64,11 @@
     stato_finale:
         ottava:                 {range: [4, 10]}        # Acutissimo
         registro:               {range: [1, 50]}        # Copre tutto il range
-        dinamica:               {choices: ['f']}      # Estremamente forte
-        durata_armonica:        {range: [0.05, 0.2]}    # Eventi brevissimi e frenetici
+        dinamica:         {choices: ['f', 'mf', 'mf'], weights: [0.8, 0.15, 0.05]}
+        durata_armonica:        {range: [20, 30]}    # Eventi brevissimi e frenetici
         moltiplicatore_durata:  {choices: [3.0, 5.0]}   # Forte sovrapposizione, texture continua
         densita_cluster:        {range: [15, 40]}       # Cluster densissimi
         onset_jitter:           {range: [0.1, 0.2]}     # Ritmicamente molto disperso e caotico
         tipo_ritmi:             {choices: ['piccoli']}  # Ritmi velocissimi
         nonlinear_mode:         {choices: [3]}          # Comportamento massimamente caotico
+        inviluppo_attacco:      {value: 'impulsivo'}

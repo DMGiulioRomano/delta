@@ -1,89 +1,120 @@
 # ==============================================================================
-# TEMPLATE GUIDA PER LA COMPOSIZIONE GENERATIVA (v2.0)
+# TEMPLATE GUIDA PER LA COMPOSIZIONE GENERATIVA (v2.1 - Polifonico)
 # ==============================================================================
 # Questo file è un modello che spiega tutte le opzioni disponibili per
 # la creazione di una partitura YAML per il Generative Composer.
 #
 # Una partitura è una lista di "sezioni". Ogni sezione è definita da un
 # trattino (-) e descrive un segmento temporale della composizione.
+# Dalla v2.0, ogni sezione può contenere più "layer" sonori paralleli,
+# permettendo la creazione di texture polifoniche complesse.
 # Le sezioni vengono eseguite in sequenza.
 # ==============================================================================
 
-
 # ------------------------------------------------------------------------------
-# Esempio di Sezione Dinamica (con transizione da stato_iniziale a stato_finale)
+# 1. PARAMETRI GENERALI DI UNA SEZIONE
+# ------------------------------------------------------------------------------
+# Questi parametri si applicano all'intera sezione e definiscono il suo
+# contesto temporale e dinamico globale.
 # ------------------------------------------------------------------------------
 -
-    # --- PARAMETRI GENERALI DELLA SEZIONE ---
-
     # nome_sezione: (Stringa, Obbligatorio) Un nome descrittivo per la sezione.
     # Utile per il debug e per l'etichetta nel grafico di visualizzazione.
-    nome_sezione: "I. Transizione da Quiete a Tempesta"
+    nome_sezione: "Nome Descrittivo della Sezione"
 
     # durata: (Numero, Obbligatorio) La durata di base della sezione in secondi.
     # Questo valore viene moltiplicato per il 'ratio_temporale'.
-    durata: 90
+    durata: 60
 
     # ratio_temporale: (Numero, Opzionale) Un fattore di scala per il tempo.
     # Utile per "stirare" (valori > 1) o "comprimere" (valori < 1) l'intera
     # sezione senza modificare ogni singolo parametro di durata. Default: 1.0.
     ratio_temporale: 1.0
+    
+# ------------------------------------------------------------------------------
+# 2. STRUTTURA A LAYER E INVILUPPO GLOBALE (v2.0+)
+# ------------------------------------------------------------------------------
+# Questi parametri definiscono la struttura interna e la forma dinamica della
+# sezione.
+# ------------------------------------------------------------------------------
 
-    # num_attivazioni: (Intero, Obbligatorio) Il numero di "impulsi" o "gesti"
-    # che avviano la generazione di cluster sonori all'interno di questa sezione.
-    # Un valore basso crea musica rada, un valore alto crea texture dense.
-    num_attivazioni: 75
+    # inviluppo_sezione: (Stringa, Opzionale) Definisce una curva di ampiezza
+    # globale che modula TUTTI gli eventi all'interno della sezione.
+    # Questo permette di creare grandi crescendo, diminuendo, o forme dinamiche
+    # complesse che si applicano all'intera texture sonora.
+    #
+    # 'choices' disponibili:
+    #   - 'crescendo_lento':      Un crescendo lineare da 0 a 1 per tutta la durata.
+    #   - 'diminuendo_rapido':    Un diminuendo lineare da 1 a 0.
+    #   - 'plateau_forte':        Mantiene l'ampiezza massima (1.0) costante.
+    #   - 'crescendo_diminuendo': Una forma a triangolo, con un picco a metà sezione.
+    #
+    # Default: Se omesso, viene applicato di default un 'crescendo_lento'.
+    inviluppo_sezione: 'crescendo_diminuendo'
 
-    # timing_model: (Dizionario, Obbligatorio) Definisce COME vengono distribuiti
-    # nel tempo gli impulsi definiti da 'num_attivazioni'.
-    timing_model:
-        # type: (Stringa) Il modello ritmico della sezione. Opzioni disponibili:
-        #   - "lineare":     Intervalli costanti, come un metronomo.
-        #   - "accelerando": Gli intervalli si riducono, creando accelerazione.
-        #   - "ritardando":  Gli intervalli aumentano, creando rallentamento.
-        #   - "stochastic":  Intervalli casuali, per texture organiche e imprevedibili.
-        #   - "breakpoint":  Modella la progressione usando una
-        #                    funzione a tratti definita da una lista di punti.
-        type: "breakpoint"
+    # layers: (Lista di Dizionari, Obbligatorio per v2.0+)
+    # Questa è la chiave per la composizione polifonica. Invece di definire un
+    # singolo comportamento, si definisce una lista di "layer", ognuno dei quali
+    # è un flusso sonoro indipendente e parallelo.
+    layers:
+        -
+            # nome_layer: (Stringa, Opzionale) Nome descrittivo per il layer.
+            nome_layer: "Strato Sonoro 1"
 
-        # points: (Lista di liste)
-        # Ogni punto è [tempo, valore, forma].
-        # - tempo: Posizione normalizzata (0.0 -> 1.0)
-        # - valore: Valore di progressione da raggiungere (0.0 -> 1.0)
-        # - forma: (Opzionale) Esponente che modella la curva DEL SEGMENTO PRECEDENTE.
-        #    - 1.0 = Lineare (default se omesso)
-        #    - > 1.0 = Ease-in (lento all'inizio, veloce alla fine)
-        #    - < 1.0 = Ease-out (veloce all'inizio, lento alla fine)
-        # Il primo punto non necessita di 'forma'.
+            # Ogni layer ha i suoi propri parametri di attivazione e timing.
+            num_attivazioni: 50
+            timing_model: { type: "lineare" }
+
+            # Ogni layer ha le sue maschere di tendenza ('stato_unico' o 'stato_iniziale'/'finale').
+            stato_unico:
+                # ... vedi Sezione 3 per i dettagli sui parametri della maschera ...
+                ottava: {range: [4, 6]}
+
+# ==============================================================================
+# RETROCOMPATIBILITÀ: SEZIONI "VECCHIO STILE" (Monofoniche)
+# ==============================================================================
+# Il sistema è ancora in grado di processare sezioni scritte nel vecchio formato,
+# ovvero senza la chiave 'layers'. In questo caso, la sezione viene trattata
+# come se avesse un unico layer implicito.
+#
+# Esempio di sezione "vecchio stile" ancora valida:
+# -
+#   nome_sezione: "Sezione Monofonica Semplice"
+#   durata: 30
+#   num_attivazioni: 50
+#   timing_model: { type: "lineare" }
+#   stato_unico:
+#     ottava: { range: [4, 6] }
+#
+# Questa struttura è più rapida da scrivere per idee musicali semplici, ma la
+# struttura a 'layers' è raccomandata per una maggiore espressività.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 3. MASCHERE DI TENDENZA E LORO PARAMETRI
+# ------------------------------------------------------------------------------
+# Le maschere definiscono gli spazi di possibilità da cui i parametri sonori
+# vengono generati. Ogni layer deve avere o uno 'stato_unico' (per un
+# carattere omogeneo) o una coppia 'stato_iniziale'/'stato_finale' (per
+# una transizione fluida).
+# ------------------------------------------------------------------------------
+    
+    # Esempio di un layer con stato unico:
+    stato_unico:
+        # ----------------------------------------------------------------------
+        # PARAMETRI DISPONIBILI ALL'INTERNO DI UNA MASCHERA
+        # ----------------------------------------------------------------------
         
-        # Esempio: Un attacco "morbido" seguito da una caduta "dura"
-        points:
-          - [0.0, 0.0]                  # Punto di partenza
-          - [0.7, 1.0, 2.5]             # Raggiungi il picco con un forte ease-in (forma = 2.5)
-          - [1.0, 0.0, 0.5]             # Torna a 0 con un forte ease-out (forma = 0.5)
-        #oppure points: [[0.0, 0.0],[0.7, 1.0, 2.5],[1.0, 0.0, 0.5]]
-        # shape: (Numero, Opzionale) Controlla la "curva" dell'accelerando/ritardando.
-        # Richiesto solo per i tipi 'accelerando' e 'ritardando'.
-        # Un valore > 1.0 rende l'effetto più pronunciato. Default è 2.0.
-        shape: 1.8
-
-
-
-    # --- MASCHERE DI TENDENZA: STATO INIZIALE E FINALE ---
-    # Definiscono gli spazi di possibilità da cui i parametri vengono generati.
-    # I valori verranno interpolati fluidamente tra stato_iniziale e stato_finale
-    # nel corso della 'durata' della sezione.
-    # NOTA: La struttura delle chiavi deve essere identica tra i due stati.
-
-    stato_iniziale:
         # ottava: Controlla l'altezza su larga scala (da 0 a 10).
         ottava: {range: [1, 3]}
 
         # registro: Controlla la posizione fine all'interno di un'ottava (da 1 a 50).
         registro: {range: [1, 20]}
 
-        # quando non presente credo sia automaticamente a mf
-        dinamica:         {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
+        # dinamica: (Dizionario, Opzionale) Controlla l'intensità percepita.
+        # 'choices' disponibili: 'ppp', 'pp', 'p', 'mf', 'f', 'ff', 'fff'.
+        # Default: 'mf' se il parametro è assente.
+        dinamica: {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
 
         # durata_armonica: Durata di riferimento in secondi per la generazione ritmica interna.
         # Valori alti portano a eventi più lenti e lunghi.
@@ -94,87 +125,115 @@
         # della sua durata armonica, creando legature e texture continue.
         moltiplicatore_durata: {choices: [1.1, 1.5], weights: [0.8, 0.2]}
 
-        # densita_cluster: Quanti eventi sonori vengono generati per ogni impulso.
+        # densita_cluster: Quanti eventi sonori vengono generati per ogni impulso ('attivazione').
         # range: [1, 1] -> Solo suoni singoli.
         # range: [3, 5] -> Cluster/accordi di 3, 4 o 5 suoni.
         densita_cluster: {range: [1, 2]}
 
+        # senso_movimento: (Dizionario, Opzionale) Controlla la direzione del movimento
+        # spaziale (orario o antiorario) per ogni evento.
+        # Valori possibili: 1 (antiorario), -1 (orario).
+        # Default: 1 (antiorario).
+        senso_movimento: {choices: [1, -1], weights: [0.9, 0.1]}
+
         # onset_jitter: (Numero/Dizionario, Opzionale) Controlla la "sbavatura" temporale
         # degli eventi attorno al loro tempo di attacco teorico (onset).
-        # Tecnicamente, definisce la deviazione standard (in secondi) di una
-        # distribuzione normale da cui viene pescato un piccolo offset temporale.
-        # - Valori bassi (es. 0.01) creano un effetto di "flam" molto stretto.
-        # - Valori alti (es. 0.2) creano una dispersione temporale più ampia.
-        # - Un valore di 0.0 disattiva completamente il jitter per quell'evento.
-        #
-        # Default: Se omesso, il sistema applica un jitter di default con scala 0.05.
+        # Definisce la deviazione standard (in secondi) di una distribuzione normale.
+        # Default: 0.05.
         onset_jitter: {range: [0.0, 0.02]}
 
         # tipo_ritmi: (Dizionario) Definisce il pattern ritmico usato da Csound.
-        # Esistono tre modalità di utilizzo, dalla più generativa alla più prescrittiva.
-
-        # --- Modalità 1: Categorie Predefinite (Comportamento Originale) ---
-        # Scegli una categoria e il sistema genererà un pattern ritmico appropriato.
-        # 'choices' disponibili: 'piccoli', 'medi', 'grandi', 'misti'.
-        # Esempio: tipo_ritmi: {choices: ['piccoli', 'medi'], weights: [0.8, 0.2]}
-
-        # --- Modalità 2: Lista Esplicita (Nuova, Prescrittiva) ---
-        # Fornisci un pattern ritmico esatto che verrà usato per ogni evento generato
-        # da questa maschera.
-        # Usa la chiave 'explicit_values'.
-        # Esempio:
-        # tipo_ritmi: {explicit_values: [7, 5, 12, 3, 21]}
-        
-        # --- Modalità 3: Scelta tra Liste Esplicite (Nuova, Avanzata) ---
-        # Combina il controllo della Modalità 2 con la flessibilità della Modalità 1.
-        # Fornisci una lista di 'choices', dove ogni scelta è un intero pattern ritmico.
-        # Il sistema ne sceglierà uno a caso (rispettando i pesi) per ogni evento.
-        # Esempio:
+        # Modalità 1: Categorie predefinite ('piccoli', 'medi', 'grandi', 'misti').
+        # Modalità 2: Lista esplicita di valori ({explicit_values: [7, 5, 12]}).
+        # Modalità 3: Scelta tra liste esplicite ({choices: [[2,3], [5,8]]}).
         tipo_ritmi:
             choices:
               - [2, 3, 5, 8]  # Pattern 1 (Fibonacci)
               - [7, 7, 7]     # Pattern 2 (Ostinato)
-              - [16, 2, 16]   # Pattern 3 (Contrasto)
-            weights: [0.6, 0.3, 0.1] # 60% prob. Fibonacci, 30% Ostinato, 10% Contrasto
+            weights: [0.6, 0.4]
 
         # nonlinear_mode: Comportamento del generatore ritmico interno ('NonlinearFunc').
-        # 'choices' disponibili:
-        #   - 0: Convergente (i ritmi tendono a un valore stabile)
-        #   - 1: Periodico (i ritmi si ripetono in cicli)
-        #   - 2: Caotico (comportamento complesso ma deterministico)
-        #   - 3: Caos "Vero" (più casualità e imprevedibilità)
+        # 'choices' disponibili: 0 (convergente), 1 (periodico), 2 (caotico), 3 (caos "vero").
         nonlinear_mode: {choices: [0, 1], weights: [0.9, 0.1]}
 
-    stato_finale:
-        # Qui si definiscono gli stessi parametri dello stato_iniziale, ma con i valori
-        # che si desidera raggiungere alla FINE della sezione.
-        ottava:                 {range: [7, 9]}
-        registro:               {range: [30, 50]}
-        dinamica:               {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
-        durata_armonica:        {range: [0.2, 0.5]}
-        moltiplicatore_durata:  {choices: [1.8, 2.5, 4.0], weights: [0.2, 0.5, 0.3]}
-        densita_cluster:        {range: [8, 15]}
-        tipo_ritmi:             {choices: ['piccoli', 'misti'], weights: [0.8, 0.2]}
-        nonlinear_mode:         {choices: [2, 3], weights: [0.1, 0.9]}
+        # inviluppo_attacco: (Dizionario, Opzionale) Scolpisce la forma dinamica
+        # di ogni singolo evento sonoro.
+        # 'choices' disponibili: 'lineare', 'impulsivo', 'lento', 'sostenuto'.
+        # Default: 'lineare'.
+        inviluppo_attacco: {choices: ['lento', 'lineare'], weights: [0.9, 0.1]}
 
 # ------------------------------------------------------------------------------
-# Esempio di Sezione Statica (con stato_unico)
+# 4. ESEMPI COMPLETI DI SEZIONI
 # ------------------------------------------------------------------------------
+
+# --- Esempio 1: Sezione Polifonica Complessa (Nuovo Stile v2.0+) ---
 -
-    nome_sezione: "II. Stasi Ritmica"
+    nome_sezione: "I. Contrappunto di Texture"
+    durata: 45
+    inviluppo_sezione: 'crescendo_diminuendo'
+    layers:
+      - nome_layer: "Drone Basso e Lento"
+        num_attivazioni: 20
+        timing_model: { type: "ritardando", shape: 2.0 }
+        stato_iniziale:
+          ottava: { range: [0, 1] }
+          registro: { range: [1, 10] }
+          dinamica: { choices: ['p'] }
+          durata_armonica: { range: [7, 10] }
+          inviluppo_attacco: { choices: ['lento'] }
+          densita_cluster: { range: [1, 2] }
+        stato_finale:
+          ottava: { range: [1, 2] }
+          registro: { range: [5, 20] }
+          dinamica: { choices: ['mf'] }
+          durata_armonica: { range: [5, 8] }
+          inviluppo_attacco: { choices: ['lento', 'sostenuto'] }
+          densita_cluster: { range: [2, 3] }
+
+      - nome_layer: "Scintillii Acuti e Stocastici"
+        num_attivazioni: 120
+        timing_model: { type: "stochastic" }
+        stato_unico:
+          ottava: { range: [8, 10] }
+          registro: { mean: 25, std: 10 }
+          dinamica: { choices: ['ppp', 'pp'] }
+          durata_armonica: { range: [0.2, 0.8] }
+          inviluppo_attacco: { choices: ['impulsivo'] }
+          nonlinear_mode: { choices: [3] }
+          onset_jitter: { range: [0.0, 0.1] }
+          densita_cluster: { range: [1, 1] }
+
+# --- Esempio 2: Sezione Dinamica (Stile Vecchio, ancora valido) ---
+-
+    nome_sezione: "II. Transizione da Quiete a Tempesta"
+    durata: 90
+    num_attivazioni: 75
+    timing_model:
+        type: "breakpoint"
+        points: [[0.0, 0.0], [0.7, 1.0, 2.5], [1.0, 0.0, 0.5]]
+    stato_iniziale:
+        ottava: {range: [1, 3]}
+        durata_armonica: {range: [2.0, 4.0]}
+        densita_cluster: {range: [1, 2]}
+        nonlinear_mode: {choices: [0, 1], weights: [0.9, 0.1]}
+    stato_finale:
+        ottava: {range: [7, 9]}
+        durata_armonica: {range: [0.2, 0.5]}
+        densita_cluster: {range: [8, 15]}
+        nonlinear_mode: {choices: [2, 3], weights: [0.1, 0.9]}
+
+# --- Esempio 3: Sezione Statica (Stile Vecchio, ancora valido) ---
+-
+    nome_sezione: "III. Stasi Ritmica"
     durata: 40
     num_attivazioni: 100
-    timing_model:
-        type: "lineare"
-
-    # Per una sezione con un carattere sonoro omogeneo, si usa 'stato_unico'
-    # invece di 'stato_iniziale' e 'stato_finale'.
+    timing_model: { type: "lineare" }
     stato_unico:
-        ottava:                 {mean: 5, std: 1}
-        registro:               {range: [10, 40]}
-        dinamica:               {choices: ['f', 'pp', 'mf'], weights: [0.8, 0.15, 0.05]}
-        durata_armonica:        {range: [0.8, 1.2]}
-        moltiplicatore_durata:  {choices: [1.0]} # Nessuna sovrapposizione
-        densita_cluster:        {range: [1, 1]}
-        tipo_ritmi:             {choices: ['medi']}
-        nonlinear_mode:         {choices: [1]} # Forza un comportamento periodico
+        ottava: {mean: 5, std: 1}
+        registro: {range: [10, 40]}
+        dinamica: {choices: ['mf']}
+        durata_armonica: {range: [0.8, 1.2]}
+        moltiplicatore_durata: {choices: [1.0]}
+        densita_cluster: {range: [1, 1]}
+        tipo_ritmi: {choices: ['medi']}
+        nonlinear_mode: {choices: [1]}
