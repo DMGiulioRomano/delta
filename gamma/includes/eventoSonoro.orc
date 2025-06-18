@@ -11,11 +11,11 @@
       if (id_evento%100==0) then
       ;fprints Snamefile,"\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\t\tdir:\t\tHR:\t\t\t\tfreq2:\t\tifn:\t\tid_evento:"
       endif
-      fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:"
-      fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      fprints Snamefile,"\n\n\t;\t\t\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\t\tid_comportamento:\t\ti_senso:\t\ti_ifn_section_env:\t\ti_section_start_time:\t\ti_section_duration:"
+      fprints Snamefile,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%.3f\t\t%f\t\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d\t\t\t\t%d\t\t%d\t\t\t\t%d\t\t\t\t\t\t%f\t\t\t\t%f", p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15  
       SentireSco sprintf "%sAll.sco", gSdirSco
-      fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:", p11
-      fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%f\t\t%f\t\t%d\t\t%d\t\t%f\t\t%d\t\t%d", p2, p3, p4, p5, p6, p7, p8, p9, p10  
+      fprints SentireSco,"\n\n\t; [comp %d]\t\t\t\tattacco:\tdurata:\t\tamp:\t\tfreq1:\t\t\twz:\t\tHR:\t\tfreq2:\t\t\tifn:\tid_evento:\t\ti_senso:\t\ti_ifn_section_env:\t\ti_section_start_time:\t\ti_section_duration:", p11
+      fprints SentireSco,"\n\ti \"eventoSonoro\"\t\t%.3f\t\t%.3f\t\t%f\t\t%f\t\t%d\t\t%d\t\t%f\t\t%d\t\t\t%d\t\t%d\t\t\t\t%d\t\t\t\t\t\t%f\t\t\t\t%f", p2, p3, p4, p5, p6, p7, p8, p9, p10, p12, p13, p14, p15
    endif#
 
 instr eventoSonoro
@@ -33,10 +33,14 @@ instr eventoSonoro
    iradi = (iwhichZero > 0 ? (iwhichZero - 1) * iPeriod : 0)
    ifreq2 = limit(p8, 20, sr/2)
 
-   ifn_shape = (p9 == 0 ? 2 : p9) ; <-- MODIFICA: Riceve p9, default a 10 (lineare)
+   ifn_shape = (p9 == 0 ? 2 : p9) 
    id_evento=p10
    id_comportamento=p11
-   i_senso = (p12 == 0 ? 1 : p12) ; <-- NUOVO: Riceve il senso di movimento, default a 1
+   i_senso = (p12 == 0 ? 1 : p12) 
+   i_ifn_section_env = p13
+   i_section_start_time = p14
+   i_section_duration = p15
+
 
    $DEBUG_Evento_print_Pfields
    if p7 == 0 then
@@ -47,20 +51,36 @@ instr eventoSonoro
    ;--------------------------------------------------------------
    ; Position and Envelope Generation
    ;--------------------------------------------------------------
-   kndx line 0, p3, 1
-   ktab tab kndx, ifn_shape, 1
-
-   
+   kndx_local line 0, p3, 1
+   ktab tab kndx_local, ifn_shape, 1
    krad = iradi + (ktab * iPeriod * i_senso)
-   kEnv = abs(sin(krad * iHR / 2))
+
+   if ifn_shape == 2 then
+      kEnv_local = abs(sin(krad * iHR / 2))
+   else
+      kEnv_local tab kndx_local, ifn_shape, 1
+   endif
+
+
+   kEnv_section = 1 ; Valore di default neutro
+   if i_ifn_section_env > 0 && i_section_duration > 0 then
+      k_time_absolute times      
+      ; Calcola da quanto tempo è iniziata la sezione
+      k_time_since_section_start = k_time_absolute - i_section_start_time
+      ; Normalizza questo tempo rispetto alla durata totale della sezione
+      kndx_section = k_time_since_section_start / i_section_duration   
+      printk 0,kndx_section   
+      kEnv_section tablei kndx_section, i_ifn_section_env
+   endif
+
    ;--------------------------------------------------------------
    ; Sound Generation and Spatialization
    ;--------------------------------------------------------------
    kfreq = ifreq1 ; Semplificato a frequenza costante per ora
    
    asig poscil3 iamp, kfreq
-   asigLocalEnv = asig * kEnv
-   asigEnv = asigLocalEnv * gk_SectionEnv
+   asigLocalEnv = asig * kEnv_local
+   asigEnv = asigLocalEnv * kEnv_section
 
    kMid = cos(krad)
    kSide = sin(krad)

@@ -40,9 +40,10 @@ COMPOSITION_NAME = "composizione_generativa_03"
 # - 'mean', 'std': Per la distribuzione normale.
 # - 'choices', 'weights': Per una scelta pesata da una lista.
 
+# --- Costanti tecniche derivate da validator.udo ---
 OTTAVE_RANGE = (0, 10)
-REGISTRI_RANGE = (1, 50)
-INTERVALLI_PER_OTTAVA = 200 
+REGISTRI_RANGE = (1, 10)
+
 
 def load_composition_from_yaml(file_path):
     """
@@ -102,15 +103,15 @@ class GenerativeComposer:
         
         self.id_comp_counter = 0
 
+# In generative_composerYaml.py -> class GenerativeComposer
+
     def _valida_parametri(self, params):
         """
         Valida un set di parametri generati per assicurarsi che siano
         tecnicamente validi per il motore Csound.
-        Copiato e adattato da `genera_gamma_comportamenti.py`.
         """
-        ott, reg, amp = params['ottava'], params['registro'], params['ampiezza_db']
-        
-        # 1. Validazione Ampiezza vs Ottava/Registro
+        # ... (la validazione dell'ampiezza rimane identica)
+        ott, reg, amp = params.get('ottava', 5), params.get('registro', 5), params.get('ampiezza_db', -12)
         max_amp = -6
         if ott > 0:
             if ott <= 3:
@@ -124,16 +125,33 @@ class GenerativeComposer:
                 max_amp = min(base_amp - reg_influence, -12)
         if amp > max_amp:
             return False
+            
+        # --- INIZIO NUOVA LOGICA DI VALIDAZIONE DURATA ---
+        
+        # 1. Controlliamo che i ritmi siano validi
+        if not params.get('ritmi') or not any(r > 0 for r in params['ritmi']):
+            return False # Se la lista è vuota o contiene solo zeri, non è valida
 
-        # 2. Validazione Durata
-        min_ritmo = min(r for r in params['ritmi'] if r > 0)
-        if not min_ritmo: return False
-        min_event_dur = params['durata_armonica'] / min_ritmo
-        if params['durata_totale'] <= min_event_dur:
+        # 2. Troviamo il ritmo più grande (il più lento)
+        #    Usiamo max() perché un ritmo grande (es. 20) corrisponde a un impulso breve (1/20),
+        #    ma qui ci interessa il "passo" del ciclo while in Csound.
+        #    La logica originale era errata, il problema non è il ritmo più piccolo ma la relazione generale.
+        #    Ripristiniamo una versione migliorata della logica originale.
+        max_ritmo_val = max(params['ritmi'])
+        if max_ritmo_val == 0: return False # Evita divisione per zero
+        
+        # Durata del singolo passo nel ciclo while di Csound
+        step_duration = params['durata_armonica'] / max_ritmo_val
+        
+        # La durata totale deve essere almeno lunga quanto un passo, più un piccolo margine.
+        if params['durata_totale'] < step_duration:
+            # print(f"DEBUG: Validazione fallita per durata. Durata totale {params['durata_totale']:.2f} < un passo {step_duration:.2f}")
             return False
             
-        return True
+        # --- FINE NUOVA LOGICA DI VALIDAZIONE DURATA ---
 
+        return True
+    
     def _generate_rhythm_pattern(self, tipo_ritmi):
         """Genera una lista di ritmi basata su una categoria."""
         if tipo_ritmi == 'piccoli':
@@ -149,88 +167,63 @@ class GenerativeComposer:
     def _generate_params_from_mask(self, mask):
         """
         Il cuore del generatore. Prende una maschera e produce un set di
-        parametri concreti e validi, con una gestione intelligente dello spread.
+        parametri concreti e validi.
         """
         params = {}
 
-        # --- GESTIONE SPECIALE PER L'OTTAVA CON SPREAD ---
-        
-        # 1. Estrai le maschere rilevanti
-        ottava_mask = mask['ottava']
-        spread_mask = mask.get('spread_spettrale', {'range': [0, 0]}) # Usa 0 se non definito
-
-        # 2. Genera un valore di spread per questo specifico evento
-        spread_value = random.uniform(spread_mask['range'][0], spread_mask['range'][1])
-
-        # 3. Calcola il "centro di gravità" del range di ottave originale
-        ottava_min_orig, ottava_max_orig = ottava_mask['range']
-        ottava_center = random.uniform(ottava_min_orig, ottava_max_orig)
-        
-        # 4. Applica la logica di generazione in base al tipo di distribuzione
-        generated_ottava = 0 # Valore di default
-        
-        if ottava_mask.get('distribution') == 'normal':
-            # Per la distribuzione normale: genera e poi clippa.
-            # Lo spread agisce come deviazione standard per creare dispersione attorno al centro.
-            valore_generato = np.random.normal(loc=ottava_center, scale=spread_value)
-            generated_ottava = int(np.clip(valore_generato, OTTAVE_RANGE[0], OTTAVE_RANGE[1]))
-        
-        else: # Default a distribuzione "uniform"
-            # Per la distribuzione uniforme: calcola i limiti sicuri e poi genera.
-            # Lo spread definisce l'ampiezza del range di generazione.
-            
-            # Calcola i limiti del nostro range desiderato, tenendoli dentro i limiti globali
-            min_gen = max(OTTAVE_RANGE[0], ottava_center - spread_value)
-            max_gen = min(OTTAVE_RANGE[1], ottava_center + spread_value)
-            
-            # Assicurati che min_gen non sia maggiore di max_gen
-            if min_gen >= max_gen:
-                valore_generato = min_gen
-            else:
-                # Generiamo un valore uniforme DENTRO il range sicuro calcolato
-                valore_generato = random.uniform(min_gen, max_gen)
-            
-            generated_ottava = int(round(valore_generato))
-
-        params['ottava'] = generated_ottava
-
-        # --- FINE GESTIONE SPECIALE OTTAVA ---
-
-
-        # --- GESTIONE DI TUTTI GLI ALTRI PARAMETRI ---
-        # Itera su ogni parametro definito nella maschera, saltando l'ottava
-        # perché è già stata gestita.
+        # Itera su ogni parametro definito nella maschera
         for key, p_mask in mask.items():
-            if key in ['choices', 'weights', 'ottava', 'spread_spettrale']: continue
+            if key in ['choices', 'weights','attenuazione_ottava']: continue # Proprietà, non parametri
             
             val = 0
             if 'range' in p_mask:
+                # Caso 1: Distribuzione Uniforme
                 min_val, max_val = p_mask['range']
-                if p_mask.get('distribution') == 'normal':
-                    mean = (min_val + max_val) / 2
-                    std = (max_val - min_val) / 4 # Stima approssimativa
-                    val = np.random.normal(mean, std)
-                else: # Uniforme
-                    if isinstance(min_val, int):
-                        val = random.randint(min_val, max_val)
-                    else:
-                        val = random.uniform(min_val, max_val)
+                # Controlla se i limiti sono interi per generare un intero
+                if isinstance(min_val, int) and isinstance(max_val, int):
+                    val = random.randint(min_val, max_val)
+                else:
+                    val = random.uniform(min_val, max_val)
+            elif 'mean' in p_mask and 'std' in p_mask:
+                # Caso 2: Distribuzione Normale
+                mean = p_mask['mean']
+                std = p_mask['std']
+                val = np.random.normal(loc=mean, scale=std)
             elif 'choices' in p_mask:
+                # Caso 3: Scelta Pesata
                 val = random.choices(p_mask['choices'], weights=p_mask.get('weights'), k=1)[0]
             
             params[key] = val
 
-        # Clipping per garantire che il registro rimanga nei limiti tecnici
+        # Clipping per garantire che i valori rimangano nei limiti tecnici
+        params['ottava'] = int(np.clip(params.get('ottava', 5), OTTAVE_RANGE[0], OTTAVE_RANGE[1]))
         params['registro'] = int(np.clip(params.get('registro', 5), REGISTRI_RANGE[0], REGISTRI_RANGE[1]))
 
         # Generazione derivata
-        params['ritmi'] = self._generate_rhythm_pattern(params.get('tipo_ritmi', 'medi'))
+        params['ritmi'] = self._generate_rhythm_pattern(params['tipo_ritmi'])
         params['posizioni'] = [i % r for i, r in enumerate(params['ritmi']) if r > 0]
-        
-        # Usa un moltiplicatore di default se non è specificato
-        moltiplicatore = params.get('moltiplicatore_durata', random.choice([1, 1.25, 1.6]))
+        moltiplicatore = random.choice([1, 1.25, 1.6])
         params['durata_totale'] = params['durata_armonica'] * moltiplicatore
+
+        config_attenuazione = mask.get('attenuazione_ottava', {})
         
+        # Prendi i valori dalla configurazione o usa i default che hai proposto.
+        ottava_min_attenuazione = config_attenuazione.get('range_ottava', [5, 7])[0]
+        ottava_max_attenuazione = config_attenuazione.get('range_ottava', [5, 7])[1]
+        valore_attenuazione_db = config_attenuazione.get('valore_db', -10.0)
+
+        # 2. Applica la logica di attenuazione.
+        # Controlla se il valore di 'ottava' generato per questo evento
+        # rientra nel range specificato.
+        if ottava_min_attenuazione <= params['ottava'] <= ottava_max_attenuazione:
+            # Se sì, sottrai il valore di attenuazione dall'ampiezza già generata.
+            # Usiamo .get() anche qui per sicurezza, nel caso 'ampiezza_db' non fosse stata generata.
+            ampiezza_originale = params.get('ampiezza_db', 0)
+            params['ampiezza_db'] = ampiezza_originale + valore_attenuazione_db # Sommiamo un valore negativo
+            
+            # (Opzionale) Aggiungiamo un print per il debugging, che puoi commentare in seguito
+            # print(f"DEBUG: Ottava {params['ottava']} nel range. Attenuazione applicata. Amp: {ampiezza_originale:.1f} -> {params['ampiezza_db']:.1f} dB")
+
         self.id_comp_counter += 1
         params['id_comp'] = self.id_comp_counter
 
@@ -264,86 +257,150 @@ class GenerativeComposer:
         """Elabora l'intera struttura della composizione, generando la sequenza di eventi."""
         full_sequence = []
         current_time_offset = 0.0
-        
-        # Definiamo il moltiplicatore massimo come costante per chiarezza
-        MAX_DURATION_MULTIPLIER = 1.6
+        all_onsets = []  # <-- 1. INIZIALIZZA LA LISTA VUOTA
+        tendency_ranges = [] # <-- 1. INIZIALIZZA LA NUOVA LISTA
         
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
-            print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s) ---")
-
-            section_events_for_logging = []
-
-            # --- LOGICA DI GESTIONE DELLA DURATA ---
-            # Questa parte rimane invariata, ma è importante per il contesto.
-            # Controlliamo se la sezione è statica o dinamica per calcolare correttamente
-            # il cuscinetto di sicurezza.
+            time_ratio = section.get('ratio_temporale', 1.0)
+            # Calcola la durata effettiva (scalata) della sezione
+            scaled_section_duration = section['durata'] * time_ratio
+            print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s, Ratio: {time_ratio}x, Effettiva: {scaled_section_duration:.2f}s) ---")
+            section_end_time = current_time_offset + scaled_section_duration # Calcoliamolo una volta per sezione
             
-            # --- MODIFICA 1: Determina il tipo di sezione ---
+            # Controlla se la sezione è statica o dinamica
             is_static_section = 'stato_unico' in section
+            print(f"  > Tipo sezione: {'Statica (stato_unico)' if is_static_section else 'Dinamica (interpolata)'}")
 
-            # 1. Calcoliamo il 'cuscinetto di sicurezza'
-            # Se la sezione è statica, usa 'stato_unico', altrimenti usa 'stato_finale'.
-            end_mask_for_buffer = section['stato_unico'] if is_static_section else section['stato_finale']
-            
-            max_harmonic_dur_at_end = end_mask_for_buffer['durata_armonica']['range'][1]
-            safety_buffer = max_harmonic_dur_at_end * MAX_DURATION_MULTIPLIER
-            
-            # 2. Calcoliamo la nuova durata 'sicura' per la generazione degli onsets.
-            generation_duration = section['durata'] - safety_buffer
-            
-            print(f"  > Durata totale: {section['durata']}s. Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
-            print(f"  > Gli eventi verranno generati entro una finestra di {generation_duration:.2f}s.")
-            
-            # 3. Gestiamo il caso in cui il cuscinetto sia troppo grande.
-            if generation_duration <= 0:
-                print(f"  > ATTENZIONE: Il cuscinetto di sicurezza è maggiore della durata della sezione. Nessun evento generato.")
-                cluster_onsets = []
+            if not is_static_section:
+                # Se è una sezione dinamica, carica stato iniziale e finale come prima
+                start_mask = section.get('stato_iniziale')
+                end_mask = section.get('stato_finale')
+                if not start_mask or not end_mask:
+                    print(f"ATTENZIONE: La sezione '{section['nome_sezione']}' è dinamica ma manca stato_iniziale o stato_finale. Sezione saltata.")
+                    continue # Salta al prossimo ciclo della sezione
+
+            # 1. Calcola il "cuscinetto di sicurezza" (safety buffer)
+            mask_for_buffer = section.get('stato_finale', section.get('stato_unico'))
+            if not mask_for_buffer:
+                print(f"  > ATTENZIONE: Maschera non trovata. Impossibile calcolare safeguard.")
+                safety_buffer = 5.0 # Fallback
             else:
-                # 4. Chiamiamo TimeScheduler con la nuova durata ridotta.
+                max_harmonic_dur_unscaled = mask_for_buffer['durata_armonica']['range'][1]
+                max_harmonic_dur_scaled = max_harmonic_dur_unscaled * time_ratio
+                max_duration_multiplier = 1.6 
+                safety_buffer = max_harmonic_dur_scaled * max_duration_multiplier
+            
+            print(f"  > Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
+            
+            # 2. Definisci la zona sicura per la generazione degli onset
+            generation_duration = scaled_section_duration - safety_buffer
+            num_attivazioni_richieste = section.get('num_attivazioni', 10)
+
+            cluster_onsets = []
+            if num_attivazioni_richieste == 1:
+                cluster_onsets = [0.0]
+            elif generation_duration > 0:
                 cluster_onsets = self.time_scheduler.generate_onsets(
-                    section['timing_model'], generation_duration, section['num_attivazioni']
+                    section['timing_model'], generation_duration, num_attivazioni_richieste
                 )
+            else:
+                print(f"  > ATTENZIONE: Cuscinetto ({safety_buffer:.2f}s) >= durata sezione. Nessun evento generato.")
 
-            # --- MODIFICA 2: LOGICA CENTRALE PER LA SELEZIONE DELLA MASCHERA ---
-            # Qui implementiamo il bivio per gestire i due tipi di sezione.
+            print(f"  > Generati {len(cluster_onsets)} onset nella zona sicura.")
+            all_onsets.extend([o + current_time_offset for o in cluster_onsets])
+            
+            # La logica del jitter di fine sezione la spostiamo DENTRO il ciclo degli eventi,
+            # perché non influenza più la generazione degli onset.
 
-            # 2. Per ogni punto di attivazione, genera un cluster di eventi.
+
+            # 2. Per ogni punto di attivazione, genera un cluster di eventi
             for onset in cluster_onsets:
-                
-                # Questa è la modifica chiave:
                 if is_static_section:
-                    # Se la sezione è STATICA, la maschera è sempre la stessa.
-                    # Non c'è bisogno di interpolazione.
-                    print(f"  > Sezione statica rilevata. Uso 'stato_unico'.")
+                    # Se la sezione è statica, la maschera è sempre la stessa
                     center_mask = section['stato_unico']
                 else:
-                    # Se la sezione è DINAMICA (comportamento originale), calcoliamo
-                    # la progressione e interpoliamo tra stato iniziale e finale.
-                    progress = onset / section['durata'] if section['durata'] > 0 else 0
-                    start_mask = section['stato_iniziale']
-                    end_mask = section['stato_finale']
-                    center_mask = self._interpolate_mask(start_mask, end_mask, progress)
+                    # Il progresso viene calcolato sulla durata di generazione, non su quella totale della sezione.
+                    # Questo assicura che il progress raggiunga 1.0 quando l'ultimo onset viene generato.
+                    progress = onset / generation_duration if generation_duration > 0 else 0
+                    
+                    # Aggiungiamo una piccola sicurezza per evitare che, per errori di approssimazione,
+                    # il progresso superi 1.0.
+                    progress = min(progress, 1.0) 
+                    
+                    center_mask = self._interpolate_mask(start_mask, end_mask, progress)                
+                # Interpola le maschere per ottenere quella per l'istante corrente
+                absolute_onset_time = current_time_offset + onset
+                # Dizionario per contenere i dati di questo onset
+                tendency_data = {'time': absolute_onset_time}
+                                
 
-                # Da qui in poi, il resto del codice è IDENTICO e funziona con la `center_mask`
-                # ottenuta, indipendentemente da come sia stata creata.
+                # Cattura dati 'ottava'
+                if 'ottava' in center_mask:
+                    ottava_mask = center_mask['ottava']
+                    if 'range' in ottava_mask:
+                        tendency_data['ottava'] = {'min': ottava_mask['range'][0], 'max': ottava_mask['range'][1]}
+                    elif 'mean' in ottava_mask and 'std' in ottava_mask:
+                        # Per la distribuzione normale, visualizziamo un range statistico (es. mean ± 2*std)
+                        mean, std = ottava_mask['mean'], ottava_mask['std']
+                        tendency_data['ottava'] = {'min': mean - 2 * std, 'max': mean + 2 * std}
+
+                # Cattura dati 'durata_armonica'
+                if 'durata_armonica' in center_mask and 'range' in center_mask['durata_armonica']:
+                    scaled_range = [val * time_ratio for val in center_mask['durata_armonica']['range']]
+                    tendency_data['durata_armonica'] = {'min': scaled_range[0], 'max': scaled_range[1]}
+
                 
+                tendency_ranges.append(tendency_data)
+ 
+ 
+                # Determina quanti eventi generare in questo cluster
                 dens_range = center_mask['densita_cluster']['range']
                 num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
                 
+                # 3. Genera gli eventi effettivi del cluster
                 for _ in range(num_events_in_cluster):
-                    for attempt in range(10): # Ciclo di tentativi di generazione
-                        event_mask = center_mask.copy()
+                    
+                    # Genera un set di parametri, con un massimo di tentativi
+                    for attempt in range(10): # Tenta max 10 volte di trovare parametri validi
                         
-                        # Questa parte che gestiva lo spread sull'ottava è stata rimossa nella
-                        # versione precedente, ma la lascio per completezza logica.
-                        # Nel tuo ultimo script, questa logica era già dentro _generate_params_from_mask.
-                        # Quindi il flusso qui è corretto.
+                        # Perturba leggermente la maschera per lo "spread" spettrale
+                        event_mask = center_mask.copy()
+
+                        if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
+                            event_mask['durata_armonica'] = event_mask['durata_armonica'].copy()
+                            current_range = event_mask['durata_armonica']['range']
+                            event_mask['durata_armonica']['range'] = [val * time_ratio for val in current_range]
                         
                         params = self._generate_params_from_mask(event_mask)
                         
-                        if self._valida_parametri(params):
-                            # Mappatura delle tabelle di ritmi
+                        if self._valida_parametri(params):                            # Mappa il ritmo a una tabella Csound
+                            # 1. Calcoliamo il tempo di attacco effettivo dell'evento
+                            onset_jitter = np.random.normal(loc=0.0, scale=0.05)
+                            event_time = current_time_offset + onset + onset_jitter
+
+                            # 2. Controlliamo se l'evento sfora la fine della sezione
+                            expected_end_time = event_time + params['durata_totale']
+                            if expected_end_time > section_end_time:
+                                # L'evento sfora. Controlliamo se è un errore recuperabile.
+                                
+                                # 2a. Check fatale: la sola durata armonica sfora?
+                                harmonic_end_time = event_time + params['durata_armonica']
+                                if harmonic_end_time > section_end_time:
+                                    # ERRORE CRITICO: Impossibile schedulare, neanche la durata base ci sta.
+                                    # Questo indica un problema nel YAML (es. durate troppo lunghe per la sezione)
+                                    # o un jitter troppo grande. Scartiamo questo tentativo e proviamo a generarne un altro.
+                                    # print(f"ATTENZIONE CRITICA: Evento scartato. La durata armonica ({params['durata_armonica']:.2f}s) sfora la sezione che finisce a {section_end_time:.2f}s. (Tentativo {attempt+1}/10)")
+                                    continue # Passa al prossimo tentativo nel `for attempt...` loop
+                                
+                                # 2b. Recupero: la durata armonica ci sta. Tronchiamo la durata totale.
+                                else:
+                                    old_dur = params['durata_totale']
+                                    new_dur = section_end_time - event_time
+                                    # Assicuriamoci che la nuova durata non sia inferiore a quella armonica
+                                    params['durata_totale'] = max(new_dur, params['durata_armonica'])
+                                    # print(f"INFO: Durata evento troncata. Da {old_dur:.2f}s a {params['durata_totale']:.2f}s per rientrare nella sezione.")
+
                             rhythm_tuple = tuple(params['ritmi'])
                             if rhythm_tuple not in self.rhythm_table_map:
                                 self.rhythm_table_map[rhythm_tuple] = {
@@ -351,31 +408,34 @@ class GenerativeComposer:
                                     'pos_tab_num': self.next_table_id + 1
                                 }
                                 self.next_table_id += 2
+
+                            # 3. La durata del comportamento ora è il MINIMO tra la sua durata "naturale" 
+                            #    e la durata massima consentita dallo spazio rimanente nella sezione.
                             
                             params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
                             params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
+                            params['section_start_time'] = current_time_offset
+                            params['section_duration'] = scaled_section_duration
+                            params['section_jitter'] = section.get('end_of_section_jitter', 0.0)
+
+                            # Schedula l'evento (con il suo jitter di posizionamento)
+                            onset_jitter = np.random.normal(loc=0.0, scale=0.05)
+                            event_time = current_time_offset + onset + onset_jitter
                             
-                            # Calcolo del tempo finale con un po' di jitter
-                            jitter = np.random.normal(loc=0.0, scale=0.05)
-                            event_time = current_time_offset + onset + jitter
-                            
-                            event_data = {'time': event_time, 'params': params}
-                            full_sequence.append(event_data)
-                            section_events_for_logging.append(event_data)
-                            break # Esce dal ciclo di tentativi se la generazione ha successo
+                            full_sequence.append({'time': event_time, 'params': params})
+                            break # Parametri validi trovati, esci dal ciclo dei tentativi
                     else:
-                        # Questo blocco viene eseguito se il ciclo `for attempt` finisce senza un `break`.
-                        # Significa che non siamo riusciti a generare parametri validi in 10 tentativi.
-                        # Per ora non fa nulla (pass), ma si potrebbe aggiungere un messaggio di warning.
+                        # Questo `else` si attiva se il `for` dei tentativi finisce senza `break`
+                        # print(f"Attenzione: Impossibile generare parametri validi per un evento al tempo ~{onset:.2f}s")
                         pass
-                        
-            print(f"  > Comportamenti generati per questa sezione: {len(section_events_for_logging)}")
-            current_time_offset += section['durata']
+
+            current_time_offset += scaled_section_duration
         
+        # Ordina la sequenza finale per tempo
         full_sequence.sort(key=lambda e: e['time'])
         print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori.")
         print(f"Mappati {len(self.rhythm_table_map)} pattern di ritmi unici a tabelle Csound.")
-        return full_sequence
+        return full_sequence, all_onsets, tendency_ranges
 
     def generate_csd(self, composition_name, events):
         """Genera il file CSD finale dalla sequenza di eventi."""
@@ -384,38 +444,35 @@ class GenerativeComposer:
         # 1. Costruisci gli f-statement per le tabelle nello score
         score_tables = ""
         for rhythm_tuple, table_ids in self.rhythm_table_map.items():
-            ritmi_str = ', '.join(map(str, rhythm_tuple))
+            ritmi_str = ' '.join(map(str, rhythm_tuple))
             posizioni = [i % r for i, r in enumerate(rhythm_tuple) if r > 0]
-            posizioni_str = ', '.join(map(str, posizioni))
+            posizioni_str = ' '.join(map(str, posizioni))
             
-            # Sintassi f-statement: f <num> <start> <size> <GEN> <params...>
-            # GEN 2 legge i valori direttamente. Lo start time è 0 per renderle subito disponibili.
-            score_tables += f"f {table_ids['ritmi_tab_num']} 0 {len(rhythm_tuple)} 2 {ritmi_str}\n"
-            score_tables += f"f {table_ids['pos_tab_num']} 0 {len(posizioni)} 2 {posizioni_str}\n"
+            score_tables += f"f {table_ids['ritmi_tab_num']} 0 {len(rhythm_tuple)} -2 {ritmi_str}\n"
+            score_tables += f"f {table_ids['pos_tab_num']} 0 {len(posizioni)} -2 {posizioni_str}\n"
 
         # 2. Costruisci le linee di score (questa parte non cambia)
         score_lines = ""
         last_event_time = 0
-        # ... (il resto del loop rimane identico) ...
         for event in events:
             p = event['params']
             event_time = max(event['time'], 0.001)
-            score_lines += ";\t\t\t\t\t\tat\t\tdur\t\ttab\t\tarmonica\tampiezza\tottava\tregistro\tniente\tid_comp\tnonlinearMode\n"
+            score_lines += ";\t\t\t\t\t\tat\t\tdur\t\tritmi\tarmonica\tamp\t\t\tott\t\treg\t\t\tpos\t\tid\tnonlin\tsec_start\tsec_dur\n"
             score_lines += (f'i "AvviaComportamento"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
                             f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["ampiezza_db"]:.2f}\t\t'
-                            f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}\n')
+                            f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t'
+                            f'{p["id_comp"]}\t{p["nonlinear_mode"]}\t\t'
+                            f'{p["section_start_time"]:.4f}\t\t{p["section_duration"]:.3f}\t'
+                            f'{p["section_jitter"]:.3f}\n') # <-- NUOVO PARAMETRO
             last_event_time = max(last_event_time, event_time + p["durata_totale"])
 
         # 3. Assembla il file finale usando il NUOVO template e i NUOVI placeholder
         template = self.get_csd_template()
         csd_content = template.format(
             composition_name=composition_name,
-            score_tables=score_tables, 
+            score_tables=score_tables,  # <--- NUOVO
             score_lines=score_lines,
-            durata_totale=last_event_time + 10,
-            ottave_macro = OTTAVE_RANGE[1], 
-            registri_macro = REGISTRI_RANGE[1],
-            intervalli_macro = INTERVALLI_PER_OTTAVA
+            durata_totale=last_event_time
         )
         file_path = self.output_path / f"{composition_name}.csd"
         with open(file_path, 'w') as f:
@@ -440,20 +497,21 @@ nchnls = 2
 #define SQRT2 #1.4142135623730951#
 #define MAX_AMP #0.999#
 #define FONDAMENTALE #32#
-#define OTTAVE #{ottave_macro}#
-#define INTERVALLI #{intervalli_macro}#
-#define REGISTRI #{registri_macro}#
+#define OTTAVE #10#
+#define INTERVALLI #200#
+#define REGISTRI #50#
 #define M_PI #3.141592653589793#
 gSdirSco = "./sco/"
 gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
+gi_debug init 2
 
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
 #include "../includes/NonlinearFunc.udo"
 #include "../includes/GenPythagFreqs.udo"
-#include "../includes/eventoSonoro.orc"
+#include "../includes/eventoSonoroOld.orc"
 #include "../includes/comportamento.orc"
 #include "../includes/avvia_comportamento.orc"
 
@@ -465,9 +523,9 @@ instr Init
     ires system_i 1, sprintf("mkdir %s", gSdirSco)
     turnoff
 endin
+
 </CsInstruments>
 <CsScore>
-f 0 {durata_totale} ; Evento f fittizio per definire la durata totale
 f1 0 4096 10 1
 f2 0 1024 6 0 512 0.5 512 1 ; Envelope per il suono
 
@@ -493,55 +551,84 @@ class CompositionDebugger:
     def __init__(self, output_dir): 
         self.output_path = Path(output_dir) 
 
-    def plot_piano_roll(self, events, composition_name, composition_structure): 
+    def plot_piano_roll(self, events, all_onsets, tendency_ranges, composition_name, composition_structure): 
         print("\n--- Avvio Debugging Visivo: Generazione Grafico ---")
         if not events:
             print("Nessun evento da visualizzare.")
             return
 
+        # ... (La preparazione dei dati e il calcolo dei limiti temporali sono invariati) ...
         plot_data = []
-        max_time = 0
         for event in events:
             p = event['params']
-            start = event['time']
-            duration = p['durata_totale']
-            end = start + duration
-            pitch = p['ottava'] + (p['registro'] / 10.0)
-            amp_norm = (p['ampiezza_db'] + 60) / 60
-            plot_data.append({'start': start, 'end': end, 'pitch': pitch, 'amp_norm': amp_norm})
-            if end > max_time: max_time = end
-
-        plt.style.use('seaborn-v0_8-darkgrid')
-        fig, ax = plt.subplots(figsize=(20, 10))
-        for item in plot_data:
-            ax.add_patch(plt.Rectangle(
-                (item['start'], item['pitch'] - 0.04),
-                item['end'] - item['start'], 0.08,
-                color=plt.cm.viridis(item['amp_norm']), alpha=0.7
-            ))
-
-        ax.set_xlim(0, max_time)
-        ax.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
-        ax.set_xlabel("Tempo (secondi)")
-        ax.set_ylabel("Ottava.Registro")
-        ax.set_title(f"Visualizzazione Composizione: '{composition_name}'")
-        ax.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
+            start, duration = event['time'], p['durata_totale']
+            plot_data.append({'start': start, 'end': start + duration, 'pitch': p['ottava'] + (p['registro'] / 10.0), 'amp_norm': (p['ampiezza_db'] + 60) / 60})
+        structural_max_time = sum(s['durata'] * s.get('ratio_temporale', 1.0) for s in composition_structure)
+        events_max_time = max((item['end'] for item in plot_data), default=0)
+        final_plot_width = max(events_max_time, structural_max_time)
         
-        # --- MODIFICA CHIAVE QUI ---
+        # --- INIZIO PLOTTER SEMPLIFICATO ---
+        plt.style.use('seaborn-v0_8-darkgrid')
+        fig, ax = plt.subplots(figsize=(20, 12))
+        ax2 = ax.twinx()
+
+        print("  > Disegno i nastri di tendenza...")
+        if tendency_ranges:
+            tendency_ranges.sort(key=lambda item: item['time'])
+            
+            # --- Tendenza per l'OTTAVA (un solo nastro) ---
+            times_ott = [item['time'] for item in tendency_ranges if 'ottava' in item]
+            if times_ott:
+                mins_ott = [item['ottava']['min'] for item in tendency_ranges if 'ottava' in item]
+                maxs_ott = [item['ottava']['max'] for item in tendency_ranges if 'ottava' in item]
+                
+                ax.fill_between(times_ott, mins_ott, maxs_ott, color='gray', alpha=0.3, label='Range Ottava')
+
+            # --- Tendenza per la DURATA ARMONICA (invariata) ---
+            times_dur = [item['time'] for item in tendency_ranges if 'durata_armonica' in item]
+            if times_dur:
+                mins_dur = [item['durata_armonica']['min'] for item in tendency_ranges if 'durata_armonica' in item]
+                maxs_dur = [item['durata_armonica']['max'] for item in tendency_ranges if 'durata_armonica' in item]
+                
+                ax2.fill_between(times_dur, mins_dur, maxs_dur, color='coral', alpha=0.25, label='Range Durata Armonica (s)')
+                ax2.plot(times_dur, mins_dur, color='coral', linestyle='-.', linewidth=1.2, alpha=0.6)
+                ax2.plot(times_dur, maxs_dur, color='coral', linestyle='-.', linewidth=1.2, alpha=0.6)
+
+        # Disegno eventi e marker (invariato)
+        for item in plot_data:
+            ax.add_patch(plt.Rectangle((item['start'], item['pitch'] - 0.04), item['end'] - item['start'], 0.08, color=plt.cm.viridis(item['amp_norm']), alpha=0.7))
+        for onset_time in all_onsets:
+            ax.axvline(x=onset_time, color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.7, label='Attivazione')
         current_time = 0
-        for section in composition_structure: # <--- 2. USATO IL NUOVO PARAMETRO
-            current_time += section['durata']
+        for section in composition_structure:
+            current_time += section['durata'] * section.get('ratio_temporale', 1.0)
             ax.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=f"Fine: {section['nome_sezione']}")
         
-        handles, labels = ax.get_legend_handles_labels()
-        by_label = dict(zip(labels, handles))
-        ax.legend(by_label.values(), by_label.keys())
+        # Impostazioni finali e legenda (invariate)
+        ax.set_xlim(0, final_plot_width + 2)
+        ax.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
+        ax.set_xlabel("Tempo (secondi)", fontsize=12)
+        ax.set_ylabel("Ottava.Registro", color='black', fontsize=12)
+        ax.set_title(f"Visualizzazione Composizione: '{composition_name}'", fontsize=16, pad=20)
+        ax.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
+        ax.grid(True, which='major', linestyle='--', linewidth='0.5', color='grey')
+        
+        ax2.set_ylabel("Durata Armonica (secondi)", color='coral', fontsize=12)
+        ax2.tick_params(axis='y', labelcolor='coral')
+        ax2.grid(False)
+
+        handles1, labels1 = ax.get_legend_handles_labels()
+        handles2, labels2 = ax2.get_legend_handles_labels()
+        by_label = dict(zip(labels1 + labels2, handles1 + handles2))
+        fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol=len(by_label), bbox_to_anchor=(0.5, 0.01))
+
+        plt.tight_layout(rect=[0, 0.05, 1, 0.95])
         plot_filename = self.output_path / f"{composition_name}_visual.png"
         plt.savefig(plot_filename, dpi=150)
         plt.close()
         
         print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
-        
+
 if __name__ == "__main__":
     # 1. Controllo degli argomenti
     if len(sys.argv) < 2:
@@ -562,11 +649,11 @@ if __name__ == "__main__":
     debugger = CompositionDebugger(composer.output_path)
     
     # 4. Genera la sequenza di eventi
-    event_sequence = composer.process_composition(composition_structure)
+    event_sequence, all_onsets, tendency_ranges = composer.process_composition(composition_structure)
     
     if event_sequence:
         # 5. Visualizza la sequenza
-        debugger.plot_piano_roll(event_sequence, composition_name, composition_structure)
+        debugger.plot_piano_roll(event_sequence, all_onsets, tendency_ranges, composition_name, composition_structure)
         
         # 6. Genera il file CSD finale
         composer.generate_csd(composition_name, event_sequence)

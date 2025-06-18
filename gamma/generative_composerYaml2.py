@@ -45,6 +45,26 @@ OTTAVE_RANGE = (0, 10)
 REGISTRI_RANGE = (1, 50)
 INTERVALLI_PER_OTTAVA = 200 
 
+def load_yaml_file(file_path):
+    """
+    Carica un file YAML generico e gestisce gli errori comuni.
+    """
+    print(f"Caricamento file di configurazione: {file_path}")
+    try:
+        with open(file_path, 'r') as f:
+            data = yaml.safe_load(f)
+        if not isinstance(data, dict):
+            print(f"ERRORE: Il file YAML '{file_path}' deve contenere un dizionario (mappatura).")
+            sys.exit(1)
+        print(f"✓ File '{Path(file_path).name}' caricato con successo.")
+        return data
+    except FileNotFoundError:
+        print(f"ERRORE CRITICO: File di configurazione non trovato: '{file_path}'")
+        sys.exit(1)
+    except yaml.YAMLError as e:
+        print(f"ERRORE CRITICO: Errore nella sintassi del file YAML '{file_path}': {e}")
+        sys.exit(1)
+
 def load_composition_from_yaml(file_path):
     """
     Carica e valida una struttura di composizione da un file YAML.
@@ -63,8 +83,7 @@ def load_composition_from_yaml(file_path):
         sys.exit(1)
     except yaml.YAMLError as e:
         print(f"ERRORE CRITICO: Errore nella sintassi del file YAML: {e}")
-        sys.exit(1)
-
+        sys.exit(1)        
 
 class TimeScheduler:
     """Genera sequenze temporali (onsets) basate su diversi modelli."""
@@ -125,7 +144,7 @@ class TimeScheduler:
 class GenerativeComposer:
     """Classe principale che orchestra la generazione della composizione."""
 
-    def __init__(self, output_dir="composizioni_generate"):
+    def __init__(self, output_dir="composizioni_generate", tables_config_path="yaml/tables.yaml"):
         self.base_path = Path(__file__).parent
         self.output_path = self.base_path / output_dir
         self.output_path.mkdir(exist_ok=True)
@@ -138,27 +157,35 @@ class GenerativeComposer:
         self.rhythm_table_map = {}
         self.next_table_id = 1000
 
-        self.envelope_map = {
-            'lineare': 2,
-            'impulsivo': 3,
-            'lento': 4,
-            'sostenuto': 5
-        }
+        # --- CARICAMENTO DELLE CONFIGURAZIONI DELLE TABELLE DAL FILE YAML ---
+        full_tables_path = self.base_path / tables_config_path
+        tables_config = load_yaml_file(full_tables_path)
+        
+        # 1. Salva l'intera struttura di configurazione in attributi dedicati.
+        # Questi attributi verranno usati da `generate_csd`.
+        self.event_envelopes_config = tables_config.get('event_envelopes', {})
+        self.section_envelopes_config = tables_config.get('section_envelopes', {})
+
+        # Controlla che le configurazioni siano state caricate correttamente
+        if not self.event_envelopes_config or not self.section_envelopes_config:
+            print(f"ATTENZIONE: 'event_envelopes' o 'section_envelopes' sono mancanti o vuoti in '{tables_config_path}'.")
+            print("Questo potrebbe causare errori se vengono referenziati nella partitura.")
+
+        # 2. Ora, da queste configurazioni complete, crea le mappe semplici nome->numero.
+        # Queste mappe più semplici verranno usate internamente per la logica esistente.
+        self.envelope_map = {name: config['number'] for name, config in self.event_envelopes_config.items() if 'number' in config}
+        self.section_envelope_map = {name: config['number'] for name, config in self.section_envelopes_config.items() if 'number' in config}
+
+        # 3. Imposta i valori di default
         self.default_envelope = 'lineare'
+        self.default_section_envelope = 'continua'
 
         # Mappa per tradurre la dinamica in un indice per Csound
         self.dynamic_to_index = {
             'ppp': 0, 'pp': 1, 'p': 2, 'mf': 3, 'f': 4, 'ff': 5, 'fff': 6
         }
         self.id_comp_counter = 0
-        self.section_envelope_map = {
-            'continua': 20,
-            'diminuendo_rapido': 21,
-            'plateau_forte': 22,
-            'crescendo_diminuendo': 23,
-            'impulso': 24
-        }
-        self.default_section_envelope = 'continua'
+        
     def _valida_parametri(self, params):
         """
         Valida un set di parametri generati per assicurarsi che siano
@@ -389,7 +416,7 @@ class GenerativeComposer:
 
     # Inserisci questo blocco di codice all'interno della classe GenerativeComposer
 
-    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio):
+    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name):
         """
         Processa un singolo layer (reale o virtuale) e restituisce i suoi eventi e onsets.
         Questa è una funzione helper per process_composition.
@@ -479,6 +506,10 @@ class GenerativeComposer:
                         
                         params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
                         params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
+                        params['section_env_table_num'] = section_env_table_num
+                        params['section_start_time'] = current_time_offset
+                        params['section_duration'] = scaled_section_duration
+                        params['section_name'] = section_name
                         
                         jitter_scale = params.get('onset_jitter', 0.05)
                         jitter = np.random.normal(loc=0.0, scale=jitter_scale)
@@ -506,44 +537,33 @@ class GenerativeComposer:
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
             print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s) ---")
-
+            section_name = section['nome_sezione']
             # --- 1. GESTIONE PARAMETRI A LIVELLO DI SEZIONE ---
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_section_duration = section['durata'] * time_ratio
+            section_env_table_num = 0 # 0 significa "nessun inviluppo"
 
             section_env_name = section.get('inviluppo_sezione', self.default_section_envelope)
             if section_env_name:
                 if section_env_name in self.section_envelope_map:
-                    table_num = self.section_envelope_map[section_env_name]
-                    env_event = {
-                        'type': 'section_env',
-                        'time': current_time_offset,
-                        'params': {'durata': scaled_section_duration, 'table_num': table_num}
-                    }
-                    full_sequence.append(env_event)
-                    print(f"  > Inviluppo di sezione globale: '{section_env_name}' (tabella f{table_num})")
+                    section_env_table_num = self.section_envelope_map[section_env_name]
+                    print(f"  > Inviluppo di sezione globale: '{section_env_name}' (userà la tabella f{section_env_table_num})")
                 else:
                     print(f"  > ATTENZIONE: Inviluppo di sezione '{section_env_name}' non trovato. Verrà ignorato.")
 
-            # --- 2. GESTIONE DEI LAYER (CON RETROCOMPATIBILITÀ) ---
-
-            # Se la chiave 'layers' esiste, usiamo il nuovo sistema polifonico
+            # --- 2. GESTIONE DEI LAYER ---
             if 'layers' in section:
                 print(f"  > Rilevata struttura multi-layer.")
                 for layer in section['layers']:
                     layer_events, layer_onsets = self._process_layer(
-                        layer, current_time_offset, scaled_section_duration, time_ratio
+                        layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name
                     )
                     full_sequence.extend(layer_events)
                     all_onsets.extend(layer_onsets)
-            
-            # Altrimenti, usiamo il vecchio sistema monofonico
             else:
                 print(f"  > Rilevata struttura a layer singolo (retrocompatibilità).")
-                # Il "layer virtuale" è la sezione stessa.
-                # La nostra funzione helper _process_layer può processarla direttamente.
                 layer_events, layer_onsets = self._process_layer(
-                    section, current_time_offset, scaled_section_duration, time_ratio
+                    section, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name
                 )
                 full_sequence.extend(layer_events)
                 all_onsets.extend(layer_onsets)
@@ -563,37 +583,58 @@ class GenerativeComposer:
         """Genera il file CSD finale dalla sequenza di eventi."""
         print(f"\nAssemblo il file CSD '{composition_name}.csd'...")
         
-        # 1. Costruisci gli f-statement per le tabelle nello score
-        score_tables = ""
+        # --- 1. COSTRUZIONE DEGLI F-STATEMENTS PER I RITMI ---
+        rhythm_tables_str = ""
         for rhythm_tuple, table_ids in self.rhythm_table_map.items():
+            # ... (questa parte rimane identica) ...
             ritmi_str = ' '.join(map(str, rhythm_tuple))
             posizioni = [i % r for i, r in enumerate(rhythm_tuple) if r > 0]
             posizioni_str = ' '.join(map(str, posizioni))
-            
-            # Sintassi f-statement: f <num> <start> <size> <GEN> <params...>
-            # GEN 2 legge i valori direttamente. Lo start time è 0 per renderle subito disponibili.
-            score_tables += f"f {table_ids['ritmi_tab_num']} 0 {len(rhythm_tuple)} -2 {ritmi_str}\n"
-            score_tables += f"f {table_ids['pos_tab_num']} 0 {len(posizioni)} -2 {posizioni_str}\n"
+            rhythm_tables_str += f"f {table_ids['ritmi_tab_num']} 0 {len(rhythm_tuple)} -2 {ritmi_str}\n"
+            rhythm_tables_str += f"f {table_ids['pos_tab_num']} 0 {len(posizioni)} -2 {posizioni_str}\n"
 
-        # 2. Costruisci le linee di score (questa parte non cambia)
+        # --- 2. COSTRUZIONE DINAMICA DEGLI F-STATEMENTS PER GLI INVILUPPI ---
+        envelope_tables_str = "; --- TABELLE DEGLI INVILUPPI (generate da tables.yaml) ---\n"
+        
+        # Unisci i due dizionari di configurazione per iterare su tutte le tabelle in una volta
+        all_envelope_configs = {**self.event_envelopes_config, **self.section_envelopes_config}
+
+        for name, config in all_envelope_configs.items():
+            # Converte la lista di parametri in una stringa separata da spazi
+            params_str = ' '.join(map(str, config['parameters']))
+            # Costruisce la riga dello score
+            envelope_tables_str += f"; {name}\n"
+            envelope_tables_str += f"f {config['number']} 0 {config['size']} {config['gen_routine']} {params_str}\n"
+
+        # --- 3. COSTRUZIONE DELLE LINEE DI SCORE PER GLI EVENTI ---
         score_lines = ""
         last_event_time = 0
-        # ... (il resto del loop rimane identico) ...
+        current_section_name = None # Inizializza a None per stampare il primo commento
         for event in events:
             p = event['params']
             event_time = max(event['time'], 0.001)
             if event['type'] == 'voce':
-                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\n"
+                # Controlla se il nome della sezione dell'evento attuale è diverso dall'ultimo visto
+                if p.get('section_name') != current_section_name:
+                    # Se è diverso, è l'inizio di una nuova sezione
+                    current_section_name = p.get('section_name')
+                    section_start = p.get('section_start_time', 0)
+                    section_dur = p.get('section_duration', 0)
+                    # Scrivi il commento descrittivo nello score
+                    score_lines += f'\n; =============================================================================\n'
+                    score_lines += f'; SEZIONE: "{current_section_name}"\n'
+                    score_lines += f'; Inizio: {section_start:.3f}s, Durata: {section_dur:.3f}s\n'
+                    score_lines += f'; =============================================================================\n\n'
+            
+                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tenv_attacco\tenv_durata\n"
                 score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
                                 f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]}\t\t\t'
                                 f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}'
-                                f'\t\t{p["senso_movimento"]}\t\t{p["ifn_attacco"]}\n')
+                                f'\t\t\t\t{p["senso_movimento"]}\t\t\t{p["ifn_attacco"]}\t\t\t{p.get("section_env_table_num", 0)}'
+                                f'\t\t\t{p.get("section_start_time", 0):.4f}\t\t{p.get("section_duration", 0):.3f}\n')
                 last_event_time = max(last_event_time, event_time + p["durata_totale"])
-            
-            elif event['type'] == 'section_env':
-                score_lines += f'; --- Inviluppo per la sezione ---\n'
-                score_lines += f'i "InviluppoSezione"\t{event_time:.4f}\t{p["durata"]:.3f}\t{p["table_num"]}\n'
-                last_event_time = max(last_event_time, event_time + p["durata"])
+
+        # --- 4. ASSEMBLAGGIO DEL FILE FINALE ---
         wav_file_path = self.wav_output_path / f"{composition_name}.wav"
         csd_file_path = self.output_path / f"{composition_name}.csd"
 
@@ -601,7 +642,8 @@ class GenerativeComposer:
         template = self.get_csd_template()
         csd_content = template.format(
             wav_file_path=wav_file_path, 
-            score_tables=score_tables, 
+            envelope_tables=envelope_tables_str, 
+            rhythm_tables=rhythm_tables_str, 
             score_lines=score_lines,
             durata_totale=last_event_time + 10,
             ottave_macro = OTTAVE_RANGE[1], 
@@ -619,7 +661,7 @@ class GenerativeComposer:
         return """
 <CsoundSynthesizer>
 <CsOptions>
--o "{wav_file_path}" -W -d -m0
+-o "{wav_file_path}" -W ;-d -m0
 </CsOptions>
 <CsInstruments>
 sr = 96000
@@ -639,10 +681,8 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
-gk_SectionEnv init 1 
-gi_debug init 1
+gi_debug init 2
 
-#include "../includes/inviluppoSezione.orc"
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
 #include "../includes/NonlinearFunc.udo"
@@ -665,25 +705,13 @@ f 0 {durata_totale} ; Evento f fittizio per definire la durata totale
 f1 0 4096 10 1
 
 
-; --- TABELLE DEGLI INVILUPPI DI ATTACCO ---
-; ifn | nome        | descrizione
-;--------------------------------------------------------------------------------
-f 2 0 [2^20] 6 0 [2^19] 0.5 [2^19] 1 ; Envelope per il suono
-f 3 0 [2^12] 6 0 [2^5] 0.5 [2^12-2^5] 1.0  ; Impulsivo:   Attacco rapidissimo, decadimento lento
-f 4 0 [2^20] 6 0 [2^20-2^5] .5 [2^5] 1.0 ; Lento (Swell): Attacco lento, decadimento più rapido
-f 5 0 [2^20] 6 0 [2^5] 0.5 [2^20-2^6] 0.5 [2^5] 1.0 ; Sostenuto: Attacco, lungo sustain al picco, decadimento
+; ==============================================================================
+; TABELLE DEFINITE DINAMICAMENTE
+; ==============================================================================
 
+{envelope_tables}
 
-f 20 0 4096 7 1 4096 1              ; 20: crescendo_lento (lineare da 0 a 1)
-f 21 0 4096 7 1 4096 0.001              ; 21: diminuendo_rapido (lineare da 1 a 0)
-f 22 0 4096 10 1                    ; 22: plateau_forte (costante a 1)
-f 23 0 4096 6 0.001 2048 1 2048 0.001       ; 23: crescendo_diminuendo (triangolare)
-f 24 0 4096 6 0.001 128 1 [4096-128] 0.001       ; 23: crescendo_diminuendo (triangolare)
-
-; --- TABELLE DI DATI PER LA PARTITURA ---
-{score_tables}
-; --------------------------------------
-
+{rhythm_tables}
 
 
 i "Init" 0 0.1
@@ -850,10 +878,26 @@ if __name__ == "__main__":
     # 7. ESECUZIONE AUTOMATICA DI CSOUND
     if RENDER_AUTOMATICAMENTE and csd_file_path:
         print("\n--- AVVIO RENDERING CON CSOUND ---")
-        # ... (stampa del comando) ...
+        # Definisci il percorso del file di log all'interno della directory di output
+        log_file_path = composer.output_path / "csound_render.log"
+        print(f"L'output di Csound verrà reindirizzato su: {log_file_path}")
         try:
-            command = ['csound', str(csd_file_path)]
-            subprocess.run(command, check=True)
+
+            # Apri il file di log in modalità scrittura ('w').
+            # Il blocco 'with' garantisce che il file venga chiuso correttamente
+            # anche se si verificano errori.
+            with open(log_file_path, 'w') as log_file:
+                command = ['csound', str(csd_file_path)]
+                
+                # Esegui il comando, reindirizzando stdout e stderr al nostro file di log.
+                # check=True farà comunque sollevare un'eccezione se Csound restituisce un codice di errore.
+                result = subprocess.run(
+                    command, 
+                    stdout=log_file, 
+                    stderr=log_file, 
+                    check=True,
+                    text=True # Assicura che l'output sia scritto come testo
+                )
             print("\n✓ Rendering Csound completato con successo.")
 
             # Logica per aprire il file

@@ -2,7 +2,7 @@
     durata: 20
     ratio_temporale: 1.4
     num_attivazioni: 10
-    #inviluppo_sezione: 'impulso' # Nome del nuovo inviluppo globale
+    inviluppo_sezione: 'continua' # Nome del nuovo inviluppo globale
     timing_model:
         type: "stochastic"
     stato_unico:
@@ -118,7 +118,7 @@
 -
     nome_sezione: "I. Contrappunto di Texture"
     durata: 45
-    inviluppo_sezione: 'crescendo_diminuendo'
+    inviluppo_sezione: 'continua'
     layers:
       - nome_layer: "Drone Basso e Lento"
         num_attivazioni: 1
@@ -148,3 +148,4 @@
           nonlinear_mode: { choices: [3] }
           onset_jitter: { range: [0.0, 0.1] }
           densita_cluster: { range: [1, 6] }
+          inviluppo_attacco: { choices: ['impulsivo', 'impulsivo'] }

@@ -1,0 +1,25 @@
+-   nome_sezione: "I. Cluster"
+    durata: 20
+    ratio_temporale: 1.4
+    num_attivazioni: 10
+    inviluppo_sezione: 'continua' 
+    timing_model:
+        type: "stochastic"
+    stato_iniziale:
+        ottava:           {range: [2, 9], distribution: "uniform"}
+        registro:         {range: [10, 50], distribution: "uniform"}
+        dinamica:         {choices: ['mf','pp'], weights: [0.7,0.3]}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [1, 10]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+        inviluppo_attacco: {choices: ['triangolo', 'impulsivo'], weights: [0.5, 0.5]}
+    stato_finale:
+        ottava:           {range: [2, 9], distribution: "uniform"}
+        registro:         {range: [10, 50], distribution: "uniform"}
+        dinamica:         {choices: ['pp', 'mf'],  weights: [0.7,0.3]}
+        durata_armonica:  {range: [10, 10]}
+        densita_cluster:  {range: [1, 10]}
+        tipo_ritmi:       {choices: ['misti']}
+        nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+        inviluppo_attacco: {choices: ['triangolo', 'impulsivo'], weights: [0.5, 0.5]}
