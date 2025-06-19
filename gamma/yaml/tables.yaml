@@ -59,7 +59,7 @@ section_envelopes:
     number: 20
     size: 4096
     gen_routine: 7 # GEN10 crea un singolo valore
-    parameters: [1, 2047, 1, 1, 0, 512, 1, 1024,1,512,0] # Valore costante a 1 (neutro)
+    parameters: [1, 4096, 1] # Valore costante a 1 (neutro)
 
   crescendo_lento:
     number: 21

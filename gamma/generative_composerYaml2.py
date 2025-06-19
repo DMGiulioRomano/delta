@@ -95,10 +95,10 @@ class TimeScheduler:
         final_progress = np.zeros_like(base_progress)
         model_type = model.get('type', 'linear')
 
-        if model_type == 'accelerando':
+        if model_type == 'ritardando':
             shape = model.get('shape', 2.0)
             final_progress = base_progress ** shape
-        elif model_type == 'ritardando':
+        elif model_type == 'accelerando':
             shape = model.get('shape', 2.0) # La forma > 1.0 rallenta se invertita
             final_progress = 1 - (1 - base_progress) ** shape
         elif model_type == 'breakpoint':
@@ -488,6 +488,21 @@ class GenerativeComposer:
 
         print(f"\n  -- Processando {layer_name} --")
 
+        # --- 1: ESTRARRE E INTERPRETARE IL 'LIFESPAN' ---
+        lifespan = layer.get('lifespan', [0.0, 1.0])
+        start_ratio, end_ratio = lifespan
+
+        # Calcoliamo la durata e il tempo di inizio ASSOLUTI per questo layer
+        layer_start_time_abs = current_time_offset + (start_ratio * scaled_section_duration)
+        layer_duration_abs = (end_ratio - start_ratio) * scaled_section_duration
+
+        # Controllo di sanità: se la durata è nulla o negativa, salta il layer.
+        if layer_duration_abs <= 0:
+            print(f"     > ATTENZIONE: Layer '{layer_name}' ha una durata nulla o negativa. Sarà saltato.")
+            return [], []
+
+        print(f"     > Finestra Attività: [{start_ratio*100:.0f}%, {end_ratio*100:.0f}%] | Inizio: {layer_start_time_abs:.2f}s, Durata: {layer_duration_abs:.2f}s")
+
         # --- 1. IDENTIFICA TIPO E TIMING DEL LAYER ---
         is_static_layer = 'stato_unico' in layer
         is_dynamic_layer = 'stato_iniziale' in layer # Aggiunta per chiarezza
@@ -528,26 +543,25 @@ class GenerativeComposer:
         
         print(f"     > Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s")
         
-        generation_duration = scaled_section_duration - safety_buffer
+        generation_duration = layer_duration_abs - safety_buffer
         
         if generation_duration <= 0:
             print(f"     > ATTENZIONE: Cuscinetto di sicurezza ({safety_buffer:.2f}s) > durata sezione. Nessun evento generato per questo layer.")
-            cluster_onsets = []
+            cluster_onsets_relative_to_layer = []
         else:
-            cluster_onsets = self.time_scheduler.generate_onsets(
+            cluster_onsets_relative_to_layer = self.time_scheduler.generate_onsets(
                 timing_model, generation_duration, num_attivazioni
             )
-
-        absolute_onsets_for_layer = [o + current_time_offset for o in cluster_onsets]
-        layer_onsets.extend(absolute_onsets_for_layer)
         
         # --- 3. GENERA GLI EVENTI PER IL LAYER ---
-        for onset in cluster_onsets:
+        for onset_relative_to_layer in cluster_onsets_relative_to_layer:
             # Ottieni la maschera di controllo (statica o interpolata) per il layer
+            absolute_onset_time = layer_start_time_abs + onset_relative_to_layer
+
             if is_static_layer:
                 center_mask = layer['stato_unico']
             else:
-                progress = onset / scaled_section_duration if scaled_section_duration > 0 else 0
+                progress = onset_relative_to_layer / layer_duration_abs if layer_duration_abs > 0 else 0
                 start_mask = layer['stato_iniziale']
                 end_mask = layer['stato_finale']
                 center_mask = self._interpolate_mask(start_mask, end_mask, progress) 
@@ -584,8 +598,10 @@ class GenerativeComposer:
                         
                         jitter_scale = params.get('onset_jitter', 0.05)
                         jitter = np.random.normal(loc=0.0, scale=jitter_scale)
-                        event_time = current_time_offset + onset + jitter
-                        
+                        event_time = absolute_onset_time + jitter
+
+                        layer_onsets.append(absolute_onset_time)
+
                         event_data = {'type': 'voce', 'time': event_time, 'params': params}
                         layer_events.append(event_data)
                         break
@@ -752,7 +768,7 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
-gi_debug init 1
+gi_debug init 2
 
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
