@@ -141,7 +141,7 @@
         num_attivazioni: 120
         timing_model: { type: "stochastic" }
         stato_unico:
-          ottava: { range: [7, 9] }
+          ottava: { range: [7,9] }
           registro: { mean: 25, std: 10 }
           dinamica: { choices: ['ppp', 'p'] }
           durata_armonica: { range: [0.2, 0.8] }

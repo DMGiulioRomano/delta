@@ -69,7 +69,6 @@ instr eventoSonoro
       k_time_since_section_start = k_time_absolute - i_section_start_time
       ; Normalizza questo tempo rispetto alla durata totale della sezione
       kndx_section = k_time_since_section_start / i_section_duration   
-      printk 0,kndx_section   
       kEnv_section tablei kndx_section, i_ifn_section_env
    endif
 

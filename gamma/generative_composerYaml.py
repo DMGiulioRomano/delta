@@ -253,188 +253,146 @@ class GenerativeComposer:
                 interp_mask[key] = {'choices': s['choices'], 'weights': i_weights.tolist()}
         return interp_mask
 
+
     def process_composition(self, composition_structure):
-        """Elabora l'intera struttura della composizione, generando la sequenza di eventi."""
+        """Elabora l'intera struttura della composizione, gestendo sia il nuovo formato a layer
+        che il vecchio formato monolitico per retrocompatibilità."""
         full_sequence = []
         current_time_offset = 0.0
-        all_onsets = []  # <-- 1. INIZIALIZZA LA LISTA VUOTA
-        tendency_ranges = [] # <-- 1. INIZIALIZZA LA NUOVA LISTA
-        
+        all_onsets = []
+        tendency_ranges = []
+
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
             time_ratio = section.get('ratio_temporale', 1.0)
-            # Calcola la durata effettiva (scalata) della sezione
             scaled_section_duration = section['durata'] * time_ratio
-            print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s, Ratio: {time_ratio}x, Effettiva: {scaled_section_duration:.2f}s) ---")
-            section_end_time = current_time_offset + scaled_section_duration # Calcoliamolo una volta per sezione
             
-            # Controlla se la sezione è statica o dinamica
-            is_static_section = 'stato_unico' in section
-            print(f"  > Tipo sezione: {'Statica (stato_unico)' if is_static_section else 'Dinamica (interpolata)'}")
+            print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {scaled_section_duration:.2f}s) ---")
 
-            if not is_static_section:
-                # Se è una sezione dinamica, carica stato iniziale e finale come prima
-                start_mask = section.get('stato_iniziale')
-                end_mask = section.get('stato_finale')
-                if not start_mask or not end_mask:
-                    print(f"ATTENZIONE: La sezione '{section['nome_sezione']}' è dinamica ma manca stato_iniziale o stato_finale. Sezione saltata.")
-                    continue # Salta al prossimo ciclo della sezione
-
-            # 1. Calcola il "cuscinetto di sicurezza" (safety buffer)
-            mask_for_buffer = section.get('stato_finale', section.get('stato_unico'))
-            if not mask_for_buffer:
-                print(f"  > ATTENZIONE: Maschera non trovata. Impossibile calcolare safeguard.")
-                safety_buffer = 5.0 # Fallback
+            # --- LOGICA DI RETROCOMPATIBILITÀ ---
+            layers_to_process = []
+            if 'layers' in section:
+                print("  > Rilevato formato multi-layer.")
+                layers_to_process = section['layers']
             else:
-                max_harmonic_dur_unscaled = mask_for_buffer['durata_armonica']['range'][1]
-                max_harmonic_dur_scaled = max_harmonic_dur_unscaled * time_ratio
-                max_duration_multiplier = 1.6 
-                safety_buffer = max_harmonic_dur_scaled * max_duration_multiplier
-            
-            print(f"  > Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s.")
-            
-            # 2. Definisci la zona sicura per la generazione degli onset
-            generation_duration = scaled_section_duration - safety_buffer
-            num_attivazioni_richieste = section.get('num_attivazioni', 10)
+                print("  > Rilevato formato mono-layer (retrocompatibilità). La sezione verrà trattata come un singolo layer.")
+                single_layer = {
+                    'nome_layer': section.get('nome_sezione', 'Layer Unico'),
+                    'start_time_ratio': 0.0,
+                    'end_time_ratio': 1.0,
+                    **section
+                }
+                layers_to_process.append(single_layer)
 
-            cluster_onsets = []
-            if num_attivazioni_richieste == 1:
-                cluster_onsets = [0.0]
-            elif generation_duration > 0:
-                cluster_onsets = self.time_scheduler.generate_onsets(
-                    section['timing_model'], generation_duration, num_attivazioni_richieste
-                )
-            else:
-                print(f"  > ATTENZIONE: Cuscinetto ({safety_buffer:.2f}s) >= durata sezione. Nessun evento generato.")
-
-            print(f"  > Generati {len(cluster_onsets)} onset nella zona sicura.")
-            all_onsets.extend([o + current_time_offset for o in cluster_onsets])
-            
-            # La logica del jitter di fine sezione la spostiamo DENTRO il ciclo degli eventi,
-            # perché non influenza più la generazione degli onset.
-
-
-            # 2. Per ogni punto di attivazione, genera un cluster di eventi
-            for onset in cluster_onsets:
-                if is_static_section:
-                    # Se la sezione è statica, la maschera è sempre la stessa
-                    center_mask = section['stato_unico']
-                else:
-                    # Il progresso viene calcolato sulla durata di generazione, non su quella totale della sezione.
-                    # Questo assicura che il progress raggiunga 1.0 quando l'ultimo onset viene generato.
-                    progress = onset / generation_duration if generation_duration > 0 else 0
-                    
-                    # Aggiungiamo una piccola sicurezza per evitare che, per errori di approssimazione,
-                    # il progresso superi 1.0.
-                    progress = min(progress, 1.0) 
-                    
-                    center_mask = self._interpolate_mask(start_mask, end_mask, progress)                
-                # Interpola le maschere per ottenere quella per l'istante corrente
-                absolute_onset_time = current_time_offset + onset
-                # Dizionario per contenere i dati di questo onset
-                tendency_data = {'time': absolute_onset_time}
-                                
-
-                # Cattura dati 'ottava'
-                if 'ottava' in center_mask:
-                    ottava_mask = center_mask['ottava']
-                    if 'range' in ottava_mask:
-                        tendency_data['ottava'] = {'min': ottava_mask['range'][0], 'max': ottava_mask['range'][1]}
-                    elif 'mean' in ottava_mask and 'std' in ottava_mask:
-                        # Per la distribuzione normale, visualizziamo un range statistico (es. mean ± 2*std)
-                        mean, std = ottava_mask['mean'], ottava_mask['std']
-                        tendency_data['ottava'] = {'min': mean - 2 * std, 'max': mean + 2 * std}
-
-                # Cattura dati 'durata_armonica'
-                if 'durata_armonica' in center_mask and 'range' in center_mask['durata_armonica']:
-                    scaled_range = [val * time_ratio for val in center_mask['durata_armonica']['range']]
-                    tendency_data['durata_armonica'] = {'min': scaled_range[0], 'max': scaled_range[1]}
-
+            # Da qui in poi, il codice lavora SEMPRE con una lista di layer.
+            for l_idx, layer in enumerate(layers_to_process):
+                print(f"\n  -- Elaborazione Layer {l_idx+1}: '{layer.get('nome_layer', 'Senza nome')}' --")
                 
-                tendency_ranges.append(tendency_data)
- 
- 
-                # Determina quanti eventi generare in questo cluster
-                dens_range = center_mask['densita_cluster']['range']
-                num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
+                start_ratio = layer.get('start_time_ratio', 0.0)
+                end_ratio = layer.get('end_time_ratio', 1.0)
                 
-                # 3. Genera gli eventi effettivi del cluster
-                for _ in range(num_events_in_cluster):
-                    
-                    # Genera un set di parametri, con un massimo di tentativi
-                    for attempt in range(10): # Tenta max 10 volte di trovare parametri validi
-                        
-                        # Perturba leggermente la maschera per lo "spread" spettrale
-                        event_mask = center_mask.copy()
+                layer_start_time_abs = current_time_offset + (start_ratio * scaled_section_duration)
+                layer_end_time_abs = current_time_offset + (end_ratio * scaled_section_duration)
+                layer_duration = layer_end_time_abs - layer_start_time_abs
 
-                        if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
-                            event_mask['durata_armonica'] = event_mask['durata_armonica'].copy()
-                            current_range = event_mask['durata_armonica']['range']
-                            event_mask['durata_armonica']['range'] = [val * time_ratio for val in current_range]
-                        
-                        params = self._generate_params_from_mask(event_mask)
-                        
-                        if self._valida_parametri(params):                            # Mappa il ritmo a una tabella Csound
-                            # 1. Calcoliamo il tempo di attacco effettivo dell'evento
-                            onset_jitter = np.random.normal(loc=0.0, scale=0.05)
-                            event_time = current_time_offset + onset + onset_jitter
+                if layer_duration <= 0:
+                    print("     > ATTENZIONE: Layer con durata nulla o negativa. Saltato.")
+                    continue
+                
+                print(f"     > Timeline Layer: Assoluta [{layer_start_time_abs:.2f}s - {layer_end_time_abs:.2f}s], Durata: {layer_duration:.2f}s")
+                
+                is_static_layer = 'stato_unico' in layer
+                if not is_static_layer:
+                    start_mask = layer.get('stato_iniziale')
+                    end_mask = layer.get('stato_finale')
+                    if not start_mask or not end_mask:
+                        print(f"     > ATTENZIONE: Layer dinamico '{layer.get('nome_layer')}' saltato per mancanza di maschere.")
+                        continue
+                
 
-                            # 2. Controlliamo se l'evento sfora la fine della sezione
-                            expected_end_time = event_time + params['durata_totale']
-                            if expected_end_time > section_end_time:
-                                # L'evento sfora. Controlliamo se è un errore recuperabile.
-                                
-                                # 2a. Check fatale: la sola durata armonica sfora?
-                                harmonic_end_time = event_time + params['durata_armonica']
-                                if harmonic_end_time > section_end_time:
-                                    # ERRORE CRITICO: Impossibile schedulare, neanche la durata base ci sta.
-                                    # Questo indica un problema nel YAML (es. durate troppo lunghe per la sezione)
-                                    # o un jitter troppo grande. Scartiamo questo tentativo e proviamo a generarne un altro.
-                                    # print(f"ATTENZIONE CRITICA: Evento scartato. La durata armonica ({params['durata_armonica']:.2f}s) sfora la sezione che finisce a {section_end_time:.2f}s. (Tentativo {attempt+1}/10)")
-                                    continue # Passa al prossimo tentativo nel `for attempt...` loop
-                                
-                                # 2b. Recupero: la durata armonica ci sta. Tronchiamo la durata totale.
-                                else:
-                                    old_dur = params['durata_totale']
-                                    new_dur = section_end_time - event_time
-                                    # Assicuriamoci che la nuova durata non sia inferiore a quella armonica
-                                    params['durata_totale'] = max(new_dur, params['durata_armonica'])
-                                    # print(f"INFO: Durata evento troncata. Da {old_dur:.2f}s a {params['durata_totale']:.2f}s per rientrare nella sezione.")
-
-                            rhythm_tuple = tuple(params['ritmi'])
-                            if rhythm_tuple not in self.rhythm_table_map:
-                                self.rhythm_table_map[rhythm_tuple] = {
-                                    'ritmi_tab_num': self.next_table_id,
-                                    'pos_tab_num': self.next_table_id + 1
-                                }
-                                self.next_table_id += 2
-
-                            # 3. La durata del comportamento ora è il MINIMO tra la sua durata "naturale" 
-                            #    e la durata massima consentita dallo spazio rimanente nella sezione.
-                            
-                            params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
-                            params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
-                            params['section_start_time'] = current_time_offset
-                            params['section_duration'] = scaled_section_duration
-                            params['section_jitter'] = section.get('end_of_section_jitter', 0.0)
-
-                            # Schedula l'evento (con il suo jitter di posizionamento)
-                            onset_jitter = np.random.normal(loc=0.0, scale=0.05)
-                            event_time = current_time_offset + onset + onset_jitter
-                            
-                            full_sequence.append({'time': event_time, 'params': params})
-                            break # Parametri validi trovati, esci dal ciclo dei tentativi
+                num_attivazioni = layer.get('num_attivazioni', 10)
+                cluster_onsets = []
+                
+                if num_attivazioni == 1:
+                    # CASO SPECIALE: Attivazione singola.
+                    # Ignoriamo il safety buffer e forziamo un singolo onset all'inizio del layer.
+                    print("     > Rilevata attivazione singola: safety buffer disattivato per questo layer.")
+                    cluster_onsets = [0.0] # Unico onset a t=0 (relativo al layer)
+                    layer_generation_duration = layer_duration # Tutta la durata del layer è "generativa"
+                
+                elif num_attivazioni > 1:
+                    # CASO STANDARD: Attivazioni multiple.
+                    # Calcoliamo il safety buffer come al solito.
+                    mask_for_buffer = layer.get('stato_finale', layer.get('stato_unico'))
+                    if not mask_for_buffer or 'durata_armonica' not in mask_for_buffer:
+                        print("     > ATTENZIONE: Impossibile calcolare safety buffer (manca maschera o durata_armonica). Uso fallback.")
+                        safety_buffer = 5.0
                     else:
-                        # Questo `else` si attiva se il `for` dei tentativi finisce senza `break`
-                        # print(f"Attenzione: Impossibile generare parametri validi per un evento al tempo ~{onset:.2f}s")
-                        pass
+                        max_harmonic_dur_unscaled = mask_for_buffer['durata_armonica']['range'][1]
+                        max_harmonic_dur_scaled = max_harmonic_dur_unscaled * time_ratio
+                        safety_buffer = max_harmonic_dur_scaled * 1.6
+                    
+                    layer_generation_duration = layer_duration - safety_buffer
 
+                    if layer_generation_duration > 0:
+                        cluster_onsets = self.time_scheduler.generate_onsets(
+                            layer['timing_model'], layer_generation_duration, num_attivazioni
+                        )
+                    else:
+                        print(f"     > ATTENZIONE: Safety buffer ({safety_buffer:.2f}s) >= durata layer ({layer_duration:.2f}s). Nessun evento generato.")
+                
+                # Se num_attivazioni è 0 o non definito, cluster_onsets rimane vuoto.
+                
+                print(f"     > Generati {len(cluster_onsets)} onset nella zona sicura del layer (0s -> {layer_generation_duration:.2f}s)")
+                all_onsets.extend([o + layer_start_time_abs for o in cluster_onsets])
+                
+                for onset in cluster_onsets:
+                    if is_static_layer:
+                        center_mask = layer['stato_unico']
+                    else:
+                        progress = onset / layer_generation_duration if layer_generation_duration > 0 else 0
+                        center_mask = self._interpolate_mask(start_mask, end_mask, min(progress, 1.0))
+                    
+                    dens_range = center_mask['densita_cluster']['range']
+                    num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
+
+                    for _ in range(num_events_in_cluster):
+                        for attempt in range(10):
+                            event_mask = center_mask.copy()
+                            if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
+                                event_mask['durata_armonica']['range'] = [val * time_ratio for val in event_mask['durata_armonica']['range']]
+                            
+                            params = self._generate_params_from_mask(event_mask)
+
+                            if self._valida_parametri(params):
+                                onset_jitter = np.random.normal(loc=0.0, scale=0.05)
+                                event_time = layer_start_time_abs + onset + onset_jitter
+
+                                if event_time + params['durata_totale'] > layer_end_time_abs:
+                                    if event_time + params['durata_armonica'] > layer_end_time_abs:
+                                        continue
+                                    params['durata_totale'] = max(layer_end_time_abs - event_time, params['durata_armonica'])
+                                
+                                rhythm_tuple = tuple(params['ritmi'])
+                                if rhythm_tuple not in self.rhythm_table_map:
+                                    self.rhythm_table_map[rhythm_tuple] = {'ritmi_tab_num': self.next_table_id, 'pos_tab_num': self.next_table_id + 1}
+                                    self.next_table_id += 2
+                                params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
+                                params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
+                                
+                                params['section_start_time'] = layer_start_time_abs
+                                params['section_duration'] = layer_duration
+                                params['section_jitter'] = layer.get('end_of_section_jitter', 0.0)
+
+                                full_sequence.append({'time': event_time, 'params': params})
+                                break
+                        else:
+                            pass
+            
             current_time_offset += scaled_section_duration
         
-        # Ordina la sequenza finale per tempo
         full_sequence.sort(key=lambda e: e['time'])
-        print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori.")
-        print(f"Mappati {len(self.rhythm_table_map)} pattern di ritmi unici a tabelle Csound.")
+        print(f"\n✓ Elaborazione completata. Generati {len(full_sequence)} eventi sonori da tutti i layer.")
         return full_sequence, all_onsets, tendency_ranges
 
     def generate_csd(self, composition_name, events):

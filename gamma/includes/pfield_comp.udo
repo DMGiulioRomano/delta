@@ -109,6 +109,6 @@ opcode calcFrequenza, i, iiiiii
     
     ; Get the frequency from the table using the calculated offset
     i_Freq table i_OffsetIntervallo + i_RitmoCorrente, i_TblNum
-        
-    xout i_Freq
+    ifreq =min(i_Freq, sr/2-1)
+    xout ifreq
 endop

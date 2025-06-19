@@ -50,16 +50,16 @@ opcode GetDynamicParams, ii, i
     iDynamicIndex   xin
     
     ; Legge i valori dalle tabelle di mappatura globali
-    iPhonValue      table iDynamicIndex, giDynamicsToPhon
-    iDbfsRefValue   table iDynamicIndex, giDynamicsToDbfsRef
+    iPhonValue      tablei iDynamicIndex, giDynamicsToPhon
+    iDbfsRefValue   tablei iDynamicIndex, giDynamicsToDbfsRef
     
     xout            iPhonValue, iDbfsRefValue
 endop
 
 opcode GetDynamicParams, kk, k ; Versione a k-rate, se dovesse servire
     kDynamicIndex   xin
-    kPhonValue      table kDynamicIndex, giDynamicsToPhon
-    kDbfsRefValue   table kDynamicIndex, giDynamicsToDbfsRef
+    kPhonValue      tablei kDynamicIndex, giDynamicsToPhon
+    kDbfsRefValue   tablei kDynamicIndex, giDynamicsToDbfsRef
     xout            kPhonValue, kDbfsRefValue
 endop
 

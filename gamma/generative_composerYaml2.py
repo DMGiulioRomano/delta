@@ -89,7 +89,7 @@ class TimeScheduler:
     """Genera sequenze temporali (onsets) basate su diversi modelli."""
     def generate_onsets(self, model, duration, num_events):
         if num_events == 0: return []
-        if num_events == 1: return [duration / 2.0]
+        if num_events == 1: return [0.0]
 
         base_progress = np.linspace(0, 1, num_events, endpoint=False) # Endpoint False per evitare un evento a durata esatta
         final_progress = np.zeros_like(base_progress)
@@ -200,6 +200,21 @@ class GenerativeComposer:
             
         return True
 
+    def _normalize_mask(self, mask):
+        """
+        Converte i valori non-dizionario in una maschera nel formato {value: ...}.
+        Esempio: 'dinamica: "p"' diventa 'dinamica: {"value": "p"}'.
+        """
+        if not mask:
+            return {}
+        normalized = {}
+        for key, value in mask.items():
+            if not isinstance(value, dict):
+                normalized[key] = {'value': value}
+            else:
+                normalized[key] = value
+        return normalized
+    
     def _generate_rhythm_pattern(self, tipo_ritmi):
         """Genera una lista di ritmi basata su una categoria."""
         if tipo_ritmi == 'piccoli':
@@ -219,10 +234,24 @@ class GenerativeComposer:
         """
         params = {}
 
+        # Definiamo un set di chiavi che sono gestite da logiche specializzate
+        # più avanti in questa funzione o al di fuori di essa (es. densita_cluster).
+        # Queste chiavi devono essere saltate dal ciclo di generazione generico.
+        SKIPPED_KEYS = {
+            'choices', 'weights', 'distribution', 'spread_spettrale', # Metadati
+            'dynamic_index',      # Valore pre-calcolato dall'interpolazione
+            'dinamica',           # Gestito da logica speciale
+            'nonlinear_mode',     # Gestito da logica speciale
+            'senso_movimento',    # Gestito da logica speciale
+            'inviluppo_attacco',  # Gestito da logica speciale
+            'tipo_ritmi',         # Gestito da logica speciale
+            'densita_cluster'     # Gestito al di fuori, in _process_layer
+        }
+
         # Itera su ogni parametro definito nella maschera.
         for key, p_mask in mask.items():
             # Salta le chiavi di controllo che non sono parametri diretti.
-            if key in ['choices', 'weights', 'distribution', 'spread_spettrale']: 
+            if key in SKIPPED_KEYS: 
                 continue
             
             val = 0
@@ -301,20 +330,38 @@ class GenerativeComposer:
         params['ifn_attacco'] = self.envelope_map.get(chosen_envelope_name, self.envelope_map[self.default_envelope])
 
         # --- dinamica ---
-        dynamic_mask = mask.get('dinamica')
-        if 'dinamica' in mask:
-            # Assumiamo che la dinamica sia sempre una scelta pesata
-            if 'choices' in dynamic_mask:
-                dynamic_str = random.choices(
-                    dynamic_mask['choices'], 
-                    weights=dynamic_mask.get('weights'), 
-                    k=1
-                )[0]
-                # Traduci la stringa (es. 'f') nell'indice numerico (es. 4)
-                params['dynamic_index'] = self.dynamic_to_index.get(dynamic_str, 3) # Default a 'mf' se non trova
+        # La logica è stata riscritta per essere più robusta e gestire tutti i casi.
+
+        # Priorità 1: L'indice è già stato calcolato e fornito dalla funzione di interpolazione?
+        # Se sì, lo usiamo direttamente. Questo è il caso dei layer dinamici.
+        if 'dynamic_index' in mask:
+            params['dynamic_index'] = mask['dynamic_index']
         else:
-            # Se la maschera non specifica la dinamica, usa un default
-            params['dynamic_index'] = 3 # 'mf'
+            # Priorità 2: L'indice non è pre-calcolato, quindi lo generiamo dalla maschera 'dinamica'.
+            dynamic_mask = mask.get('dinamica')
+            if dynamic_mask:
+                # Caso A: La dinamica è definita come una scelta pesata.
+                if 'choices' in dynamic_mask:
+                    dynamic_str = random.choices(
+                        dynamic_mask['choices'], 
+                        weights=dynamic_mask.get('weights'), 
+                        k=1
+                    )[0]
+                    params['dynamic_index'] = self.dynamic_to_index.get(dynamic_str, 3) # Default 'mf'
+                
+                # Caso B: La dinamica è un valore fisso (es. dinamica: 'f').
+                # Questo è il caso che mancava e causava l'errore per i layer statici.
+                elif 'value' in dynamic_mask:
+                    dynamic_str = dynamic_mask['value']
+                    params['dynamic_index'] = self.dynamic_to_index.get(dynamic_str, 3) # Default 'mf'
+                    
+                # Fallback: la maschera 'dinamica' esiste ma è malformata.
+                else:
+                    params['dynamic_index'] = 3 # 'mf'
+                    
+            # Priorità 3: La chiave 'dinamica' non è proprio presente nella maschera.
+            else:
+                params['dynamic_index'] = 3 # 'mf'
 
         # --- APPLICAZIONE DEI CLIPPING E GENERAZIONE DERIVATA (POST-GENERAZIONE) ---
         
@@ -353,14 +400,28 @@ class GenerativeComposer:
 
         return params
 
-    def _interpolate_mask(self, start_mask, end_mask, progress):
+    def _interpolate_mask(self,start_mask, end_mask, progress):
         """Interpola tra due maschere per ottenere una maschera intermedia."""
         interp_mask = {}
-        # Assumiamo che start_mask e end_mask abbiano le stesse chiavi.
-        for key in start_mask:
-            s = start_mask[key]
-            e = end_mask[key]
+        all_keys = set(start_mask.keys()) | set(end_mask.keys())
+
+        for key in all_keys:
+            s = start_mask.get(key)
+            e = end_mask.get(key, s)
             interp_mask[key] = {}
+
+            if key == 'dinamica' and 'value' in s and 'value' in e:
+                start_val_str = s['value']
+                end_val_str = e['value']
+                
+                # Accedi alla mappa tramite 'self', che è già disponibile
+                start_idx = self.dynamic_to_index.get(start_val_str) 
+                end_idx = self.dynamic_to_index.get(end_val_str)
+
+                if start_idx is not None and end_idx is not None:
+                    interp_idx = start_idx + (end_idx - start_idx) * progress
+                    interp_mask['dynamic_index'] = interp_idx
+                    continue
 
             # --- Percorso 1: La maschera definisce un range ---
             if 'range' in s:
@@ -429,6 +490,15 @@ class GenerativeComposer:
 
         # --- 1. IDENTIFICA TIPO E TIMING DEL LAYER ---
         is_static_layer = 'stato_unico' in layer
+        is_dynamic_layer = 'stato_iniziale' in layer # Aggiunta per chiarezza
+
+        if is_static_layer:
+            layer['stato_unico'] = self._normalize_mask(layer['stato_unico'])
+        if is_dynamic_layer:
+            layer['stato_iniziale'] = self._normalize_mask(layer['stato_iniziale'])
+            if 'stato_finale' in layer:
+                layer['stato_finale'] = self._normalize_mask(layer['stato_finale'])
+
         timing_model = layer.get('timing_model', {})
         num_attivazioni = layer.get('num_attivazioni', 10)
         
@@ -480,12 +550,41 @@ class GenerativeComposer:
                 progress = onset / scaled_section_duration if scaled_section_duration > 0 else 0
                 start_mask = layer['stato_iniziale']
                 end_mask = layer['stato_finale']
-                center_mask = self._interpolate_mask(start_mask, end_mask, progress)
-            
+                center_mask = self._interpolate_mask(start_mask, end_mask, progress) 
+
+                # ========= INSERISCI QUESTO BLOCCO DI DEBUG QUI =========
+                # Controlliamo se la sezione ha una transizione di dinamica definita
+                if ('dinamica' in start_mask and 'dinamica' in end_mask and 
+                    'value' in start_mask['dinamica'] and 'value' in end_mask['dinamica']):
+                    
+                    start_dyn_str = start_mask['dinamica']['value']
+                    end_dyn_str = end_mask['dinamica']['value']
+
+                    # Stampiamo l'intestazione solo la prima volta
+                    if onset == cluster_onsets[0]:
+                        print("\n" + "="*20 + " DEBUGGING DINAMICA " + "="*20)
+                        print(f"  Transizione da '{start_dyn_str}' a '{end_dyn_str}'")
+                        print("-" * 58)
+                    
+                    # Per ogni onset, stampiamo il progresso e l'indice calcolato
+                    if 'dynamic_index' in center_mask:
+                        interpolated_index = center_mask['dynamic_index']
+                        print(f"  Progresso: {progress*100:5.1f}% -> Indice Dinamico Calcolato: {interpolated_index:.3f}")
+                    else:
+                        # Questo messaggio apparirebbe se l'interpolazione fallisse
+                        print(f"  Progresso: {progress*100:5.1f}% -> ATTENZIONE: 'dynamic_index' non trovato nella maschera!")
+
+                # Stampiamo la chiusura solo all'ultimo onset
+                if onset == cluster_onsets[-1] and 'dinamica' in start_mask and 'dinamica' in end_mask:
+                    print("="*60 + "\n")
+                # =========================================================
+
+
+
             dens_range = center_mask.get('densita_cluster', {'range': [1,1]})['range']
             num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
-            
-            for _ in range(num_events_in_cluster):
+
+            for i in range(num_events_in_cluster):
                 for attempt in range(10):
                     event_mask = center_mask.copy()
                     if 'durata_armonica' in event_mask and 'range' in event_mask['durata_armonica']:
@@ -661,7 +760,7 @@ class GenerativeComposer:
         return """
 <CsoundSynthesizer>
 <CsOptions>
--o "{wav_file_path}" -W ;-d -m0
+-o "{wav_file_path}" -W -d -m0
 </CsOptions>
 <CsInstruments>
 sr = 96000
@@ -681,7 +780,7 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
-gi_debug init 2
+gi_debug init 1
 
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
@@ -727,10 +826,97 @@ e
 
 class CompositionDebugger:
     """Utility per visualizzare la composizione generata."""
-    def __init__(self, output_dir): 
-        self.output_path = Path(output_dir) 
+    def __init__(self, output_dir):
+        self.output_path = Path(output_dir)
 
-    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure): 
+    def _plot_tendency_masks(self, ax, ax2, composition_structure, composer):
+        """
+        MODIFICATA: Disegna le aree di tendenza per 'ottava' e 'durata_armonica'.
+        Accetta un secondo asse (ax2) per la durata.
+        """
+        print("  > Visualizzo le maschere di tendenza...")
+        section_start_time = 0.0
+        
+        # Etichette per la legenda (da aggiungere solo una volta)
+        label_ottava_added = False
+        label_durata_added = False
+
+        for section in composition_structure:
+            time_ratio = section.get('ratio_temporale', 1.0)
+            scaled_duration = section['durata'] * time_ratio
+            layers_to_process = section.get('layers', [section])
+
+            for layer in layers_to_process:
+                if 'stato_unico' in layer:
+                    start_mask = layer['stato_unico']
+                    end_mask = start_mask
+                elif 'stato_iniziale' in layer:
+                    start_mask = layer['stato_iniziale']
+                    end_mask = layer.get('stato_finale', start_mask)
+                else:
+                    continue
+
+                # --- Genera i dati per il plotting ---
+                num_samples = 100
+                times = np.linspace(0, scaled_duration, num_samples) + section_start_time
+                
+                # Liste per contenere i limiti dei parametri
+                ottava_lower, ottava_upper = [], []
+                durata_lower, durata_upper = [], []
+                
+                has_ottava = 'ottava' in start_mask
+                has_durata = 'durata_armonica' in start_mask
+
+                for p in np.linspace(0, 1, num_samples):
+                    interp_mask = composer._interpolate_mask(start_mask, end_mask, p)
+                    
+                    # 1. Estrai limiti per 'ottava'
+                    if has_ottava:
+                        mask = interp_mask.get('ottava', {})
+                        lower, upper = OTTAVE_RANGE
+                        if 'range' in mask: lower, upper = mask['range']
+                        elif 'mean' in mask:
+                            mean, std = mask.get('mean', 5), mask.get('std', 0)
+                            lower, upper = mean - std, mean + std
+                        ottava_lower.append(lower)
+                        ottava_upper.append(upper)
+
+                    # 2. Estrai limiti per 'durata_armonica'
+                    if has_durata:
+                        mask = interp_mask.get('durata_armonica', {})
+                        lower, upper = (1, 1) # Default
+                        if 'range' in mask:
+                            # La durata è scalata dal ratio temporale
+                            lower, upper = [d * time_ratio for d in mask['range']]
+                        elif 'mean' in mask:
+                            mean, std = mask.get('mean', 1), mask.get('std', 0)
+                            lower, upper = mean - std, mean + std
+                        durata_lower.append(lower)
+                        durata_upper.append(upper)
+
+                # --- Disegna le aree sfumate ---
+                if has_ottava:
+                    ax.fill_between(
+                        times, ottava_lower, ottava_upper,
+                        color='gray', alpha=0.25, zorder=1,
+                        label='Maschera Ottava' if not label_ottava_added else ""
+                    )
+                    label_ottava_added = True
+                
+                if has_durata:
+                    ax2.fill_between(
+                        times, durata_lower, durata_upper,
+                        color='cyan', alpha=0.25, zorder=1,
+                        label='Maschera Durata Armonica' if not label_durata_added else ""
+                    )
+                    label_durata_added = True
+
+            section_start_time += scaled_duration
+
+    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer):
+        """
+        MODIFICATA: Aggiunge un secondo asse Y per la durata armonica.
+        """
         print("\n--- Avvio Debugging Visivo: Generazione Grafico ---")
         if not events:
             print("Nessun evento da visualizzare.")
@@ -738,110 +924,85 @@ class CompositionDebugger:
 
         plot_data = []
         max_time = 0
+        max_durata_armonica = 0
+
         for event in events:
             if event.get('type') == 'voce':
                 p = event['params']
-                start = event['time']
-                
-                # Questa riga non causerà più errori perché la eseguiamo solo su eventi di tipo 'voce'
-                duration = p['durata_totale'] 
-                
+                start, duration = event['time'], p['durata_totale']
                 end = start + duration
-                pitch = p['ottava'] + (p['registro'] / 10.0)
-                amp_norm = p.get('dynamic_index', 3) / 6.0  # Normalizza l'indice (0-6) a (0-1)
+                pitch = p['ottava'] + (p['registro'] / (REGISTRI_RANGE[1] + 1.0))
+                amp_norm = p.get('dynamic_index', 3) / 6.0
                 plot_data.append({'start': start, 'end': end, 'pitch': pitch, 'amp_norm': amp_norm})
                 if end > max_time: max_time = end
+                if p['durata_armonica'] > max_durata_armonica:
+                    max_durata_armonica = p['durata_armonica']
 
         plt.style.use('seaborn-v0_8-darkgrid')
-        fig, ax = plt.subplots(figsize=(20, 10))
+        fig, ax = plt.subplots(figsize=(20, 12)) # Aumentata leggermente l'altezza
+
+        # --- 1. CREA IL SECONDO ASSE Y ---
+        ax2 = ax.twinx()
+
         for item in plot_data:
             ax.add_patch(plt.Rectangle(
                 (item['start'], item['pitch'] - 0.04),
                 item['end'] - item['start'], 0.08,
-                color=plt.cm.viridis(item['amp_norm']), alpha=0.7
+                color=plt.cm.viridis(item['amp_norm']), alpha=0.7, zorder=2
             ))
 
-        print("  > Aggiungo marker di attivazione...")
-        for onset_time in all_onsets:
-            ax.axvline(x=onset_time, 
-                       color='dodgerblue', 
-                       linestyle=':', 
-                       linewidth=0.9, 
-                       alpha=0.7, 
-                       label='Attivazione') # Aggiungiamo un'etichetta per la legenda
+        # --- 2. CHIAMA LA FUNZIONE DI PLOTTING PASSANDO ENTRAMBI GLI ASSI ---
+        self._plot_tendency_masks(ax, ax2, composition_structure, composer)
 
-        print("  > Aggiungo marker dei breakpoint...")
-        # Calcoliamo la posizione y per i marker, appena sotto il bordo superiore
-        y_pos_marker = ax.get_ylim()[1] - 0.2 
-        breakpoint_time_offset = 0.0
+        if all_onsets:
+             ax.vlines(all_onsets, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1],
+                       color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.7, label='Attivazione')
 
-        for section in composition_structure:
-            time_ratio = section.get('ratio_temporale', 1.0)
-            scaled_duration = section['durata'] * time_ratio
-            
-            timing_model = section.get('timing_model', {})
-            if timing_model.get('type') == 'breakpoint':
-                for point in timing_model.get('points', []):
-                    # Calcola il tempo assoluto del punto
-                    abs_time = breakpoint_time_offset + (point[0] * scaled_duration)
-                    ax.scatter(
-                        [abs_time], [y_pos_marker], 
-                        marker='v',          # Triangolo che punta in giù
-                        color='gold',        # Colore distintivo
-                        s=100,               # Dimensione
-                        edgecolor='black',   # Bordo per visibilità
-                        zorder=5,            # Assicura che sia disegnato sopra
-                        label='Breakpoint'   # Etichetta per la legenda
-                    )
-            
-            # Aggiorna l'offset temporale per la prossima sezione
-            breakpoint_time_offset += scaled_duration
-
-
-        ax.set_xlim(0, max_time)
+        ax.set_xlim(0, max_time if max_time > 0 else 1)
+        
+        # --- 3. IMPOSTAZIONI PER L'ASSE SINISTRO (OTTAVA) ---
         ax.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
         ax.set_xlabel("Tempo (secondi)")
-        ax.set_ylabel("Ottava.Registro")
-        ax.set_title(f"Visualizzazione Composizione: '{composition_name}'")
+        ax.set_ylabel("Ottava.Registro", color='black')
+        ax.set_title(f"Visualizzazione Composizione e Maschere di Tendenza: '{composition_name}'")
         ax.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
-        
-        current_time = 0
+        ax.tick_params(axis='y', labelcolor='black')
+
+        # --- 4. IMPOSTAZIONI PER L'ASSE DESTRO (DURATA) ---
+        ax2.set_ylabel("Durata Armonica (s)", color='darkcyan')
+        # Imposta un limite ragionevole per l'asse della durata
+        ax2.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10)
+        ax2.tick_params(axis='y', labelcolor='darkcyan')
+
+        current_time = 0.0
         for section in composition_structure:
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_duration = section['durata'] * time_ratio
-            
-            current_time += scaled_duration # <-- Usa la durata scalata
-
+            current_time += scaled_duration
             ax.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=f"Fine: {section['nome_sezione']}")
-        
-        handles, labels = ax.get_legend_handles_labels()
-        by_label = dict(zip(labels, handles))
-        # Posiziona la legenda FUORI dal grafico.
-        # 'bbox_to_anchor' definisce la posizione: (0.5, -0.1) significa
-        # centrata orizzontalmente (0.5) e posizionata leggermente sotto l'asse x (-0.1).
-        # 'loc='upper center'' dice come ancorare la legenda a quel punto.
-        # 'ncol' definisce il numero di colonne per la legenda.
-        fig.legend(by_label.values(), by_label.keys(), 
-                   loc='upper center', 
-                   bbox_to_anchor=(0.5, 0.05), # Posiziona appena sopra l'asse x
-                   ncol=len(by_label))
 
-        # Salva il grafico. 'bbox_inches='tight'' è importante per assicurarsi
-        # che la legenda esterna non venga tagliata.
+        # --- 5. GESTIONE UNIFICATA DELLA LEGENDA ---
+        lines, labels = ax.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        # Combina le legende dei due assi in una sola
+        fig.legend(lines + lines2, labels + labels2,
+                   loc='upper center', bbox_to_anchor=(0.5, 0.05), ncol=4)
+
+        fig.tight_layout(rect=[0, 0.05, 1, 1]) # Aggiusta il layout per fare spazio alla legenda
         plot_filename = self.output_path / f"{composition_name}_visual.png"
         plt.savefig(plot_filename, dpi=150, bbox_inches='tight')
-        plt.close()        
+        plt.close()
         print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
-        
+    
 if __name__ == "__main__":
     # ===================================================================
     # FLAG DI CONTROLLO: Decidi se lanciare Csound dopo la generazione.
     # Imposta su True per renderizzare automaticamente il file audio.
     # Imposta su False per generare solo il file .csd e il grafico.
-    RENDER_AUTOMATICAMENTE = True
+    RENDER_AUTOMATICAMENTE = False
     # Imposta su True per aprire il file .wav al termine del rendering.
     # Funziona solo se RENDER_AUTOMATICAMENTE è True.
-    APRI_FILE_DOPO_RENDER = True
+    APRI_FILE_DOPO_RENDER = False
     # ===================================================================
     # 1. Controllo degli argomenti
     if len(sys.argv) < 2:
@@ -868,8 +1029,7 @@ if __name__ == "__main__":
     
     if event_sequence:
         # 5. Visualizza la sequenza
-        debugger.plot_piano_roll(event_sequence, all_onsets, composition_name, composition_structure)
-        
+        debugger.plot_piano_roll(event_sequence, all_onsets, composition_name, composition_structure, composer)        
         # 6. Genera il file CSD finale
         csd_file_path, wav_file_path = composer.generate_csd(composition_name, event_sequence)
     else:
