@@ -69,9 +69,8 @@ instr eventoSonoro
       k_time_since_section_start = k_time_absolute - i_section_start_time
       ; Normalizza questo tempo rispetto alla durata totale della sezione
       kndx_section = k_time_since_section_start / i_section_duration   
-      kEnv_section tablei kndx_section, i_ifn_section_env
+      kEnv_section tablei kndx_section, i_ifn_section_env,1
    endif
-
    ;--------------------------------------------------------------
    ; Sound Generation and Spatialization
    ;--------------------------------------------------------------
@@ -79,8 +78,9 @@ instr eventoSonoro
    
    asig poscil3 iamp, kfreq
    asigLocalEnv = asig * kEnv_local
-   asigEnv = asigLocalEnv * kEnv_section
+   asigEnvPre = asigLocalEnv * kEnv_section
 
+   asigEnv dcblock asigEnvPre
    kMid = cos(krad)
    kSide = sin(krad)
    

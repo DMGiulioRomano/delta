@@ -552,34 +552,6 @@ class GenerativeComposer:
                 end_mask = layer['stato_finale']
                 center_mask = self._interpolate_mask(start_mask, end_mask, progress) 
 
-                # ========= INSERISCI QUESTO BLOCCO DI DEBUG QUI =========
-                # Controlliamo se la sezione ha una transizione di dinamica definita
-                if ('dinamica' in start_mask and 'dinamica' in end_mask and 
-                    'value' in start_mask['dinamica'] and 'value' in end_mask['dinamica']):
-                    
-                    start_dyn_str = start_mask['dinamica']['value']
-                    end_dyn_str = end_mask['dinamica']['value']
-
-                    # Stampiamo l'intestazione solo la prima volta
-                    if onset == cluster_onsets[0]:
-                        print("\n" + "="*20 + " DEBUGGING DINAMICA " + "="*20)
-                        print(f"  Transizione da '{start_dyn_str}' a '{end_dyn_str}'")
-                        print("-" * 58)
-                    
-                    # Per ogni onset, stampiamo il progresso e l'indice calcolato
-                    if 'dynamic_index' in center_mask:
-                        interpolated_index = center_mask['dynamic_index']
-                        print(f"  Progresso: {progress*100:5.1f}% -> Indice Dinamico Calcolato: {interpolated_index:.3f}")
-                    else:
-                        # Questo messaggio apparirebbe se l'interpolazione fallisse
-                        print(f"  Progresso: {progress*100:5.1f}% -> ATTENZIONE: 'dynamic_index' non trovato nella maschera!")
-
-                # Stampiamo la chiusura solo all'ultimo onset
-                if onset == cluster_onsets[-1] and 'dinamica' in start_mask and 'dinamica' in end_mask:
-                    print("="*60 + "\n")
-                # =========================================================
-
-
 
             dens_range = center_mask.get('densita_cluster', {'range': [1,1]})['range']
             num_events_in_cluster = random.randint(int(dens_range[0]), int(dens_range[1]))
@@ -829,24 +801,34 @@ class CompositionDebugger:
     def __init__(self, output_dir):
         self.output_path = Path(output_dir)
 
-    def _plot_tendency_masks(self, ax, ax2, composition_structure, composer):
+    # VERSIONE FINALE CORRETTA - USA QUESTA
+    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn, composition_structure, composer):
         """
-        MODIFICATA: Disegna le aree di tendenza per 'ottava' e 'durata_armonica'.
-        Accetta un secondo asse (ax2) per la durata.
+        MODIFICATA: Disegna le maschere di tendenza per ottava e durata.
+        Disegna una linea di tendenza dinamica SEPARATA per ogni layer.
+        AGGIUNTO: Visualizza le maschere di probabilità (choices) per la dinamica come un grafico ad aree impilate.
         """
-        print("  > Visualizzo le maschere di tendenza...")
+        print("  > Visualizzo le maschere di tendenza (con dinamiche per-layer e probabilità)...")
         section_start_time = 0.0
+
+        layer_colors = {}
+        color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
         
-        # Etichette per la legenda (da aggiungere solo una volta)
-        label_ottava_added = False
-        label_durata_added = False
+        # Mappa per la legenda (per evitare etichette duplicate) - REINTRODOTTA
+        labels_added = set()
 
         for section in composition_structure:
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_duration = section['durata'] * time_ratio
             layers_to_process = section.get('layers', [section])
 
-            for layer in layers_to_process:
+            for i, layer in enumerate(layers_to_process):
+                layer_name = layer.get('nome_layer', f"Layer {i+1}")
+                
+                if layer_name not in layer_colors:
+                    layer_colors[layer_name] = color_cycle[len(layer_colors) % len(color_cycle)]
+                layer_color = layer_colors[layer_name]
+
                 if 'stato_unico' in layer:
                     start_mask = layer['stato_unico']
                     end_mask = start_mask
@@ -856,153 +838,213 @@ class CompositionDebugger:
                 else:
                     continue
 
-                # --- Genera i dati per il plotting ---
                 num_samples = 100
                 times = np.linspace(0, scaled_duration, num_samples) + section_start_time
                 
-                # Liste per contenere i limiti dei parametri
                 ottava_lower, ottava_upper = [], []
                 durata_lower, durata_upper = [], []
                 
+                # Variabili di dinamica pulite (rimossa 'dynamics_trend')
+                dynamics_line_trend = []
+                dynamics_prob_weights = []
+
                 has_ottava = 'ottava' in start_mask
                 has_durata = 'durata_armonica' in start_mask
+                has_dinamica = 'dinamica' in start_mask
+                
+                is_dynamic_choices = has_dinamica and 'choices' in start_mask.get('dinamica', {})
 
+                # Ciclo di raccolta dati
                 for p in np.linspace(0, 1, num_samples):
                     interp_mask = composer._interpolate_mask(start_mask, end_mask, p)
                     
-                    # 1. Estrai limiti per 'ottava'
                     if has_ottava:
                         mask = interp_mask.get('ottava', {})
                         lower, upper = OTTAVE_RANGE
                         if 'range' in mask: lower, upper = mask['range']
-                        elif 'mean' in mask:
-                            mean, std = mask.get('mean', 5), mask.get('std', 0)
-                            lower, upper = mean - std, mean + std
+                        elif 'mean' in mask: lower, upper = mask['mean'] - mask['std'], mask['mean'] + mask['std']
                         ottava_lower.append(lower)
                         ottava_upper.append(upper)
 
-                    # 2. Estrai limiti per 'durata_armonica'
                     if has_durata:
                         mask = interp_mask.get('durata_armonica', {})
-                        lower, upper = (1, 1) # Default
-                        if 'range' in mask:
-                            # La durata è scalata dal ratio temporale
-                            lower, upper = [d * time_ratio for d in mask['range']]
-                        elif 'mean' in mask:
-                            mean, std = mask.get('mean', 1), mask.get('std', 0)
-                            lower, upper = mean - std, mean + std
+                        lower, upper = (1, 1)
+                        if 'range' in mask: lower, upper = [d * time_ratio for d in mask['range']]
+                        elif 'mean' in mask: lower, upper = mask['mean'] - mask['std'], mask['mean'] + mask['std']
                         durata_lower.append(lower)
                         durata_upper.append(upper)
+                    
+                    if has_dinamica:
+                        if is_dynamic_choices:
+                            weights = interp_mask.get('dinamica', {}).get('weights', [])
+                            dynamics_prob_weights.append(weights)
+                        else:
+                            if 'dynamic_index' in interp_mask:
+                                dynamics_line_trend.append(interp_mask['dynamic_index'])
+                            elif 'value' in interp_mask.get('dinamica', {}):
+                                dyn_str = interp_mask['dinamica']['value']
+                                dynamics_line_trend.append(composer.dynamic_to_index.get(dyn_str, 3))
+                            else:
+                                dynamics_line_trend.append(np.nan)
 
-                # --- Disegna le aree sfumate ---
+                # --- Sezione di Plotting CORRETTA ---
+
+                # Disegna la maschera di OGNI layer, ma aggiungi l'etichetta solo la prima volta.
                 if has_ottava:
-                    ax.fill_between(
-                        times, ottava_lower, ottava_upper,
-                        color='gray', alpha=0.25, zorder=1,
-                        label='Maschera Ottava' if not label_ottava_added else ""
-                    )
-                    label_ottava_added = True
+                    label_ottava = 'Maschera Ottava' if 'maschera_ottava' not in labels_added else ""
+                    ax_pitch.fill_between(times, ottava_lower, ottava_upper, color='gray', alpha=0.2, zorder=1, label=label_ottava)
+                    # Aggiungiamo la chiave al set *dopo* aver deciso la label, ma *dentro* il blocco if
+                    # per assicurarci che venga aggiunta solo se la maschera esiste effettivamente.
+                    labels_added.add('maschera_ottava')
                 
                 if has_durata:
-                    ax2.fill_between(
-                        times, durata_lower, durata_upper,
-                        color='cyan', alpha=0.25, zorder=1,
-                        label='Maschera Durata Armonica' if not label_durata_added else ""
-                    )
-                    label_durata_added = True
+                    label_durata = 'Maschera Durata Armonica' if 'maschera_durata' not in labels_added else ""
+                    ax_dur.fill_between(times, durata_lower, durata_upper, color='cyan', alpha=0.2, zorder=1, label=label_durata)
+                    labels_added.add('maschera_durata')
+                    
+                # Logica di plotting per la dinamica, con controllo delle etichette anche per lo stackplot
+                if is_dynamic_choices and dynamics_prob_weights:
+                    weights_per_dynamic = np.array(dynamics_prob_weights).T
+                    dynamic_labels = start_mask['dinamica']['choices']
+                    
+                    # Crea etichette per la legenda solo la prima volta che disegni uno stackplot
+                    stackplot_labels = [f"Prob. {label}" for label in dynamic_labels] if 'prob_stack' not in labels_added else ["" for _ in dynamic_labels]
 
-            section_start_time += scaled_duration
+                    cmap = plt.get_cmap('viridis')
+                    stackplot_colors = cmap(np.linspace(0.1, 0.9, len(dynamic_labels)))
+                    
+                    # Controlla se l'asse Y è già stato modificato
+                    if 'prob_axis' not in labels_added:
+                        ax_dyn.set_ylabel("Probabilità Dinamica")
+                        ax_dyn.set_ylim(0, 1)
+                        ax_dyn.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+                        ax_dyn.set_yticklabels(['0%', '25%', '50%', '75%', '100%'])
+                        labels_added.add('prob_axis')
+                    
+                    ax_dyn.stackplot(times, weights_per_dynamic, 
+                                     labels=stackplot_labels, 
+                                     colors=stackplot_colors,
+                                     alpha=0.6,
+                                     zorder=2)
+                    # Segna che abbiamo già aggiunto le etichette dello stackplot alla legenda
+                    labels_added.add('prob_stack')
 
+                elif dynamics_line_trend:
+                    valid_times = [t for t, d in zip(times, dynamics_line_trend) if not np.isnan(d)]
+                    valid_dynamics = [d for d in dynamics_line_trend if not np.isnan(d)]
+                    if valid_times:
+                        # Questa parte già gestiva correttamente i layer con colori diversi e etichette uniche
+                        ax_dyn.plot(valid_times, valid_dynamics, color=layer_color, linewidth=2.5, 
+                                    label=f"Dinamica: {layer_name}", zorder=3, alpha=0.8)
+            section_start_time += scaled_duration                        
+                        
     def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer):
         """
-        MODIFICATA: Aggiunge un secondo asse Y per la durata armonica.
+        MODIFICATA: Crea un grafico a due subplot:
+        1. Piano-roll (altezza vs tempo) con asse secondario per la durata.
+        2. Tendenza dinamica (dinamica vs tempo), con una linea per ogni layer.
         """
-        print("\n--- Avvio Debugging Visivo: Generazione Grafico ---")
+        print("\n--- Avvio Debugging Visivo: Generazione Grafico a Subplot ---")
         if not events:
             print("Nessun evento da visualizzare.")
             return
 
+        # ... (la prima parte della funzione, che raccoglie i dati, rimane IDENTICA) ...
         plot_data = []
         max_time = 0
         max_durata_armonica = 0
 
+        # ... (questo ciclo for è identico) ...
         for event in events:
             if event.get('type') == 'voce':
                 p = event['params']
                 start, duration = event['time'], p['durata_totale']
-                end = start + duration
                 pitch = p['ottava'] + (p['registro'] / (REGISTRI_RANGE[1] + 1.0))
-                amp_norm = p.get('dynamic_index', 3) / 6.0
-                plot_data.append({'start': start, 'end': end, 'pitch': pitch, 'amp_norm': amp_norm})
-                if end > max_time: max_time = end
-                if p['durata_armonica'] > max_durata_armonica:
-                    max_durata_armonica = p['durata_armonica']
-
+                amp_norm = p.get('dynamic_index', 3) / len(composer.dynamic_to_index)
+                plot_data.append({'start': start, 'duration': duration, 'pitch': pitch, 'amp_norm': amp_norm})
+                if (start + duration) > max_time: max_time = start + duration
+                if p['durata_armonica'] > max_durata_armonica: max_durata_armonica = p['durata_armonica']
+        
         plt.style.use('seaborn-v0_8-darkgrid')
-        fig, ax = plt.subplots(figsize=(20, 12)) # Aumentata leggermente l'altezza
+        
+        fig, (ax_pitch, ax_dyn) = plt.subplots(
+            nrows=2, ncols=1, figsize=(20, 15), sharex=True, 
+            gridspec_kw={'height_ratios': [3, 1]}
+        )
+        fig.suptitle(f"Visualizzazione Composizione e Maschere di Tendenza: '{composition_name}'", fontsize=16)
 
-        # --- 1. CREA IL SECONDO ASSE Y ---
-        ax2 = ax.twinx()
+        ax_dur = ax_pitch.twinx()
 
         for item in plot_data:
-            ax.add_patch(plt.Rectangle(
-                (item['start'], item['pitch'] - 0.04),
-                item['end'] - item['start'], 0.08,
-                color=plt.cm.viridis(item['amp_norm']), alpha=0.7, zorder=2
+            ax_pitch.add_patch(plt.Rectangle(
+                (item['start'], item['pitch'] - 0.04), item['duration'], 0.08,
+                color=plt.cm.viridis(item['amp_norm']), alpha=0.6, zorder=3
             ))
 
-        # --- 2. CHIAMA LA FUNZIONE DI PLOTTING PASSANDO ENTRAMBI GLI ASSI ---
-        self._plot_tendency_masks(ax, ax2, composition_structure, composer)
-
+        # Disegna gli onsets sul grafico del pitch
         if all_onsets:
-             ax.vlines(all_onsets, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1],
-                       color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.7, label='Attivazione')
+             ax_pitch.vlines(all_onsets, ymin=OTTAVE_RANGE[0] - 1, ymax=OTTAVE_RANGE[1] + 1,
+                       color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.6, label='Attivazione', zorder=2)
 
-        ax.set_xlim(0, max_time if max_time > 0 else 1)
+        ax_pitch.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
+        ax_pitch.set_ylabel("Ottava.Registro")
+        ax_pitch.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
         
-        # --- 3. IMPOSTAZIONI PER L'ASSE SINISTRO (OTTAVA) ---
-        ax.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
-        ax.set_xlabel("Tempo (secondi)")
-        ax.set_ylabel("Ottava.Registro", color='black')
-        ax.set_title(f"Visualizzazione Composizione e Maschere di Tendenza: '{composition_name}'")
-        ax.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
-        ax.tick_params(axis='y', labelcolor='black')
+        ax_dur.set_ylabel("Durata Armonica (s)", color='darkcyan')
+        ax_dur.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10)
+        ax_dur.tick_params(axis='y', labelcolor='darkcyan')
+        
+        ax_dyn.set_ylabel("Dinamica")
+        ax_dyn.set_xlabel("Tempo (secondi)")
+        
+        dyn_labels = list(composer.dynamic_to_index.keys())
+        dyn_ticks = list(composer.dynamic_to_index.values())
+        ax_dyn.set_yticks(dyn_ticks)
+        ax_dyn.set_yticklabels(dyn_labels)
+        ax_dyn.set_ylim(min(dyn_ticks) - 0.5, max(dyn_ticks) + 0.5)
+        ax_dyn.grid(True, axis='y', linestyle='--', alpha=0.6)
 
-        # --- 4. IMPOSTAZIONI PER L'ASSE DESTRO (DURATA) ---
-        ax2.set_ylabel("Durata Armonica (s)", color='darkcyan')
-        # Imposta un limite ragionevole per l'asse della durata
-        ax2.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10)
-        ax2.tick_params(axis='y', labelcolor='darkcyan')
+        self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn, composition_structure, composer)
 
         current_time = 0.0
+        # Aggiungiamo un set per le etichette delle sezioni per non ripeterle
+        section_labels_added = set()
         for section in composition_structure:
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_duration = section['durata'] * time_ratio
             current_time += scaled_duration
-            ax.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=f"Fine: {section['nome_sezione']}")
+            
+            label_text = f"Fine: {section['nome_sezione']}" if section['nome_sezione'] not in section_labels_added else ""
+            ax_pitch.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=label_text)
+            ax_dyn.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2)
+            section_labels_added.add(section['nome_sezione'])
 
-        # --- 5. GESTIONE UNIFICATA DELLA LEGENDA ---
-        lines, labels = ax.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        # Combina le legende dei due assi in una sola
-        fig.legend(lines + lines2, labels + labels2,
-                   loc='upper center', bbox_to_anchor=(0.5, 0.05), ncol=4)
+        # --- MODIFICA CHIAVE ALLA LEGENDA ---
+        # Raccoglie tutte le etichette da tutti gli assi
+        handles, labels = ax_pitch.get_legend_handles_labels()
+        handles_dur, labels_dur = ax_dur.get_legend_handles_labels()
+        handles_dyn, labels_dyn = ax_dyn.get_legend_handles_labels()
+        
+        # Aumentiamo la dimensione della legenda e il numero di colonne per accomodare tutto
+        fig.legend(handles + handles_dur + handles_dyn, labels + labels_dur + labels_dyn,
+                   loc='lower center', bbox_to_anchor=(0.5, -0.01), ncol=6, fontsize='small') # <--- MODIFICATO
 
-        fig.tight_layout(rect=[0, 0.05, 1, 1]) # Aggiusta il layout per fare spazio alla legenda
+        fig.tight_layout(rect=[0, 0.05, 1, 0.95]) # <--- Aggiustato per fare spazio alla legenda sotto
+        
         plot_filename = self.output_path / f"{composition_name}_visual.png"
         plt.savefig(plot_filename, dpi=150, bbox_inches='tight')
         plt.close()
         print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
-    
+
 if __name__ == "__main__":
     # ===================================================================
     # FLAG DI CONTROLLO: Decidi se lanciare Csound dopo la generazione.
     # Imposta su True per renderizzare automaticamente il file audio.
     # Imposta su False per generare solo il file .csd e il grafico.
-    RENDER_AUTOMATICAMENTE = False
+    RENDER_AUTOMATICAMENTE = True
     # Imposta su True per aprire il file .wav al termine del rendering.
     # Funziona solo se RENDER_AUTOMATICAMENTE è True.
-    APRI_FILE_DOPO_RENDER = False
+    APRI_FILE_DOPO_RENDER = True
     # ===================================================================
     # 1. Controllo degli argomenti
     if len(sys.argv) < 2:
