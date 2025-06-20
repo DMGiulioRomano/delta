@@ -419,8 +419,8 @@ class GenerativeComposer:
             if e_mask is None:
                 e_mask = s_mask
 
-            # A questo punto, sia s_mask che e_mask sono GARANTITI essere dizionari validi.
-            # Il crash di tipo 'NoneType' è impossibile da qui in poi.
+            shape = e_mask.get('interp_shape', 1.0)
+            shaped_progress = progress ** shape
             
             interp_mask[key] = {}
 
@@ -436,7 +436,7 @@ class GenerativeComposer:
                 end_idx = self.dynamic_to_index.get(end_val_str)
 
                 if start_idx is not None and end_idx is not None:
-                    interp_idx = start_idx + (end_idx - start_idx) * progress
+                    interp_idx = start_idx + (end_idx - start_idx) * shaped_progress
                     interp_mask['dynamic_index'] = interp_idx
                     # Aggiungiamo anche la maschera originale per coerenza, sebbene non venga usata nel plot
                     interp_mask[key] = s_mask
@@ -447,8 +447,8 @@ class GenerativeComposer:
                 s_min, s_max = s_mask['range']
                 # Gestione sicura nel caso e_mask non abbia 'range' (improbabile con la logica sopra, ma sicuro)
                 e_min, e_max = e_mask.get('range', s_mask['range'])
-                i_min = s_min + (e_min - s_min) * progress
-                i_max = s_max + (e_max - s_max) * progress
+                i_min = s_min + (e_min - s_min) * shaped_progress
+                i_max = s_max + (e_max - s_max) * shaped_progress
                 interp_mask[key]['range'] = [i_min, i_max]
                 if 'distribution' in s_mask:
                     interp_mask[key]['distribution'] = s_mask['distribution']
@@ -458,8 +458,8 @@ class GenerativeComposer:
                 # Gestione sicura dei valori di e_mask
                 e_mean = e_mask.get('mean', s_mask['mean'])
                 e_std = e_mask.get('std', s_mask['std'])
-                i_mean = s_mask['mean'] + (e_mean - s_mask['mean']) * progress
-                i_std = s_mask['std'] + (e_std - s_mask['std']) * progress
+                i_mean = s_mask['mean'] + (e_mean - s_mask['mean']) * shaped_progress
+                i_std = s_mask['std'] + (e_std - s_mask['std']) * shaped_progress
                 interp_mask[key]['mean'] = i_mean
                 interp_mask[key]['std'] = i_std
                 if 'distribution' in s_mask:
@@ -472,13 +472,13 @@ class GenerativeComposer:
 
                 if isinstance(s_value, (int, float)) and isinstance(e_value, (int, float)):
                     # Se sono numeri, interpola
-                    i_value = s_value + (e_value - s_value) * progress
+                    i_value = s_value + (e_value - s_value) * shaped_progress
                     interp_mask[key]['value'] = i_value
                 else:
                     if s_value != e_value:
                         interp_mask[key] = {
                             'choices': [s_value, e_value],
-                            'weights': [1 - progress, progress]
+                            'weights': [1 - shaped_progress, shaped_progress]
                         }
                     else:
                         # Se i valori sono identici, non c'è bisogno di probabilismo.
@@ -494,11 +494,11 @@ class GenerativeComposer:
                 
                 # Cross-fade dei pesi solo se le scelte sono identiche e i pesi compatibili
                 if s_choices == e_choices and len(s_weights) == len(e_weights):
-                    i_weights = s_weights * (1 - progress) + e_weights * progress
+                    i_weights = s_weights * (1 - shaped_progress) + e_weights * shaped_progress
                     interp_mask[key] = {'choices': s_choices, 'weights': i_weights.tolist()}
                 else:
                     # Altrimenti, transizione a scalino
-                    interp_mask[key] = s_mask if progress < 0.5 else e_mask
+                    interp_mask[key] = s_mask if shaped_progress < 0.5 else e_mask
             
             # Blocco 6: Fallback per maschere non standard (es. 'tipo_ritmi')
             else:
@@ -654,12 +654,15 @@ class GenerativeComposer:
         con e senza la struttura a layer per retrocompatibilità.
         """
         full_sequence = []
-        all_onsets = []
+        onsets_by_section = [] 
+        all_onsets_flat = [] # Manteniamo anche la lista piatta per usi esistenti
         current_time_offset = 0.0
         
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
             section_name = section['nome_sezione']
+            section_onsets_data = {'section_name': section['nome_sezione'], 'layers': []}
+
             # --- 1. GESTIONE PARAMETRI A LIVELLO DI SEZIONE ---
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_section_duration = section['durata'] * time_ratio
@@ -686,14 +689,24 @@ class GenerativeComposer:
                         layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway
                     )
                     full_sequence.extend(layer_events)
-                    all_onsets.extend(layer_onsets)
+                    section_onsets_data['layers'].append({
+                        'layer_name': layer.get('nome_layer', 'Layer Singolo'),
+                        'onsets': layer_onsets
+                    })
+                    all_onsets_flat.extend(layer_onsets) # Continuiamo a popolare la lista piatta
             else:
                 print(f"  > Rilevata struttura a layer singolo (retrocompatibilità).")
                 layer_events, layer_onsets = self._process_layer(
                     section, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway
                 )
                 full_sequence.extend(layer_events)
-                all_onsets.extend(layer_onsets)
+                section_onsets_data['layers'].append({
+                    'layer_name': section.get('nome_layer', 'Layer Singolo'),
+                    'onsets': layer_onsets
+                })
+                all_onsets_flat.extend(layer_onsets)
+
+            onsets_by_section.append(section_onsets_data)
 
             # --- 3. AGGIORNA IL TEMPO PER LA PROSSIMA SEZIONE ---
             current_time_offset += scaled_section_duration
@@ -703,8 +716,7 @@ class GenerativeComposer:
         num_voce_events = len([e for e in full_sequence if e.get('type') == 'voce'])
         print(f"\n✓ Elaborazione completata. Generati {num_voce_events} eventi 'voce' totali.")
         print(f"Mappati {len(self.rhythm_table_map)} pattern di ritmi unici a tabelle Csound.")
-        return full_sequence, all_onsets
-
+        return full_sequence, all_onsets_flat, onsets_by_section
 
     def generate_csd(self, composition_name, events):
         """Genera il file CSD finale dalla sequenza di eventi."""
@@ -859,7 +871,7 @@ class CompositionDebugger:
         self.output_path = Path(output_dir)
 
     # VERSIONE FINALE CORRETTA - USA QUESTA
-    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn, composition_structure, composer):
+    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn, composition_structure, composer, onsets_by_section):
         """
         MODIFICATA: Disegna le maschere di tendenza per ottava e durata.
         Disegna una linea di tendenza dinamica SEPARATA per ogni layer.
@@ -874,13 +886,16 @@ class CompositionDebugger:
         # Mappa per la legenda (per evitare etichette duplicate) - REINTRODOTTA
         labels_added = set()
 
-        for section in composition_structure:
+        for section_idx, section in enumerate(composition_structure):
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_duration = section['durata'] * time_ratio
             layers_to_process = section.get('layers', [section])
+            # Accediamo ai dati degli onsets per questa sezione
+            section_onsets = onsets_by_section[section_idx]['layers']
 
-            for i, layer in enumerate(layers_to_process):
-                layer_name = layer.get('nome_layer', f"Layer {i+1}")
+            for layer_idx, layer in enumerate(layers_to_process):
+                layer_name = layer.get('nome_layer', f"Layer {layer_idx+1}")
+                layer_onsets = section_onsets[layer_idx]['onsets']
                 
                 if layer_name not in layer_colors:
                     layer_colors[layer_name] = color_cycle[len(layer_colors) % len(color_cycle)]
@@ -895,8 +910,33 @@ class CompositionDebugger:
                 else:
                     continue
 
+                # Se non ci sono onsets, non c'è nulla da disegnare.
+                if not layer_onsets:
+                    continue
+
+                # Estrarre il lifespan del layer (default: tutta la sezione)
+                lifespan = layer.get('lifespan', [0.0, 1.0])
+                start_ratio, end_ratio = lifespan
+                # Calcolare la durata e il tempo di inizio ASSOLUTI per la maschera di questo layer
+                layer_plot_start_time = section_start_time + (start_ratio * scaled_duration)
+                layer_plot_duration = (end_ratio - start_ratio) * scaled_duration
+
+                # 3. Trova il primo e l'ultimo tempo di attivazione
+                first_onset_time = min(layer_onsets)
+                last_onset_time = max(layer_onsets)
+
+                # Se primo e ultimo onset coincidono (un solo cluster), crea un piccolo intervallo visibile
+                plot_duration = last_onset_time - first_onset_time
+                if plot_duration < 0.1: # Durata minima per la visualizzazione
+                    plot_duration = layer_plot_duration
+
+                # Se la durata è nulla o negativa, non c'è nulla da disegnare per questo layer.
+                if layer_plot_duration <= 0:
+                    continue
+
                 num_samples = 100
-                times = np.linspace(0, scaled_duration, num_samples) + section_start_time
+                # Creare l'array dei tempi corretto, che copre solo il lifespan del layer.
+                times = np.linspace(first_onset_time, first_onset_time + plot_duration, num_samples)
                 
                 ottava_lower, ottava_upper = [], []
                 durata_lower, durata_upper = [], []
@@ -995,7 +1035,7 @@ class CompositionDebugger:
                                     label=f"Dinamica: {layer_name}", zorder=3, alpha=0.8)
             section_start_time += scaled_duration                        
                         
-    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer):
+    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer, onsets_by_section):
         """
         MODIFICATA: Crea un grafico a due subplot:
         1. Piano-roll (altezza vs tempo) con asse secondario per la durata.
@@ -1061,7 +1101,7 @@ class CompositionDebugger:
         ax_dyn.set_ylim(min(dyn_ticks) - 0.5, max(dyn_ticks) + 0.5)
         ax_dyn.grid(True, axis='y', linestyle='--', alpha=0.6)
 
-        self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn, composition_structure, composer)
+        self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn, composition_structure, composer,onsets_by_section)
 
         current_time = 0.0
         # Aggiungiamo un set per le etichette delle sezioni per non ripeterle
@@ -1122,13 +1162,13 @@ if __name__ == "__main__":
     debugger = CompositionDebugger(composer.output_path)
     
     # 4. Genera la sequenza di eventi
-    event_sequence, all_onsets = composer.process_composition(composition_structure)
+    event_sequence, all_onsets, onsets_by_section = composer.process_composition(composition_structure)
     csd_file_path = None
     wav_file_path = None # Inizializza anche il percorso del wav
     
     if event_sequence:
         # 5. Visualizza la sequenza
-        debugger.plot_piano_roll(event_sequence, all_onsets, composition_name, composition_structure, composer)        
+        debugger.plot_piano_roll(event_sequence, all_onsets, composition_name, composition_structure, composer, onsets_by_section)
         # 6. Genera il file CSD finale
         csd_file_path, wav_file_path = composer.generate_csd(composition_name, event_sequence)
     else:
