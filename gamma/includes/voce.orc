@@ -23,7 +23,8 @@ instr Voce
     i_ifn_section_env = p14 
     i_section_start_time = p15
     i_section_duration = p16
-
+    i_duration_leeway = p17
+    i_section_end = i_section_start_time + i_section_duration
     ; -----------------------------------------------------------------------
     ; 2. PREPARAZIONE DELLE SEQUENZE
     ; -----------------------------------------------------------------------
@@ -88,6 +89,12 @@ instr Voce
         
         i_EventDuration = (i_DurataArmonica / i_RitmoCorrente) * i_OverlapFactor
         
+        if i_EventAttack + i_EventDuration > i_section_end + i_duration_leeway then 
+        prints "voce %d, Evento %d attacco: %f durata: %f fine: %f fine sezione: %f\n", i_IdComp, i_EventIdx, i_EventAttack, i_EventDuration, i_EventAttack+i_EventDuration, i_section_end
+            i_EventDuration = i_section_end - i_EventAttack + random:i(-i_duration_leeway, i_duration_leeway)
+        prints "nuova durata: %f, nuova fine: %f\n",  i_EventDuration,  i_EventAttack+i_EventDuration
+        endif
+
         ; -------- 3.5 MEMORIZZAZIONE EVENTO (Per calcoli interni) --------
         tabw_i i_EventAttack, gi_Index, gi_eve_attacco
         ; ... le altre scritture su tabella `gi_eve_*` non sono necessarie per la sola generazione audio,

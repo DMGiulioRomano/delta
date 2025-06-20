@@ -400,84 +400,117 @@ class GenerativeComposer:
 
         return params
 
-    def _interpolate_mask(self,start_mask, end_mask, progress):
-        """Interpola tra due maschere per ottenere una maschera intermedia."""
+    def _interpolate_mask(self, start_mask, end_mask, progress):
+        """
+        (Versione Completa e Robusta) Interpola tra due maschere per ottenere una maschera intermedia.
+        Gestisce correttamente i parametri che esistono solo in una delle due maschere.
+        """
         interp_mask = {}
         all_keys = set(start_mask.keys()) | set(end_mask.keys())
 
         for key in all_keys:
-            s = start_mask.get(key)
-            e = end_mask.get(key, s)
+            s_mask = start_mask.get(key)
+            e_mask = end_mask.get(key)
+
+            # --- GESTIONE DEI PARAMETRI ASIMMETRICI (LA VERA CORREZIONE) ---
+            if s_mask is None:
+                s_mask = e_mask
+            
+            if e_mask is None:
+                e_mask = s_mask
+
+            # A questo punto, sia s_mask che e_mask sono GARANTITI essere dizionari validi.
+            # Il crash di tipo 'NoneType' è impossibile da qui in poi.
+            
             interp_mask[key] = {}
 
-            if key == 'dinamica' and 'value' in s and 'value' in e:
-                start_val_str = s['value']
-                end_val_str = e['value']
+            # --- INIZIO LOGICA DI INTERPOLAZIONE COMPLETA ---
+
+            # Blocco 1: Gestione speciale per la dinamica lineare
+            # NOTA: questa parte è stata re-integrata.
+            if key == 'dinamica' and 'value' in s_mask and 'value' in e_mask:
+                start_val_str = s_mask['value']
+                end_val_str = e_mask['value']
                 
-                # Accedi alla mappa tramite 'self', che è già disponibile
                 start_idx = self.dynamic_to_index.get(start_val_str) 
                 end_idx = self.dynamic_to_index.get(end_val_str)
 
                 if start_idx is not None and end_idx is not None:
                     interp_idx = start_idx + (end_idx - start_idx) * progress
                     interp_mask['dynamic_index'] = interp_idx
-                    continue
+                    # Aggiungiamo anche la maschera originale per coerenza, sebbene non venga usata nel plot
+                    interp_mask[key] = s_mask
+                    continue # Abbiamo gestito questa chiave, passiamo alla successiva
 
-            # --- Percorso 1: La maschera definisce un range ---
-            if 'range' in s:
-                s_min, s_max = s['range']
-                e_min, e_max = e['range']
+            # Blocco 2: Interpolazione per maschere basate su 'range'
+            if 'range' in s_mask:
+                s_min, s_max = s_mask['range']
+                # Gestione sicura nel caso e_mask non abbia 'range' (improbabile con la logica sopra, ma sicuro)
+                e_min, e_max = e_mask.get('range', s_mask['range'])
                 i_min = s_min + (e_min - s_min) * progress
                 i_max = s_max + (e_max - s_max) * progress
                 interp_mask[key]['range'] = [i_min, i_max]
-                # Se è presente, propaga la chiave 'distribution'
-                if 'distribution' in s:
-                    interp_mask[key]['distribution'] = s['distribution']
+                if 'distribution' in s_mask:
+                    interp_mask[key]['distribution'] = s_mask['distribution']
 
-            # --- Percorso 2: La maschera definisce media e std ---
-            elif 'mean' in s:
-                i_mean = s['mean'] + (e['mean'] - s['mean']) * progress
-                i_std = s['std'] + (e['std'] - s['std']) * progress
+            # Blocco 3: Interpolazione per maschere basate su 'mean' e 'std'
+            elif 'mean' in s_mask:
+                # Gestione sicura dei valori di e_mask
+                e_mean = e_mask.get('mean', s_mask['mean'])
+                e_std = e_mask.get('std', s_mask['std'])
+                i_mean = s_mask['mean'] + (e_mean - s_mask['mean']) * progress
+                i_std = s_mask['std'] + (e_std - s_mask['std']) * progress
                 interp_mask[key]['mean'] = i_mean
                 interp_mask[key]['std'] = i_std
-                # Propaga la chiave 'distribution'
-                if 'distribution' in s:
-                    interp_mask[key]['distribution'] = s['distribution']
+                if 'distribution' in s_mask:
+                    interp_mask[key]['distribution'] = s_mask['distribution']
 
-            elif 'value' in s:
-                # Controlla se il valore è un numero (int o float)
-                if isinstance(s['value'], (int, float)):
-                    # Se è un numero, possiamo interpolarlo (es. per senso_movimento).
-                    i_value = s['value'] + (e['value'] - s['value']) * progress
+            # Blocco 4: Interpolazione/Gestione per maschere basate su 'value'
+            elif 'value' in s_mask:
+                s_value = s_mask['value']
+                e_value = e_mask.get('value', s_value)
+
+                if isinstance(s_value, (int, float)) and isinstance(e_value, (int, float)):
+                    # Se sono numeri, interpola
+                    i_value = s_value + (e_value - s_value) * progress
                     interp_mask[key]['value'] = i_value
                 else:
-                    # Se è una stringa (es. per inviluppo_attacco), non possiamo interpolare.
-                    # Semplicemente usiamo il valore dello stato iniziale.
-                    # Questo garantisce che un valore fisso rimanga tale.
-                    interp_mask[key] = s
-
-            # --- Percorso 3: La maschera definisce scelte pesate ---
-            elif 'choices' in s:
-                # Per le scelte pesate, la transizione è un "cross-fade" dei pesi
-                s_weights = np.array(s.get('weights', [1]*len(s['choices'])))
-                e_weights = np.array(e.get('weights', [1]*len(e['choices'])))
-                # Assicurati che i due array di pesi abbiano la stessa lunghezza per il cross-fade
-                if len(s_weights) == len(e_weights):
-                    i_weights = s_weights * (1 - progress) + e_weights * progress
-                    interp_mask[key] = {'choices': s['choices'], 'weights': i_weights.tolist()}
-                else:
-                    # Se i pesi non corrispondono, usa un fade-out/fade-in
-                    if progress < 0.5:
-                        interp_mask[key] = s
+                    if s_value != e_value:
+                        interp_mask[key] = {
+                            'choices': [s_value, e_value],
+                            'weights': [1 - progress, progress]
+                        }
                     else:
-                        interp_mask[key] = e
-        
+                        # Se i valori sono identici, non c'è bisogno di probabilismo.
+                        # Manteniamo un valore fisso.
+                        interp_mask[key] = s_mask
+
+            # Blocco 5: Interpolazione per maschere basate su 'choices'
+            elif 'choices' in s_mask:
+                s_choices = s_mask['choices']
+                e_choices = e_mask.get('choices', s_choices)
+                s_weights = np.array(s_mask.get('weights', [1]*len(s_choices)))
+                e_weights = np.array(e_mask.get('weights', [1]*len(e_choices)))
+                
+                # Cross-fade dei pesi solo se le scelte sono identiche e i pesi compatibili
+                if s_choices == e_choices and len(s_weights) == len(e_weights):
+                    i_weights = s_weights * (1 - progress) + e_weights * progress
+                    interp_mask[key] = {'choices': s_choices, 'weights': i_weights.tolist()}
+                else:
+                    # Altrimenti, transizione a scalino
+                    interp_mask[key] = s_mask if progress < 0.5 else e_mask
+            
+            # Blocco 6: Fallback per maschere non standard (es. 'tipo_ritmi')
+            else:
+                # Per maschere complesse che non rientrano nei pattern precedenti
+                # (come 'tipo_ritmi' con 'explicit_values'), non interpoliamo.
+                # Manteniamo il valore stabile per tutta la durata.
+                interp_mask[key] = s_mask
+
         return interp_mask
 
 
-    # Inserisci questo blocco di codice all'interno della classe GenerativeComposer
-
-    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name):
+    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway):
         """
         Processa un singolo layer (reale o virtuale) e restituisce i suoi eventi e onsets.
         Questa è una funzione helper per process_composition.
@@ -535,7 +568,9 @@ class GenerativeComposer:
         if moltiplicatore_mask and 'choices' in moltiplicatore_mask:
             # Se la maschera esiste, trova il valore massimo tra le scelte possibili
             max_duration_multiplier = max(moltiplicatore_mask['choices'])
-        
+        else:
+            # Usa LO STESSO default del generatore
+            max_duration_multiplier = 1.6        
         print(f"     > Max Durata Armonica: {max_harmonic_dur_scaled:.2f}s, Max Moltiplicatore: {max_duration_multiplier:.2f}x")
 
         # 2c. Calcola il cuscinetto usando il VERO moltiplicatore massimo
@@ -561,7 +596,7 @@ class GenerativeComposer:
             if is_static_layer:
                 center_mask = layer['stato_unico']
             else:
-                progress = onset_relative_to_layer / layer_duration_abs if layer_duration_abs > 0 else 0
+                progress = onset_relative_to_layer / generation_duration if generation_duration > 0 else 0
                 start_mask = layer['stato_iniziale']
                 end_mask = layer['stato_finale']
                 center_mask = self._interpolate_mask(start_mask, end_mask, progress) 
@@ -595,7 +630,8 @@ class GenerativeComposer:
                         params['section_start_time'] = current_time_offset
                         params['section_duration'] = scaled_section_duration
                         params['section_name'] = section_name
-                        
+                        params['section_leeway'] = section_leeway
+
                         jitter_scale = params.get('onset_jitter', 0.05)
                         jitter = np.random.normal(loc=0.0, scale=jitter_scale)
                         event_time = absolute_onset_time + jitter
@@ -623,12 +659,16 @@ class GenerativeComposer:
         
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
-            print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s) ---")
             section_name = section['nome_sezione']
             # --- 1. GESTIONE PARAMETRI A LIVELLO DI SEZIONE ---
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_section_duration = section['durata'] * time_ratio
             section_env_table_num = 0 # 0 significa "nessun inviluppo"
+            section_leeway = section.get('leeway_fine_sezione', 0.0)
+
+            print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s, riscalata a x{time_ratio}: {scaled_section_duration}s ) ---")
+            if section_leeway > 0:
+                print(f"  > Margine di tolleranza a fine sezione (leeway): {section_leeway:.3f}s")
 
             section_env_name = section.get('inviluppo_sezione', self.default_section_envelope)
             if section_env_name:
@@ -643,14 +683,14 @@ class GenerativeComposer:
                 print(f"  > Rilevata struttura multi-layer.")
                 for layer in section['layers']:
                     layer_events, layer_onsets = self._process_layer(
-                        layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name
+                        layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway
                     )
                     full_sequence.extend(layer_events)
                     all_onsets.extend(layer_onsets)
             else:
                 print(f"  > Rilevata struttura a layer singolo (retrocompatibilità).")
                 layer_events, layer_onsets = self._process_layer(
-                    section, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name
+                    section, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway
                 )
                 full_sequence.extend(layer_events)
                 all_onsets.extend(layer_onsets)
@@ -713,12 +753,13 @@ class GenerativeComposer:
                     score_lines += f'; Inizio: {section_start:.3f}s, Durata: {section_dur:.3f}s\n'
                     score_lines += f'; =============================================================================\n\n'
             
-                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tenv_attacco\tenv_durata\n"
+                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tenv_attacco\tenv_durata\tenv_leeway\n"
                 score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
                                 f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]}\t\t\t'
                                 f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}'
                                 f'\t\t\t\t{p["senso_movimento"]}\t\t\t{p["ifn_attacco"]}\t\t\t{p.get("section_env_table_num", 0)}'
-                                f'\t\t\t{p.get("section_start_time", 0):.4f}\t\t{p.get("section_duration", 0):.3f}\n')
+                                f'\t\t\t{p.get("section_start_time", 0):.4f}\t\t{p.get("section_duration", 0):.3f}'
+                                f'\t\t{p.get("section_leeway", 0):.3f}\n')
                 last_event_time = max(last_event_time, event_time + p["durata_totale"])
 
         # --- 4. ASSEMBLAGGIO DEL FILE FINALE ---
@@ -846,11 +887,11 @@ class CompositionDebugger:
                 layer_color = layer_colors[layer_name]
 
                 if 'stato_unico' in layer:
-                    start_mask = layer['stato_unico']
+                    start_mask = composer._normalize_mask(layer['stato_unico'])
                     end_mask = start_mask
                 elif 'stato_iniziale' in layer:
-                    start_mask = layer['stato_iniziale']
-                    end_mask = layer.get('stato_finale', start_mask)
+                    start_mask = composer._normalize_mask(layer['stato_iniziale'])
+                    end_mask = composer._normalize_mask(layer.get('stato_finale', layer['stato_iniziale']))
                 else:
                     continue
 

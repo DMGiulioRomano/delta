@@ -92,3 +92,10 @@ section_envelopes:
     gen_routine: 6
     # Sale a 1 a metà, poi scende a 0
     parameters: [0, 256, 1, 2304, 0.001]
+
+  sezioneI:
+    number: 25
+    size: 4096
+    gen_routine: 6
+    # Sale a 1 a metà, poi scende a 0
+    parameters: [1, 3968, 1, 127, 0.0001, 1, 0.0001]
