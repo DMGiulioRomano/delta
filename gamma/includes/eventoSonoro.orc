@@ -31,7 +31,7 @@ instr eventoSonoro
    iHR = max(1, abs(p7))
 
    iPeriod = $M_PI * 2 / iHR
-    
+   
    iradi = (iwhichZero > 0 ? (iwhichZero - 1) * iPeriod : 0)
    ifreq2 = limit(p8, 20, sr/2)
 
@@ -46,10 +46,11 @@ instr eventoSonoro
 
    $DEBUG_Evento_print_Pfields
    if p7 == 0 then
-      prints "ERROR\n"
+      prints "ERROR p7==0\n"
       prints "evento: %d , comp: %d", id_evento, id_comportamento
       exitnow
    endif
+   
    ;--------------------------------------------------------------
    ; Position and Envelope Generation
    ;--------------------------------------------------------------
@@ -65,13 +66,13 @@ instr eventoSonoro
 
 
    kEnv_section = 1 ; Valore di default neutro
-   if i_ifn_section_env > 0 && i_section_duration > 0 then
+   if i_ifn_section_env > 20 && i_section_duration > 0 then
       k_time_absolute times      
       ; Calcola da quanto tempo è iniziata la sezione
       k_time_since_section_start = k_time_absolute - i_section_start_time
       ; Normalizza questo tempo rispetto alla durata totale della sezione
-      kndx_sectionPre = k_time_since_section_start / i_section_duration   
-      kndx_section limit kndx_sectionPre, 0, 1
+      kndx_section = limit(k_time_since_section_start / i_section_duration,0,1)
+      ;kEnv_section=1 
       kEnv_section tablei kndx_section, i_ifn_section_env,1
    endif
    ;--------------------------------------------------------------

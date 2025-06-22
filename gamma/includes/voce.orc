@@ -22,9 +22,10 @@ instr Voce
     ; Se p14 è 0 (o non fornito), non ci sarà inviluppo di sezione.
     i_ifn_section_env = p14 
     i_section_start_time = p15
-    i_section_duration = p16
     i_duration_leeway = p17
+    i_section_duration = p16 + p17
     i_section_end = i_section_start_time + i_section_duration
+    iSafetyBuffer = p18
     ; -----------------------------------------------------------------------
     ; 2. PREPARAZIONE DELLE SEQUENZE
     ; -----------------------------------------------------------------------
@@ -71,7 +72,7 @@ instr Voce
         endif
 
         ; -------- 3.3 CALCOLO PARAMETRI DELL'EVENTO --------
-        i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente, gi_Intonazione, $INTERVALLI, $REGISTRI)
+        i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente)
         i_Freq2 = i_Freq1
         i_Amp = GetIsoAmp(i_Freq1, i_DynamicIndex)
 
@@ -89,10 +90,12 @@ instr Voce
         
         i_EventDuration = (i_DurataArmonica / i_RitmoCorrente) * i_OverlapFactor
         
-        if i_EventAttack + i_EventDuration > i_section_end + i_duration_leeway then 
-        prints "voce %d, Evento %d attacco: %f durata: %f fine: %f fine sezione: %f\n", i_IdComp, i_EventIdx, i_EventAttack, i_EventDuration, i_EventAttack+i_EventDuration, i_section_end
-            i_EventDuration = i_section_end - i_EventAttack + random:i(-i_duration_leeway, i_duration_leeway)
-        prints "nuova durata: %f, nuova fine: %f\n",  i_EventDuration,  i_EventAttack+i_EventDuration
+        if i_EventAttack + i_EventDuration > i_section_end then 
+            if iSafetyBuffer == 1 then
+                prints "voce %d, Evento %d attacco: %f durata: %f fine: %f fine sezione: %f\n", i_IdComp, i_EventIdx, i_EventAttack, i_EventDuration, i_EventAttack+i_EventDuration, i_section_end
+                i_EventDuration = i_section_end - i_EventAttack + random:i(0, i_duration_leeway)
+                prints "nuova durata: %f, nuova fine: %f\n",  i_EventDuration,  i_EventAttack+i_EventDuration
+            endif
         endif
 
         ; -------- 3.5 MEMORIZZAZIONE EVENTO (Per calcoli interni) --------

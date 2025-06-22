@@ -89,26 +89,22 @@ opcode calcAmpiezza, i, iii
   iResult = iAmpLinear * iSine * iExp
   
   ; Converti il risultato in dB e arrotonda a 3 decimali
-  iResultDB = linear2db(iResult)
-  ;!!!
-  ; dbfsamp - usare opcode già fatto per ottimizzazione in init time
-  ;!!!
-  
+  iResultDB = linear2db(iResult)  
   iResultRounded round3 iResultDB
   
   xout iResultRounded
 endop
 
-opcode calcFrequenza, i, iiiiii
-    i_Ottava, i_Registro, i_RitmoCorrente, i_TblNum, i_Intervalli, i_Registri xin
+opcode calcFrequenza, i, iii
+    i_Ottava, i_Registro, i_RitmoCorrente xin
         
     ; Calculate octave register
-    i_Indice_Ottava = int(i_Ottava * i_Intervalli)
+    i_Indice_Ottava = int(i_Ottava * $INTERVALLI)
     ; Calculate interval offset within the octave
-    i_OffsetIntervallo = i_Indice_Ottava + int(((i_Registro * i_Intervalli) / i_Registri))
+    i_OffsetIntervallo = i_Indice_Ottava + int(((i_Registro * $INTERVALLI) / $REGISTRI))
     
     ; Get the frequency from the table using the calculated offset
-    i_Freq table i_OffsetIntervallo + i_RitmoCorrente, i_TblNum
+    i_Freq table max(1,i_OffsetIntervallo + i_RitmoCorrente), gi_Intonazione
     ifreq =min(i_Freq, sr/2-1)
     xout ifreq
 endop

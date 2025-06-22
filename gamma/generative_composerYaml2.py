@@ -238,7 +238,7 @@ class GenerativeComposer:
         # più avanti in questa funzione o al di fuori di essa (es. densita_cluster).
         # Queste chiavi devono essere saltate dal ciclo di generazione generico.
         SKIPPED_KEYS = {
-            'choices', 'weights', 'distribution', 'spread_spettrale', # Metadati
+            'choices', 'weights', 'distribution', # Metadati
             'dynamic_index',      # Valore pre-calcolato dall'interpolazione
             'dinamica',           # Gestito da logica speciale
             'nonlinear_mode',     # Gestito da logica speciale
@@ -367,7 +367,7 @@ class GenerativeComposer:
         
         # Clipping per garantire che i valori rimangano nei limiti tecnici globali.
         params['ottava'] = int(round(np.clip(params.get('ottava', 5), OTTAVE_RANGE[0], OTTAVE_RANGE[1])))
-        params['registro'] = int(np.clip(params.get('registro', 5), REGISTRI_RANGE[0], REGISTRI_RANGE[1]))
+        params['registro'] = int(params.get('registro', 5))
 
 
         # Generazione di parametri derivati
@@ -510,7 +510,7 @@ class GenerativeComposer:
         return interp_mask
 
 
-    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway):
+    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name):
         """
         Processa un singolo layer (reale o virtuale) e restituisce i suoi eventi e onsets.
         Questa è una funzione helper per process_composition.
@@ -573,10 +573,18 @@ class GenerativeComposer:
             max_duration_multiplier = 1.6        
         print(f"     > Max Durata Armonica: {max_harmonic_dur_scaled:.2f}s, Max Moltiplicatore: {max_duration_multiplier:.2f}x")
 
-        # 2c. Calcola il cuscinetto usando il VERO moltiplicatore massimo
-        safety_buffer = max_harmonic_dur_scaled * max_duration_multiplier
-        
-        print(f"     > Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s")
+        #       Controlla se il safety buffer deve essere usato per questo layer.
+        #     Il default è True se il parametro non è specificato nel YAML.
+        use_safety_buffer = layer.get('usa_safety_buffer', True)
+
+        safety_buffer = 0.0 # Inizializza a zero
+        if use_safety_buffer:
+            # 2c. Calcola il cuscinetto usando il VERO moltiplicatore massimo
+            safety_buffer = max_harmonic_dur_scaled * max_duration_multiplier
+            print(f"     > Cuscinetto di sicurezza calcolato: {safety_buffer:.2f}s")
+        else:
+            # Se disabilitato, il buffer rimane a 0.0
+            print(f"     > Cuscinetto di sicurezza DISABILITATO dall'utente.")
         
         generation_duration = layer_duration_abs - safety_buffer
         
@@ -623,14 +631,21 @@ class GenerativeComposer:
                                 'ritmi_tab_num': self.next_table_id, 'pos_tab_num': self.next_table_id + 1
                             }
                             self.next_table_id += 2
-                        
+                                # Ora leggiamo il leeway dal layer, con un default di 0.0
+                        base_total_duration = params['durata_totale']                        
+                        layer_leeway = layer.get('leeway_fine_layer', 0.0)
+                        leeway_bonus = random.uniform(0.0, layer_leeway) if layer_leeway > 0 else 0.0
+                        desired_total_duration = base_total_duration + leeway_bonus
+                        layer_end_time_with_leeway = layer_start_time_abs + layer_duration_abs + layer_leeway
+                        available_duration = max(0.0, layer_end_time_with_leeway - absolute_onset_time)
+                        params['durata_totale'] = min(desired_total_duration, available_duration)
                         params['ritmi_tab_num'] = self.rhythm_table_map[rhythm_tuple]['ritmi_tab_num']
                         params['pos_tab_num'] = self.rhythm_table_map[rhythm_tuple]['pos_tab_num']
                         params['section_env_table_num'] = section_env_table_num
                         params['section_start_time'] = current_time_offset
                         params['section_duration'] = scaled_section_duration
                         params['section_name'] = section_name
-                        params['section_leeway'] = section_leeway
+                        params['layer_leeway'] = layer_leeway 
 
                         jitter_scale = params.get('onset_jitter', 0.05)
                         jitter = np.random.normal(loc=0.0, scale=jitter_scale)
@@ -667,11 +682,8 @@ class GenerativeComposer:
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_section_duration = section['durata'] * time_ratio
             section_env_table_num = 0 # 0 significa "nessun inviluppo"
-            section_leeway = section.get('leeway_fine_sezione', 0.0)
 
             print(f"\n--- Sezione {i+1}: '{section['nome_sezione']}' (Durata: {section['durata']}s, riscalata a x{time_ratio}: {scaled_section_duration}s ) ---")
-            if section_leeway > 0:
-                print(f"  > Margine di tolleranza a fine sezione (leeway): {section_leeway:.3f}s")
 
             section_env_name = section.get('inviluppo_sezione', self.default_section_envelope)
             if section_env_name:
@@ -686,7 +698,7 @@ class GenerativeComposer:
                 print(f"  > Rilevata struttura multi-layer.")
                 for layer in section['layers']:
                     layer_events, layer_onsets = self._process_layer(
-                        layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway
+                        layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name
                     )
                     full_sequence.extend(layer_events)
                     section_onsets_data['layers'].append({
@@ -697,7 +709,7 @@ class GenerativeComposer:
             else:
                 print(f"  > Rilevata struttura a layer singolo (retrocompatibilità).")
                 layer_events, layer_onsets = self._process_layer(
-                    section, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name, section_leeway
+                    section, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name
                 )
                 full_sequence.extend(layer_events)
                 section_onsets_data['layers'].append({
@@ -765,13 +777,13 @@ class GenerativeComposer:
                     score_lines += f'; Inizio: {section_start:.3f}s, Durata: {section_dur:.3f}s\n'
                     score_lines += f'; =============================================================================\n\n'
             
-                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tenv_attacco\tenv_durata\tenv_leeway\n"
+                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tenv_attacco\tenv_durata\tenv_leeway\t safety_buffer\n"
                 score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
-                                f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]}\t\t\t'
+                                f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]:.6f}\t'
                                 f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}'
                                 f'\t\t\t\t{p["senso_movimento"]}\t\t\t{p["ifn_attacco"]}\t\t\t{p.get("section_env_table_num", 0)}'
                                 f'\t\t\t{p.get("section_start_time", 0):.4f}\t\t{p.get("section_duration", 0):.3f}'
-                                f'\t\t{p.get("section_leeway", 0):.3f}\n')
+                                f'\t\t{p.get("layer_leeway", 0):.3f}\t\t{p.get("usa_safety_buffer", True):d}\n')
                 last_event_time = max(last_event_time, event_time + p["durata_totale"])
 
         # --- 4. ASSEMBLAGGIO DEL FILE FINALE ---
@@ -821,7 +833,7 @@ gi_Index init 1
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
-gi_debug init 2
+gi_debug init 1
 
 #include "../includes/gamma_utils.udo"
 #include "../includes/pfield_comp.udo"
