@@ -24,7 +24,7 @@ instr eventoSonoro
    ;--------------------------------------------------------------
    ; Parameter Initialization
    ;--------------------------------------------------------------
-   iamp = p4
+   i_DynamicIndex = p4
    i_debug=gi_debug
    ifreq1 = limit(p5, 20, sr/2)   
    iwhichZero = abs(p6)    
@@ -78,9 +78,19 @@ instr eventoSonoro
    ;--------------------------------------------------------------
    ; Sound Generation and Spatialization
    ;--------------------------------------------------------------
-   kfreq = ifreq1 ; Semplificato a frequenza costante per ora
-   
-   asig poscil3 iamp, kfreq
+   if ifreq1 > ifreq2 then
+      kf expseg  1, p3, 0.0001
+      kfreq = (kf * (ifreq1-ifreq2))+ifreq2
+   elseif ifreq1 < ifreq2 then
+      kf expseg  0.0001, p3, 1
+      kfreq = (kf * (ifreq2-ifreq1))+ifreq1
+   else
+      kfreq = ifreq1
+   endif
+
+   kamp GetIsoAmp_k i_DynamicIndex, ifreq1, ifreq2
+
+   asig poscil3 kamp, kfreq
    asigLocalEnv = asig * kEnv_local
    asigEnvPre = asigLocalEnv * kEnv_section
 

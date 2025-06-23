@@ -369,6 +369,50 @@ class GenerativeComposer:
         params['ottava'] = int(round(np.clip(params.get('ottava', 5), OTTAVE_RANGE[0], OTTAVE_RANGE[1])))
         params['registro'] = int(params.get('registro', 5))
 
+        # 2. Logica Gerarchica per calcolare la frequenza di ARRIVO
+
+        # CASO 1: MODALITÀ OFFSET (ha la precedenza su tutto)
+        # Controlliamo se la maschera originale conteneva le chiavi di offset.
+        # Usiamo la maschera 'mask' perché il dizionario 'params' conterrà solo i valori generati.
+        if 'offset_ottava' in mask or 'offset_registro' in mask:
+            
+            # Recupera i valori di offset generati dal dizionario 'params'.
+            # Se un offset non è stato specificato nel YAML, il suo valore generato non esisterà in 'params'.
+            # In tal caso, il default è 0.
+            offset_ottava = params.get('offset_ottava', 0)
+            offset_registro = params.get('offset_registro', 0)
+            
+            # Calcola i parametri di arrivo sommando gli offset a quelli di partenza.
+            ottava_arrivo_calc = params['ottava'] + offset_ottava
+            registro_arrivo_calc = params['registro'] + offset_registro
+            
+            # Salva i valori calcolati nel dizionario 'params'. Questi verranno clippati dopo.
+            params['ottava_arrivo'] = ottava_arrivo_calc
+            params['registro_arrivo'] = registro_arrivo_calc
+            
+        # CASO 2: MODALITÀ ASSOLUTA (usata solo se non ci sono offset)
+        # Controlliamo se la maschera originale conteneva le chiavi di arrivo assolute.
+        elif 'ottava_arrivo' in mask or 'registro_arrivo' in mask:
+            
+            # I valori sono già stati generati dal ciclo e sono in 'params'.
+            # Dobbiamo solo assicurarci che ci siano dei default sensati se ne manca uno.
+            # Se 'ottava_arrivo' è specificata ma 'registro_arrivo' no, quest'ultimo sarà uguale al registro di partenza.
+            params['ottava_arrivo'] = params.get('ottava_arrivo', params['ottava'])
+            params['registro_arrivo'] = params.get('registro_arrivo', params['registro'])
+
+        # CASO 3: DEFAULT (nessun glissando)
+        else:
+            # Se non sono stati specificati né offset né parametri assoluti di arrivo,
+            # la frequenza di arrivo è semplicemente uguale a quella di partenza.
+            params['ottava_arrivo'] = params['ottava']
+            params['registro_arrivo'] = params['registro']
+
+        # 3. Clipping finale e conversione a intero per i parametri di ARRIVO
+        #    Questo è un passaggio di sicurezza fondamentale che si applica a TUTTI i casi.
+        params['ottava_arrivo'] = int(round(np.clip(params['ottava_arrivo'], OTTAVE_RANGE[0], OTTAVE_RANGE[1])))
+        params['registro_arrivo'] = int(np.clip(params['registro_arrivo'], REGISTRI_RANGE[0], REGISTRI_RANGE[1]))
+
+
 
         # Generazione di parametri derivati
         rhythm_mask = mask.get('tipo_ritmi', {'choices': ['medi']}) # Default a categoria 'medi'
@@ -672,7 +716,22 @@ class GenerativeComposer:
         onsets_by_section = [] 
         all_onsets_flat = [] # Manteniamo anche la lista piatta per usi esistenti
         current_time_offset = 0.0
-        
+
+        solo_mode_active = False
+        # Itera su tutta la struttura per trovare almeno un layer con 'solo: True'
+        for section in composition_structure:
+            if 'layers' in section:
+                for layer in section['layers']:
+                    if layer.get('solo', False):
+                        solo_mode_active = True
+                        break # Trovato uno, non serve cercare oltre
+            if solo_mode_active:
+                break
+
+        if solo_mode_active:
+            print("\nMODALITÀ SOLO ATTIVA: Verranno processati solo i layer con 'solo: True'.")
+
+
         print("Inizio elaborazione della composizione...")
         for i, section in enumerate(composition_structure):
             section_name = section['nome_sezione']
@@ -693,6 +752,39 @@ class GenerativeComposer:
                 else:
                     print(f"  > ATTENZIONE: Inviluppo di sezione '{section_env_name}' non trovato. Verrà ignorato.")
 
+            layers_to_process = []
+            if 'layers' in section:
+                layers_to_process = section['layers']
+            else: # Retrocompatibilità
+                layers_to_process = [section]
+
+            for layer in layers_to_process:
+                layer_name = layer.get('nome_layer', "Layer Singolo")
+
+                # Se la modalità solo è attiva, controlliamo se questo layer deve essere saltato.
+                if solo_mode_active and not layer.get('solo', False):
+                    print(f"\n  -- Saltando layer '{layer_name}' (non in solo) --")
+                    # Aggiungiamo un placeholder per il plotting, se necessario
+                    section_onsets_data['layers'].append({
+                        'layer_name': layer_name,
+                        'onsets': []
+                    })
+                    continue # Salta al prossimo layer
+                # La chiamata a _process_layer e il resto della logica rimangono identici
+                layer_events, layer_onsets = self._process_layer(
+                    layer, current_time_offset, scaled_section_duration, time_ratio, 
+                    section_env_table_num, section_name # Assumendo che queste variabili siano definite
+                )
+                full_sequence.extend(layer_events)
+                section_onsets_data['layers'].append({
+                    'layer_name': layer_name,
+                    'onsets': layer_onsets
+                })
+                all_onsets_flat.extend(layer_onsets)
+
+            onsets_by_section.append(section_onsets_data)
+            current_time_offset += scaled_section_duration
+            """
             # --- 2. GESTIONE DEI LAYER ---
             if 'layers' in section:
                 print(f"  > Rilevata struttura multi-layer.")
@@ -717,12 +809,12 @@ class GenerativeComposer:
                     'onsets': layer_onsets
                 })
                 all_onsets_flat.extend(layer_onsets)
-
             onsets_by_section.append(section_onsets_data)
 
             # --- 3. AGGIORNA IL TEMPO PER LA PROSSIMA SEZIONE ---
             current_time_offset += scaled_section_duration
-        
+            """
+
         # Ordina la sequenza finale per tempo e restituisci
         full_sequence.sort(key=lambda e: e['time'])
         num_voce_events = len([e for e in full_sequence if e.get('type') == 'voce'])
@@ -776,11 +868,81 @@ class GenerativeComposer:
                     score_lines += f'; SEZIONE: "{current_section_name}"\n'
                     score_lines += f'; Inizio: {section_start:.3f}s, Durata: {section_dur:.3f}s\n'
                     score_lines += f'; =============================================================================\n\n'
-            
-                score_lines += ";\t\t\tat\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tenv_attacco\tenv_durata\tenv_leeway\t safety_buffer\n"
+
+                    """
+                    columns = [
+                        ("instr", 'i "Voce"', 8),
+                        ("start", event_time, 8),
+                        ("dur", p["durata_totale"], 8),
+                        ("rit_tab", p["ritmi_tab_num"], 9),
+                        ("dur_arm", p["durata_armonica"], 9),
+                        ("dyn_idx", p["dynamic_index"], 9),
+                        ("ott_S", p["ottava"], 7),
+                        ("reg_S", p["registro"], 7),
+                        ("ott_E", p["ottava_arrivo"], 7),
+                        ("reg_E", p["registro_arrivo"], 7),
+                        ("pos_tab", p["pos_tab_num"], 9),
+                        ("id_comp", p["id_comp"], 9),
+                        ("nlin_mode", p["nonlinear_mode"], 11),
+                        ("mov_sense", p["senso_movimento"], 11),
+                        ("ifn_att", p["ifn_attacco"], 9),
+                        ("ifn_sec_env", p.get("section_env_table_num", 0), 13),
+                        ("sec_start", p.get("section_start_time", 0), 11),
+                        ("sec_dur", p.get("section_duration", 0), 9),
+                        ("leeway", p.get("layer_leeway", 0), 8),
+                    ]
+
+                    # 2. Generazione dinamica delle intestazioni (header)
+                    #    Questa logica è intelligente e può essere usata solo una volta
+                    #    per scrivere l'header all'inizio dello score.
+                    #    Per semplicità qui la genero per ogni nota, ma si può ottimizzare.
+                    header1_parts = []
+                    header2_parts = []
+                    for i, (name, value, width) in enumerate(columns):
+                        header1_parts.append(f"{name:<{width-1}}")
+                        if name != "instr":
+                            # Allinea il p-number all'interno dello spazio disponibile
+                            header2_parts.append(f"p{i:<{width-1}}") 
+                        else:
+                            header2_parts.append(f"{'':<{width-1}}") # Spazio vuoto per la colonna 'instr'
+
+                    # Unisci le parti con un separatore per leggibilità
+                    score_lines += "; p-fields:  " + " | ".join(header1_parts) + "\n"
+                    score_lines += "; p-num:     " + " | ".join(header2_parts) + "\n"
+
+
+                    # 3. Costruzione della riga di dati formattata
+                    row_pieces = []
+                    for name, value, width in columns:
+                        # Applica formattazioni specifiche in base al nome o al tipo
+                        if name in ["start", "sec_start"]:
+                            formatted_value = f"{value:<{width}.4f}"
+                        elif name in ["dur", "dur_arm", "sec_dur", "leeway"]:
+                            formatted_value = f"{value:<{width}.3f}"
+                        elif isinstance(value, float):
+                            formatted_value = f"{value:<{width}.2f}"
+                        elif name == "instr":
+                            # Gestisce le virgolette per il nome dello strumento
+                            formatted_value = f'{value:<{width}}'
+                        else: # Interi e stringhe
+                            formatted_value = f"{str(value):<{width}}"
+                        
+                        row_pieces.append(formatted_value)
+                    
+                    # Unisci tutti i pezzi per formare la riga di score finale
+                    score_lines += " ".join(row_pieces) + "\n"
+                """
+
+                # Commento dettagliato che documenta ogni p-field
+                #score_lines += ("; p-fields:  instr     | start | dur   | rit_tab | dur_arm | dyn_idx | ott_S | reg_S | ott_E | reg_E | pos_tab | id_comp | nlin_mode | mov_sense | ifn_att | ifn_sec_env | sec_start | sec_dur | leeway\n"
+                #                "; p-num:     p1        | p2    | p3    | p4      | p5      | p6      | p7    | p8    | p9    | p10   | p11     | p12     | p13       | p14       | p15     | p16         | p17       | p18     | p19\n")
+
+                score_lines += ";\t\t\tat\t\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tnew_ottava\tnew_registro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tsez_attacco\tsez_durata\tsez_leeway\t safety_buffer\n"
                 score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
                                 f'{p["ritmi_tab_num"]}\t{p["durata_armonica"]:.3f}\t\t{p["dynamic_index"]:.6f}\t'
-                                f'{p["ottava"]}\t\t{p["registro"]}\t\t\t{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}'
+                                f'{p["ottava"]}\t\t{p["registro"]}\t\t\t'
+                                f'{p["ottava_arrivo"]}\t\t{p["registro_arrivo"]}\t\t'
+                                f'{p["pos_tab_num"]}\t{p["id_comp"]}\t\t{p["nonlinear_mode"]}'
                                 f'\t\t\t\t{p["senso_movimento"]}\t\t\t{p["ifn_attacco"]}\t\t\t{p.get("section_env_table_num", 0)}'
                                 f'\t\t\t{p.get("section_start_time", 0):.4f}\t\t{p.get("section_duration", 0):.3f}'
                                 f'\t\t{p.get("layer_leeway", 0):.3f}\t\t{p.get("usa_safety_buffer", True):d}\n')

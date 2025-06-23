@@ -11,27 +11,29 @@ instr Voce
     i_RitmiTab       = p4             ; Tabella dei ritmi
     i_DurataArmonica = p5             ; Durata armonica di riferimento
     i_DynamicIndex   = p6         
-    i_Ottava         = p7             ; Ottava
-    i_Registro       = p8             ; Registro
-    i_PosTab         = p9             ; Tabella delle posizioni
-    i_IdComp         = p10            ; ID del comportamento
+    i_Ottava         = p7             
+    i_Registro       = p8             
+    i_ottava_arrivo = p9
+    i_registro_arrivo = p10
+    i_PosTab         = p11             ; Tabella delle posizioni
+    i_IdComp         = p12            ; ID del comportamento
     ; Nuovo parametro per la modalità di NonlinearFunc. Default a 3 (caos vero) se non fornito.
-    i_NonlinearMode  = (p11 == 0 ? 3 : p11)
-    i_SensoMovimento = (p12 == 0 ? 1 : p12) ; <-- NUOVO: Riceve p12, default a 1 (antiorario)
-    i_ifnAttacco     = (p13 == 0 ? 10 : p13) ; <-- NUOVO: Riceve p13, default a 10 (lineare)
+    i_NonlinearMode  = (p13 == 0 ? 3 : p13)
+    i_SensoMovimento = (p14 == 0 ? 1 : p14) ; <-- NUOVO: Riceve p12, default a 1 (antiorario)
+    i_ifnAttacco     = (p15 == 0 ? 10 : p15) ; <-- NUOVO: Riceve p13, default a 10 (lineare)
     ; Se p14 è 0 (o non fornito), non ci sarà inviluppo di sezione.
-    i_ifn_section_env = p14 
-    i_section_start_time = p15
-    i_duration_leeway = p17
-    i_section_duration = p16 + p17
+    i_ifn_section_env = p16 
+    i_section_start_time = p17
+    i_duration_leeway = p19
+    i_section_duration = p18 + p19
     i_section_end = i_section_start_time + i_section_duration
-    iSafetyBuffer = p18
+    iSafetyBuffer = p20
     ; -----------------------------------------------------------------------
     ; 2. PREPARAZIONE DELLE SEQUENZE
     ; -----------------------------------------------------------------------
     i_LenRitmiTab = ftlen(i_RitmiTab)
     i_TempRitmiTab ftgen 0, 0, i_LenRitmiTab + 10000, -2, 0 ; Tabella estendibile per nuovi ritmi
-    
+
     ; Copia i ritmi iniziali nella tabella temporanea
     i_IndexCopy = 0
     while i_IndexCopy < i_LenRitmiTab do
@@ -73,7 +75,7 @@ instr Voce
 
         ; -------- 3.3 CALCOLO PARAMETRI DELL'EVENTO --------
         i_Freq1 = calcFrequenza(i_Ottava, i_Registro, i_RitmoCorrente)
-        i_Freq2 = i_Freq1
+        i_Freq2 calcFrequenza i_ottava_arrivo, i_registro_arrivo, i_RitmoCorrente
         i_Amp = GetIsoAmp(i_Freq1, i_DynamicIndex)
 
         if i_EventIdx < ftlen(i_PosTab) then
@@ -87,9 +89,9 @@ instr Voce
         i_LookbackTime = max(0, i_GlobalTime - 5)
 
         i_OverlapFactor random 1, 3
-        
+
         i_EventDuration = (i_DurataArmonica / i_RitmoCorrente) * i_OverlapFactor
-        
+
         if i_EventAttack + i_EventDuration > i_section_end then 
             if iSafetyBuffer == 1 then
                 prints "voce %d, Evento %d attacco: %f durata: %f fine: %f fine sezione: %f\n", i_IdComp, i_EventIdx, i_EventAttack, i_EventDuration, i_EventAttack+i_EventDuration, i_section_end
@@ -109,7 +111,7 @@ instr Voce
             exitnow
         endif
         ; -------- 3.6 SCHEDULING DELL'EVENTO SONORO --------
-        schedule "eventoSonoro", i_EventAttack - p2, i_EventDuration, i_Amp, i_Freq1, i_Pos,
+        schedule "eventoSonoro", i_EventAttack - p2, i_EventDuration, i_DynamicIndex, i_Freq1, i_Pos,
             i_RitmoCorrente, i_Freq2, i_ifnAttacco, gi_Index,i_IdComp, i_SensoMovimento, i_ifn_section_env, i_section_start_time, i_section_duration
 
         ; -------- 3.7 AGGIORNAMENTO INDICI E TEMPO --------

@@ -176,3 +176,29 @@ opcode GetIsoAmp, i, ii
     xout iFinalAmp
 endop
 
+
+; ===================================================================
+;  UDO MOTORE A K-RATE: GetIsoAmp_k
+;  Calcola un'ampiezza isofonica variabile per un glissando.
+;  Input: k-rate freq, i-rate dynamic index, i-rate freq_start, i-rate freq_end
+;  Output: k-rate compensated amplitude
+; ===================================================================
+opcode GetIsoAmp_k, k, iii
+    iDynamicIndex, iFreqStart, iFreqEnd xin
+    
+    ; 1. Calcola le ampiezze isofoniche per i punti di inizio e fine a i-rate
+    iAmpStart       GetIsoAmp       iFreqStart, iDynamicIndex
+    iAmpEnd         GetIsoAmp       iFreqEnd, iDynamicIndex
+
+
+    if iAmpStart > iAmpEnd then
+        kf expseg  1, p3, 0.0001
+        kFinalAmp = (kf * (iAmpStart-iAmpEnd))+iAmpEnd
+    elseif iAmpStart < iAmpEnd then
+        kf expseg  0.0001, p3, 1
+        kFinalAmp = (kf * (iAmpEnd-iAmpStart))+iAmpStart
+    else
+        kFinalAmp = iAmpStart
+    endif
+    xout kFinalAmp
+endop
