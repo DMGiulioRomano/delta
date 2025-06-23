@@ -64,7 +64,7 @@
     inviluppo_sezione: 'continua' # Nome del nuovo inviluppo globale
     layers:
       - nome_layer: "scampanello"
-        #solo: True
+        solo: True
         lifespan: [0, 1]  # Attivo per tutta la durata della sezione
         num_attivazioni: 3      
         timing_model:

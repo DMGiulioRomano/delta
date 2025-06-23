@@ -65,25 +65,39 @@ def load_yaml_file(file_path):
         print(f"ERRORE CRITICO: Errore nella sintassi del file YAML '{file_path}': {e}")
         sys.exit(1)
 
-def load_composition_from_yaml(file_path):
+def load_all_compositions_from_yaml(file_path):
     """
-    Carica e valida una struttura di composizione da un file YAML.
+    Carica una o più composizioni da un singolo file YAML.
+    I documenti multipli devono essere separati da '---'.
+    Restituisce una lista di strutture di composizione.
     """
-    print(f"Caricamento partitura dal file: {file_path}")
+    print(f"Caricamento partiture dal file multi-documento: {file_path}")
+    composizioni = []
     try:
         with open(file_path, 'r') as f:
-            composition = yaml.safe_load(f)
-        if not isinstance(composition, list):
-            print("ERRORE: Il file YAML deve contenere una lista di sezioni.")
-            sys.exit(1)
-        print("✓ Partitura caricata con successo.")
-        return composition
+            # safe_load_all restituisce un generatore, lo convertiamo in lista
+            docs = list(yaml.safe_load_all(f))
+        
+        if not docs or all(d is None for d in docs):
+             print(f"ERRORE: Il file YAML '{file_path}' è vuoto o non contiene documenti validi.")
+             sys.exit(1)
+
+        for i, composition in enumerate(docs):
+            if composition is None: continue # Salta documenti vuoti (es. solo '---')
+            
+            if not isinstance(composition, list):
+                print(f"ERRORE nel documento #{i+1} del file YAML: deve contenere una lista di sezioni.")
+                sys.exit(1)
+            composizioni.append(composition)
+
+        print(f"✓ Trovati e caricati {len(composizioni)} documenti di composizione.")
+        return composizioni
     except FileNotFoundError:
         print(f"ERRORE CRITICO: File della partitura non trovato: '{file_path}'")
         sys.exit(1)
     except yaml.YAMLError as e:
         print(f"ERRORE CRITICO: Errore nella sintassi del file YAML: {e}")
-        sys.exit(1)        
+        sys.exit(1)
 
 class TimeScheduler:
     """Genera sequenze temporali (onsets) basate su diversi modelli."""
@@ -1310,11 +1324,7 @@ class CompositionDebugger:
 if __name__ == "__main__":
     # ===================================================================
     # FLAG DI CONTROLLO: Decidi se lanciare Csound dopo la generazione.
-    # Imposta su True per renderizzare automaticamente il file audio.
-    # Imposta su False per generare solo il file .csd e il grafico.
     RENDER_AUTOMATICAMENTE = True
-    # Imposta su True per aprire il file .wav al termine del rendering.
-    # Funziona solo se RENDER_AUTOMATICAMENTE è True.
     APRI_FILE_DOPO_RENDER = True
     # ===================================================================
     # 1. Controllo degli argomenti
@@ -1326,73 +1336,96 @@ if __name__ == "__main__":
     yaml_file_path = sys.argv[1]
     
     # 2. Carica la partitura dal file YAML
-    composition_structure = load_composition_from_yaml(yaml_file_path)
+    all_composition_structures = load_all_compositions_from_yaml(yaml_file_path)
     
-    # Deriva il nome della composizione dal nome del file
-    composition_name = Path(yaml_file_path).stem
-    
-    # 3. Inizializza il compositore e il debugger
-    composer = GenerativeComposer()
-    debugger = CompositionDebugger(composer.output_path)
-    
-    # 4. Genera la sequenza di eventi
-    event_sequence, all_onsets, onsets_by_section = composer.process_composition(composition_structure)
-    csd_file_path = None
-    wav_file_path = None # Inizializza anche il percorso del wav
-    
-    if event_sequence:
-        # 5. Visualizza la sequenza
-        debugger.plot_piano_roll(event_sequence, all_onsets, composition_name, composition_structure, composer, onsets_by_section)
-        # 6. Genera il file CSD finale
-        csd_file_path, wav_file_path = composer.generate_csd(composition_name, event_sequence)
-    else:
-        print("\nERRORE: Nessun evento generato. Controlla la configurazione della composizione.")
+    base_composition_name = Path(yaml_file_path).stem
+    csound_processes = [] # Lista per tenere traccia dei processi Csound lanciati
+    generated_files = []  # Lista per tenere traccia dei file generati per l'apertura
 
-    # 7. ESECUZIONE AUTOMATICA DI CSOUND
-    if RENDER_AUTOMATICAMENTE and csd_file_path:
-        print("\n--- AVVIO RENDERING CON CSOUND ---")
-        # Definisci il percorso del file di log all'interno della directory di output
-        log_file_path = composer.output_path / "csound_render.log"
-        print(f"L'output di Csound verrà reindirizzato su: {log_file_path}")
-        try:
 
-            # Apri il file di log in modalità scrittura ('w').
-            # Il blocco 'with' garantisce che il file venga chiuso correttamente
-            # anche se si verificano errori.
-            with open(log_file_path, 'w') as log_file:
-                command = ['csound', str(csd_file_path)]
-                
-                # Esegui il comando, reindirizzando stdout e stderr al nostro file di log.
-                # check=True farà comunque sollevare un'eccezione se Csound restituisce un codice di errore.
-                result = subprocess.run(
-                    command, 
-                    stdout=log_file, 
-                    stderr=log_file, 
-                    check=True,
-                    text=True # Assicura che l'output sia scritto come testo
-                )
-            print("\n✓ Rendering Csound completato con successo.")
+    # 2. Loop principale: processa ogni composizione trovata nel file
+    for i, composition_structure in enumerate(all_composition_structures):
+        
+        # Genera un nome unico per questa parte della composizione
+        part_name = f"{base_composition_name}_part_{i+1}"
+        print(f"\n{'='*80}")
+        print(f"INIZIO ELABORAZIONE: '{part_name}' (Documento {i+1}/{len(all_composition_structures)})")
+        print(f"{'='*80}")
 
-            # Logica per aprire il file
-            if APRI_FILE_DOPO_RENDER and wav_file_path:
-                print(f"Apertura del file audio generato: {wav_file_path}")
+        # 3. Inizializza un NUOVO compositore e debugger per ogni parte
+        #    Questo è FONDAMENTALE per resettare lo stato (contatori, tabelle, etc.)
+        composer = GenerativeComposer()
+        debugger = CompositionDebugger(composer.output_path)
+        
+        # 4. Genera la sequenza di eventi per la parte corrente
+        event_sequence, all_onsets, onsets_by_section = composer.process_composition(composition_structure)
+        
+        csd_file_path = None
+        wav_file_path = None
+        
+        if not event_sequence:
+            print(f"\nATTENZIONE: Nessun evento generato per '{part_name}'. Salto questa parte.")
+            continue
+
+        # 5. Visualizza e genera il CSD per la parte corrente
+        debugger.plot_piano_roll(event_sequence, all_onsets, part_name, composition_structure, composer, onsets_by_section)
+        csd_file_path, wav_file_path = composer.generate_csd(part_name, event_sequence)
+        
+        if wav_file_path:
+             generated_files.append(wav_file_path)
+
+        # 6. LANCIO PARALLELO: Esegui Csound se richiesto
+        if RENDER_AUTOMATICAMENTE and csd_file_path:
+            print(f"\n--- AVVIO RENDERING IN BACKGROUND PER '{part_name}' ---")
+            
+            # Ogni processo deve avere il suo file di log per evitare output confusi
+            log_file_path = composer.output_path / f"csound_render_{part_name}.log"
+            print(f"L'output di Csound per questa parte verrà reindirizzato su: {log_file_path}")
+            
+            try:
+                with open(log_file_path, 'w') as log_file:
+                    command = ['csound', str(csd_file_path)]
+                    
+                    # Usa Popen invece di run per lanciare il processo e non aspettare
+                    process = subprocess.Popen(
+                        command, 
+                        stdout=log_file, 
+                        stderr=log_file
+                    )
+                    csound_processes.append((process, part_name)) # Salva il processo e il suo nome
+
+            except FileNotFoundError:
+                print("\nERRORE CRITICO: Comando 'csound' non trovato. Interruzione.")
+                sys.exit(1)
+            except Exception as e:
+                print(f"\nERRORE durante il lancio del processo per '{part_name}': {e}")
+
+    # 7. ATTESA FINALE: Aspetta che tutti i processi Csound terminino
+    if RENDER_AUTOMATICAMENTE and csound_processes:
+        print(f"\n{'='*80}")
+        print(f"AVVIATI {len(csound_processes)} PROCESSI DI RENDERING. IN ATTESA DEL COMPLETAMENTO...")
+        print(f"{'='*80}\n")
+        
+        for process, name in csound_processes:
+            process.wait() # Aspetta la fine di questo specifico processo
+            if process.returncode == 0:
+                print(f"✓ Rendering per '{name}' completato con successo.")
+            else:
+                print(f"✗ ERRORE: Il rendering per '{name}' è fallito (codice: {process.returncode}). Controlla il file di log.")
+        
+        print("\n--- TUTTI I RENDERING SONO TERMINATI ---")
+
+        # 8. Apertura dei file generati (dopo che tutto è finito)
+        if APRI_FILE_DOPO_RENDER and generated_files:
+            print("\nApertura dei file audio generati...")
+            for wav_path in generated_files:
                 try:
-                    if not wav_file_path.exists():
-                        print(f"ATTENZIONE: File .wav non trovato a '{wav_file_path}'. Impossibile aprirlo.")
+                    if not wav_path.exists():
+                        print(f"ATTENZIONE: File .wav non trovato a '{wav_path}'. Impossibile aprirlo.")
                     else:
-                        open_command = ['open', str(wav_file_path)]
-                        subprocess.run(open_command, check=True)
+                        print(f" > Apertura di: {wav_path.name}")
+                        # 'open' su macOS/Linux, 'start' su Windows
+                        open_command = 'open' if sys.platform == 'darwin' else 'xdg-open' if sys.platform.startswith('linux') else 'start'
+                        subprocess.run([open_command, str(wav_path)], check=True)
                 except Exception as e:
-                    print(f"\nERRORE: Impossibile aprire il file audio.")
-                    print(f"Dettagli: {e}")
-                    print("Questo comando funziona solo su macOS.")
-
-        except FileNotFoundError:
-            print("\nERRORE CRITICO: Comando 'csound' non trovato.")
-            print("Assicurati che Csound sia installato e che il suo eseguibile sia nel PATH di sistema.")
-        except subprocess.CalledProcessError:
-            print("\nERRORE: Csound ha terminato con un errore durante il rendering.")
-    elif csd_file_path:
-        # Se il rendering non è automatico, stampa il comando come prima
-        print(f"\nPer renderizzare manualmente, esegui:")
-        print(f"  csound \"{csd_file_path}\"")
+                    print(f"ERRORE durante l'apertura di {wav_path}: {e}")
