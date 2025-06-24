@@ -690,12 +690,6 @@ class GenerativeComposer:
                             }
                             self.next_table_id += 2
                                 # Ora leggiamo il leeway dal layer, con un default di 0.0
-                        base_total_duration = params['durata_totale']                        
-                        layer_leeway = layer.get('leeway_fine_layer', 0.0)
-                        leeway_bonus = random.uniform(0.0, layer_leeway) if layer_leeway > 0 else 0.0
-                        desired_total_duration = base_total_duration + leeway_bonus
-                        layer_end_time_with_leeway = layer_start_time_abs + layer_duration_abs + layer_leeway
-                        available_duration = max(0.0, layer_end_time_with_leeway - absolute_onset_time)
 
                         # 1. Calcola il tempo di inizio REALE dell'evento, INCLUSO il jitter
                         jitter_scale = params.get('onset_jitter', 0.05)
@@ -1330,6 +1324,53 @@ class CompositionDebugger:
         print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
 
 
+def generate_silent_wav(output_wav_path, duration):
+    """
+    Genera un file WAV di silenzio digitale della durata specificata usando Csound.
+    """
+    # Assicurati che la directory di output esista
+    output_wav_path.parent.mkdir(exist_ok=True, parents=True)
+
+    # Il CSD più semplice possibile per creare un file di una certa durata
+    csd_content = f"""
+<CsoundSynthesizer>
+<CsOptions>
+-o "{output_wav_path}" -W -d
+</CsOptions>
+<CsInstruments>
+sr = 96000
+ksmps = 32
+nchnls = 2
+0dbfs = 1
+</CsInstruments>
+<CsScore>
+f 0 {duration} ; Imposta la durata totale del file
+e
+</CsScore>
+</CsoundSynthesizer>
+"""
+    # Usa un percorso temporaneo per il file CSD
+    temp_csd_path = output_wav_path.parent / f"__{output_wav_path.stem}_silent_gen.csd"
+    try:
+        with open(temp_csd_path, 'w') as f:
+            f.write(csd_content)
+        
+        # Esegui Csound in modo sincrono. Per un'operazione così breve non serve il Popen.
+        subprocess.run(['csound', str(temp_csd_path)], check=True, capture_output=True)
+        print(f"   ✓ Generato WAV silenzioso di {duration:.2f}s: {output_wav_path.name}")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"   ✗ ERRORE: Creazione del WAV silenzioso per '{output_wav_path.name}' fallita.")
+        print(e.stderr)
+        return False
+    except Exception as e:
+        print(f"   ✗ ERRORE INATTESO durante la generazione del WAV silenzioso: {e}")
+        return False
+    finally:
+        # Pulisci il file CSD temporaneo
+        if temp_csd_path.exists():
+            temp_csd_path.unlink()
+
 if __name__ == "__main__":
     # ===================================================================
     RENDER_AUTOMATICAMENTE = True
@@ -1347,18 +1388,16 @@ if __name__ == "__main__":
     csound_processes = []
     assembly_data = []
 
-    # --- DATI AGGREGATI PER IL PLOT COMPLETO ---
+    # Dati aggregati per il plot completo
     full_composition_events = []
     full_composition_structures = []
     full_composition_onsets_by_section = []
     full_composition_onsets_flat = []
 
-    # --- NUOVA LOGICA: Rilevamento del "Veteran Mode" ---
+    # Rilevamento "Veteran Mode"
     veteran_mode_active = False
     parts_to_process_indices = []
     for i, comp_struct in enumerate(all_composition_structures):
-        # Il flag deve essere a livello di documento, quindi lo cerchiamo
-        # nel primo dizionario della lista di sezioni.
         if comp_struct and isinstance(comp_struct[0], dict) and comp_struct[0].get('veteranMode', False):
             veteran_mode_active = True
             parts_to_process_indices.append(i)
@@ -1367,23 +1406,39 @@ if __name__ == "__main__":
         print("\n" + "="*30 + " M O D A L I T À   V E T E R A N   A T T I V A " + "="*30)
         print("Verranno ricalcolate solo le parti con 'veteranMode: true'. Le altre verranno riutilizzate.")
     else:
-        # Se non siamo in veteran mode, dobbiamo processare tutti gli indici
         parts_to_process_indices = list(range(len(all_composition_structures)))
 
     print("\n--- FASE 1: Analisi Parti, Generazione CSD e Grafici Individuali ---")
     current_onset_time = 0.0
 
-    # 1. LOOP DI ANALISI E GENERAZIONE (SEQUENZIALE)
+    # 1. LOOP DI ANALISI E GENERAZIONE (SEQUENZIALE) - LOGICA RISTRUTTURATA
     for i, composition_structure in enumerate(all_composition_structures):
         part_name = f"{base_composition_name}_part_{i+1}"
         wav_path_for_part = Path("composizioni_generate") / "wav" / f"{part_name}.wav"
+        
+        duration_for_next_onset = 0.0
 
-        part_duration_for_next_onset = 0
+        # Calcola sempre la durata strutturale, ci servirà come fallback
+        structural_duration = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in composition_structure)
+        print(f'for {part_name} abbiamo durata {structural_duration}\n')
 
-        # Calcola la durata strutturale di questa parte per far avanzare l'onset
-        #part_duration = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in composition_structure)
-        # DECIDI SE PROCESSARE O SALTARE
-        if i in parts_to_process_indices:
+        # Determina se la parte è silenziosa
+        is_silent_part = all(section.get('num_attivazioni', -1) == 0 for section in composition_structure) if composition_structure else False
+
+        # Determina se la parte deve essere processata o skippata
+        should_process = i in parts_to_process_indices
+        
+        # --- LOGICA DECISIONALE CHIARA ---
+        
+        if is_silent_part:
+            print(f"\n{'='*80}")
+            print(f"RILEVATA PARTE SILENZIOSA: '{part_name}' (Pausa di {structural_duration:.2f}s)")
+            print(f"{'='*80}")
+            if RENDER_AUTOMATICAMENTE:
+                generate_silent_wav(wav_path_for_part, structural_duration)
+            duration_for_next_onset = structural_duration
+
+        elif should_process:
             print(f"\n{'='*80}")
             print(f"ELABORAZIONE PARTE: '{part_name}' (Onset programmato: {current_onset_time:.2f}s)")
             print(f"{'='*80}")
@@ -1391,23 +1446,20 @@ if __name__ == "__main__":
             composer = GenerativeComposer()
             debugger = CompositionDebugger(composer.output_path)
         
-            # 'part_duration' viene restituito da process_composition
             event_sequence, all_onsets, onsets_by_section, precise_part_duration = composer.process_composition(composition_structure)
-            part_duration_for_next_onset = precise_part_duration
             
             if not event_sequence:
-                print(f"ATTENZIONE: Nessun evento generato per '{part_name}'. Salto.")
-                continue
+                print(f"ATTENZIONE: Nessun evento generato per '{part_name}'. La parte avrà durata 0.")
+                duration_for_next_onset = 0.0
             else:
-                # PLOT DELLA SINGOLA PARTE
+                duration_for_next_onset = precise_part_duration
                 debugger.plot_piano_roll(event_sequence, all_onsets, part_name, composition_structure, composer, onsets_by_section)
-            
                 csd_file_path, _ = composer.generate_csd(part_name, event_sequence)
             
-                # AGGREGAZIONE DATI PER PLOT COMPLETO (con tempi corretti)
+                # Aggregazione dati per il plot completo
                 for event in event_sequence:
                     event['time'] += current_onset_time
-                    full_composition_events.append(event)
+                full_composition_events.extend(event_sequence)
                 for onset in all_onsets:
                     full_composition_onsets_flat.append(onset + current_onset_time)
                 full_composition_structures.extend(composition_structure)
@@ -1416,57 +1468,58 @@ if __name__ == "__main__":
                         layer_onset_data['onsets'] = [t + current_onset_time for t in layer_onset_data['onsets']]
                     full_composition_onsets_by_section.append(section_data)
                 
-                # AGGIUNTA ALLA CODA DI RENDERING PARALLELO
+                # Aggiunta alla coda di rendering
                 if RENDER_AUTOMATICAMENTE:
                     log_file_path = csd_file_path.parent / f"csound_render_{part_name}.log"
                     print(f" > Aggiunto '{part_name}' alla coda di rendering parallelo.")
                     try:
                         log_file = open(log_file_path, 'w')
                         process = subprocess.Popen(['csound', str(csd_file_path)], stdout=log_file, stderr=log_file)
-                        # Salva una tupla, che verrà spacchettata dopo
                         csound_processes.append((process, part_name, log_file))
                     except Exception as e:
                         print(f"ERRORE nel lanciare Csound per {part_name}: {e}")
-        else:
+        else: # La parte non è silenziosa e non deve essere processata (skip in veteran mode)
             print(f"\n- SKIP PARTE: '{part_name}' (Onset: {current_onset_time:.2f}s). Uso WAV esistente.")
-            part_duration_for_next_onset = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in composition_structure)
-
-        # --- CORREZIONE: Aggiungi i dati all'assemblaggio QUI, UNA SOLA VOLTA ---
+            # La durata della parte skippata è quella strutturale
+            composer = GenerativeComposer()
+            debugger = CompositionDebugger(composer.output_path)
+            _, _, _, precise_part_duration = composer.process_composition(composition_structure)
+            duration_for_next_onset = precise_part_duration
+        
+        # Aggiungi i dati per l'assemblaggio con l'onset attuale (PRIMA dell'incremento)
         assembly_data.append({'wav_path': wav_path_for_part, 'onset': current_onset_time})
         
-        # --- CORREZIONE: Aggiorna l'onset per la parte successiva QUI ---
-        current_onset_time += part_duration_for_next_onset
+        # Aggiorna l'orologio globale per la *prossima* parte.
+        print(f"   > Durata di questa parte: {duration_for_next_onset:.2f}s. Prossimo onset sarà a: {current_onset_time + duration_for_next_onset:.2f}s")
+        current_onset_time += duration_for_next_onset
 
-    # 2. FASE DI ATTESA PARALLELA (CORRETTA)
+
+    # Il resto del codice da qui in poi è corretto e non necessita modifiche.
+    
+    # 2. FASE DI ATTESA PARALLELA
     if RENDER_AUTOMATICAMENTE and csound_processes:
         print("\n--- FASE 2: Attesa Completamento Rendering Paralleli ---")
         success = True
-        
-        # Spacchetta la tupla direttamente qui per un codice pulito e corretto
         for process, name, log_file in csound_processes:
             print(f" > In attesa di '{name}'...")
-            process.wait()  # Aspetta che questo processo specifico finisca
-            log_file.close() # Chiudi il file di log associato
-            
+            process.wait()
+            log_file.close()
             if process.returncode == 0:
                 print(f"   ✓ '{name}' completato con successo.")
             else:
                 print(f"   ✗ ERRORE: Rendering di '{name}' fallito (codice: {process.returncode}). Controlla il log.")
                 success = False
-        
         if not success:
             print("\nCi sono stati errori nei rendering. Assemblaggio finale annullato.")
             sys.exit(1)
 
+    # 3. PLOT FINALE COMPLETO
     if not veteran_mode_active and full_composition_events:
-        # 3. PLOT FINALE COMPLETO
+        print("\n--- FASE 3: Generazione Grafico Completo della Composizione ---")
         if full_composition_events:
-            print("\n--- FASE 3: Generazione Grafico Completo della Composizione ---")
-            # Usa un'istanza "fresca" per evitare conflitti di stato (es. contatori)
             final_composer = GenerativeComposer()
             final_debugger = CompositionDebugger(final_composer.output_path)
             final_title = f"Visualizzazione Completa: '{base_composition_name}'"
-            
             final_debugger.plot_piano_roll(
                 full_composition_events,
                 full_composition_onsets_flat,
@@ -1479,19 +1532,17 @@ if __name__ == "__main__":
     elif veteran_mode_active:
         print("\n--- FASE 3: Generazione Grafico Completo saltata (Veteran Mode attivo) ---")
 
-    # 4. FASE DI ASSEMBLAGGIO FINALE (Usa il tuo CSD intelligente)
+    # 4. FASE DI ASSEMBLAGGIO FINALE
     if assembly_data:
         print("\n--- FASE 4: Assemblaggio Finale ---")
         score_lines = ""
-        # Il tuo CSD non ha bisogno di una durata, quindi la linea è più semplice
         for part in assembly_data:
-            score_lines += f'i "orchestrator" 0 [8*60] {part["onset"]:.4f} "{part["wav_path"]}"\n'
+            score_lines += f'i "orchestrator" {part["onset"]:.4f} [60*8-{part["onset"]:.4f}] "{part["wav_path"]}"\n'
 
         output_dir = Path("composizioni_generate")
         assembler_csd_path = output_dir / f"{base_composition_name}_assembler.csd"
         final_wav_path = output_dir / "wav" / f"{base_composition_name}_complete.wav"
 
-        # Il tuo template CSD
         template = """
 <CsoundSynthesizer>
 <CsOptions>
@@ -1503,10 +1554,10 @@ ksmps=32
 nchnls=2
 0dbfs=1
 instr orchestrator
-    i_atk = p4
-    S_file strget p5
+    S_file strget p4
     i_dur filelen S_file
-    schedule "playFile", i_atk, i_dur, S_file
+    prints "i_dur: %f\\tfor %s\\n",i_dur, S_file
+    schedule "playFile", 0, i_dur, S_file
 endin
 instr playFile
     a_L, a_R diskin2 p4, 1
@@ -1524,20 +1575,26 @@ e
 
         print(f"✓ CSD di assemblaggio creato: {assembler_csd_path}")
         print("--- Avvio rendering di assemblaggio... ---")
+
+        log_file_path = output_dir / f"csound_render_{base_composition_name}_assembler.log"
+        log_file = None
         try:
-            subprocess.run(['csound', str(assembler_csd_path)], check=True, capture_output=True, text=True)
-            print(f"\n✓✓✓ COMPOSIZIONE FINALE COMPLETATA: {final_wav_path} ✓✓✓")
-            if APRI_FILE_DOPO_RENDER:
-                print("Apertura del file audio completo...")
-                open_command = 'open' if sys.platform == 'darwin' else 'xdg-open' if sys.platform.startswith('linux') else 'start'
-                subprocess.run([open_command, str(final_wav_path)], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"ERRORE CRITICO durante l'assemblaggio. Controlla il log.")
-            print(f"Output di Csound:\n{e.stderr}")
-
-
-
-
-
-
+            log_file = open(log_file_path, 'w')
+            print(f"   (Log di rendering verrà salvato in: {log_file_path})")
+            process = subprocess.Popen(['csound', str(assembler_csd_path)], stdout=log_file, stderr=log_file)
+            process.wait()
+            if process.returncode == 0:
+                print(f"\n✓✓✓ COMPOSIZIONE FINALE COMPLETATA: {final_wav_path} ✓✓✓")
+                if APRI_FILE_DOPO_RENDER:
+                    print("Apertura del file audio completo...")
+                    open_command = 'open' if sys.platform == 'darwin' else 'xdg-open' if sys.platform.startswith('linux') else 'start'
+                    subprocess.run([open_command, str(final_wav_path)], check=True)
+            else:
+                print(f"\n✗ ERRORE CRITICO durante l'assemblaggio (codice: {process.returncode}).")
+                print(f"   Per i dettagli, consultare il file di log: {log_file_path}")
+        except Exception as e:
+            print(f"ERRORE INATTESO durante l'esecuzione dell'assemblaggio: {e}")
+        finally:
+            if log_file:
+                log_file.close()
 

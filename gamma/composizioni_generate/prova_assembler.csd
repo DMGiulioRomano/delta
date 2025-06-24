@@ -9,10 +9,10 @@ ksmps=32
 nchnls=2
 0dbfs=1
 instr orchestrator
-    i_atk = p4
-    S_file strget p5
+    S_file strget p4
     i_dur filelen S_file
-    schedule "playFile", i_atk, i_dur, S_file
+    prints "i_dur: %f\tfor %s\n",i_dur, S_file
+    schedule "playFile", 0, i_dur, S_file
 endin
 instr playFile
     a_L, a_R diskin2 p4, 1
@@ -20,10 +20,12 @@ instr playFile
 endin
 </CsInstruments>
 <CsScore>
-i "orchestrator" 0 [8*60] 0.0000 "composizioni_generate/wav/prova_part_1.wav"
-i "orchestrator" 0 [8*60] 115.6872 "composizioni_generate/wav/prova_part_3.wav"
-i "orchestrator" 0 [8*60] 187.6872 "composizioni_generate/wav/prova_part_5.wav"
-i "orchestrator" 0 [8*60] 227.6872 "composizioni_generate/wav/prova_part_6.wav"
+i "orchestrator" 0.0000 [60*8-0.0000] "composizioni_generate/wav/prova_part_1.wav"
+i "orchestrator" 117.0000 [60*8-117.0000] "composizioni_generate/wav/prova_part_2.wav"
+i "orchestrator" 118.0000 [60*8-118.0000] "composizioni_generate/wav/prova_part_3.wav"
+i "orchestrator" 184.5572 [60*8-184.5572] "composizioni_generate/wav/prova_part_4.wav"
+i "orchestrator" 184.5572 [60*8-184.5572] "composizioni_generate/wav/prova_part_5.wav"
+i "orchestrator" 234.5572 [60*8-234.5572] "composizioni_generate/wav/prova_part_6.wav"
 
 e
 </CsScore>

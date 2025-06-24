@@ -91,4 +91,4 @@ section_envelopes:
     size: 4096
     gen_routine: 6
     # Sale a 1 a metà, poi scende a 0
-    parameters: [0, 256, 1, 2304, 0.001]
+    parameters: [1, 4096, 0.001]
