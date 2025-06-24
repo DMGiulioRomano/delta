@@ -87,7 +87,7 @@ section_envelopes:
     parameters: [0, 2048, 1, 2048, 0]
 
   impulso:
-    number: 24
+    number: 25
     size: 4096
     gen_routine: 6
     # Sale a 1 a metà, poi scende a 0

@@ -1353,10 +1353,9 @@ e
     temp_csd_path = output_wav_path.parent / f"__{output_wav_path.stem}_silent_gen.csd"
     try:
         with open(temp_csd_path, 'w') as f:
-            f.write(csd_content)
-        
-        # Esegui Csound in modo sincrono. Per un'operazione così breve non serve il Popen.
-        subprocess.run(['csound', str(temp_csd_path)], check=True, capture_output=True)
+            f.write(csd_content)        
+        # Dentro generate_silent_wav
+        subprocess.run(['csound', '--format=float', str(temp_csd_path)], check=True, capture_output=True)
         print(f"   ✓ Generato WAV silenzioso di {duration:.2f}s: {output_wav_path.name}")
         return True
     except subprocess.CalledProcessError as e:
@@ -1474,7 +1473,7 @@ if __name__ == "__main__":
                     print(f" > Aggiunto '{part_name}' alla coda di rendering parallelo.")
                     try:
                         log_file = open(log_file_path, 'w')
-                        process = subprocess.Popen(['csound', str(csd_file_path)], stdout=log_file, stderr=log_file)
+                        process = subprocess.Popen(['csound', '--format=float', str(csd_file_path)], stdout=log_file, stderr=log_file)
                         csound_processes.append((process, part_name, log_file))
                     except Exception as e:
                         print(f"ERRORE nel lanciare Csound per {part_name}: {e}")
@@ -1581,7 +1580,7 @@ e
         try:
             log_file = open(log_file_path, 'w')
             print(f"   (Log di rendering verrà salvato in: {log_file_path})")
-            process = subprocess.Popen(['csound', str(assembler_csd_path)], stdout=log_file, stderr=log_file)
+            process = subprocess.Popen(['csound', '--format=float', str(assembler_csd_path)], stdout=log_file, stderr=log_file)
             process.wait()
             if process.returncode == 0:
                 print(f"\n✓✓✓ COMPOSIZIONE FINALE COMPLETATA: {final_wav_path} ✓✓✓")

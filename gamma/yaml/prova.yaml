@@ -66,7 +66,6 @@
 ---
 
 -   nome_sezione: "Pausa"
-    #veteranMode: true 
     durata: 1
     num_attivazioni: 0
 
@@ -131,6 +130,35 @@
             durata_armonica:  {range: [70, 90]}
             densita_cluster:  {range: [1, 7]}
             offset_registro: { range: [-10, 10] }
+      - nome_layer: "Scintillii Acuti e Stocastici"
+        leeway_fine_layer: 30     
+        usa_safety_buffer: false            
+        num_attivazioni: 5
+        lifespan: [.8,1]
+        timing_model: { type: "stochastic" }
+        stato_iniziale:
+            moltiplicatore_durata: 
+                choices: [3.0, 2.0, 4.0]
+            ottava: { range: [7, 8] }
+            registro: { mean: 25, std: 10 }
+            dinamica: 'ppp'
+            durata_armonica: { range: [0.2, 0.8] }
+            nonlinear_mode: { choices: [3] }
+            onset_jitter: { range: [0.0, 0.1] }
+            tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.2, 0.8]}
+            densita_cluster: { range: [1, 6] }
+            inviluppo_attacco: 'impulsivo'
+        stato_finale:
+            moltiplicatore_durata:
+                choices: [1.0, 2.0, 1.0]
+            ottava: { range: [8, 9] }
+            registro: { mean: 25, std: 2 }
+            dinamica: 'p'
+            durata_armonica: { range: [0.2, 0.8] }
+            nonlinear_mode: { choices: [3] }
+            onset_jitter: { range: [0.4, 0.1] }
+            tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.8, 0.2]}
+            densita_cluster: { range: [5, 10] }
             
 ...
 ---
@@ -170,11 +198,41 @@
             offset_registro: { range: [-40, 40] }
             durata_armonica:  {range: [10, 20]}
             densita_cluster:  {range: [1, 7]}
+      - nome_layer: "Scintillii Acuti e Stocastici"
+        leeway_fine_layer: 30     
+        usa_safety_buffer: false            
+        num_attivazioni: 10
+        lifespan: [0,.6]
+        timing_model: { type: "stochastic" }
+        stato_iniziale:
+            moltiplicatore_durata:
+                choices: [1.0, 2.0, 1.0]
+            ottava: { range: [8, 9] }
+            registro: { mean: 25, std: 2 }
+            dinamica: 'p'
+            durata_armonica: { range: [0.2, 0.8] }
+            nonlinear_mode: { choices: [3] }
+            onset_jitter: { range: [0.4, 1] }
+            tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.8, 0.2]}
+            densita_cluster: { range: [1, 10] }
+        stato_finale:            
+            moltiplicatore_durata: 
+                choices: [3.0, 2.0, 4.0]
+            ottava: { range: [7, 8] }
+            registro: { mean: 25, std: 10 }
+            dinamica: 'ppp'
+            durata_armonica: { range: [0.2, 0.8] }
+            nonlinear_mode: { choices: [3] }
+            onset_jitter: { range: [0.0, 0.1] }
+            tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.2, 0.8]}
+            densita_cluster: { range: [1, 6] }
+            inviluppo_attacco: 'impulsivo'
 
 ...
 ---
 
 -   nome_sezione: "IV. Spippoling"
+    veteranMode: true 
     durata: 140
     ratio_temporale: .75   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
     layers:
@@ -231,7 +289,7 @@
             nonlinear_mode:   {choices: [1, 0], weights: [0.4, 0.6]}
 
       - nome_layer: "Scintillii Acuti e Stocastici"
-        num_attivazioni: 0 #70
+        num_attivazioni: 70
         timing_model: { type: "stochastic" }
         stato_iniziale:
             ottava: { range: [5, 7] }
@@ -253,7 +311,7 @@
 
       - nome_layer: "momento angolare"
         lifespan: [0.3, 1]  # Attivo per tutta la durata della sezione
-        num_attivazioni: 0
+        num_attivazioni: 20
         timing_model:
             type: "ritardando"
             shape: 2.0
@@ -280,6 +338,7 @@
 -   nome_sezione: "Te rompo rculo"
     durata: 40
     ratio_temporale: 1
+    num_attivazioni: 0
     #inviluppo_sezione: 'impulso'
     layers:
       - nome_layer: "cluster"

@@ -21,11 +21,12 @@ endin
 </CsInstruments>
 <CsScore>
 i "orchestrator" 0.0000 [60*8-0.0000] "composizioni_generate/wav/prova_part_1.wav"
-i "orchestrator" 117.0000 [60*8-117.0000] "composizioni_generate/wav/prova_part_2.wav"
-i "orchestrator" 118.0000 [60*8-118.0000] "composizioni_generate/wav/prova_part_3.wav"
-i "orchestrator" 184.5572 [60*8-184.5572] "composizioni_generate/wav/prova_part_4.wav"
-i "orchestrator" 184.5572 [60*8-184.5572] "composizioni_generate/wav/prova_part_5.wav"
-i "orchestrator" 234.5572 [60*8-234.5572] "composizioni_generate/wav/prova_part_6.wav"
+i "orchestrator" 114.0417 [60*8-114.0417] "composizioni_generate/wav/prova_part_2.wav"
+i "orchestrator" 115.0417 [60*8-115.0417] "composizioni_generate/wav/prova_part_3.wav"
+i "orchestrator" 169.8484 [60*8-169.8484] "composizioni_generate/wav/prova_part_4.wav"
+i "orchestrator" 169.8484 [60*8-169.8484] "composizioni_generate/wav/prova_part_5.wav"
+i "orchestrator" 209.8484 [60*8-209.8484] "composizioni_generate/wav/prova_part_6.wav"
+i "orchestrator" 314.8484 [60*8-314.8484] "composizioni_generate/wav/prova_part_7.wav"
 
 e
 </CsScore>
