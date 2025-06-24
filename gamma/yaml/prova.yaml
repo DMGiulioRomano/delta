@@ -1,6 +1,7 @@
 -   nome_sezione: "I. Nascita Lenta di Cluster"
+    #veteranMode: true 
     durata: 140
-    ratio_temporale: .75   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
+    ratio_temporale: .8   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
     #inviluppo_sezione: 'sezioneI' # Nome del nuovo inviluppo globale
     layers:
       - nome_layer: "salita di gamma"
@@ -22,7 +23,7 @@
             nonlinear_mode:   {choices: [1, 0], weights: [0.8, 0.2]}
             inviluppo_attacco: 'lineare'
         stato_finale:
-            dinamica: 'ff'
+            dinamica: 'f'
             ottava:           {range: [3, 8],      interp_shape: 2.0}
             registro:         {range: [1, 20], distribution: "uniform"}
             durata_armonica:  {range: [15, 30]}
@@ -31,9 +32,9 @@
 
       - nome_layer: "scintillii"
         lifespan: [.8, 1]  # Attivo per tutta la durata della sezione
-        leeway_fine_layer: 10     
+        leeway_fine_layer: 20     
         usa_safety_buffer: false 
-        num_attivazioni: 40       
+        num_attivazioni: 50       
         timing_model:
             type: "stochastic"
         stato_iniziale:
@@ -58,13 +59,24 @@
             tipo_ritmi:
               explicit_values: [3, 2, 4, 5, 3, 2, 4, 1, 3, 2, 4]
 
+...
+---
+-   nome_sezione: "Pausa"
+    #veteranMode: true 
+    durata: 5
+    num_attivazioni: 0
+
+
+...
+---
+
 -   nome_sezione: "II. tutto il monco in festa"
     durata: 140
     ratio_temporale: .3   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
     inviluppo_sezione: 'continua' # Nome del nuovo inviluppo globale
     layers:
       - nome_layer: "scampanello"
-        solo: True
+        #solo: True
         lifespan: [0, 1]  # Attivo per tutta la durata della sezione
         num_attivazioni: 3      
         timing_model:
@@ -114,10 +126,16 @@
             durata_armonica:  {range: [70, 90]}
             densita_cluster:  {range: [1, 7]}
 
+...
+---
+
 -   nome_sezione: "Pausa"
-    durata: 40
+    #veteranMode: true 
+    durata: 50
     num_attivazioni: 0
 
+...
+---
 
 -   nome_sezione: "Te rompo rculo"
     durata: 40
@@ -130,7 +148,7 @@
         registro:         {range: [1, 50], distribution: "uniform"}
         dinamica: 'mf'
         durata_armonica:  {range: [5, 10]}
-        densita_cluster:  {range: [300, 400]}
+        densita_cluster:  {range: [100, 200]}
         tipo_ritmi:       {choices: ['medi', 'piccoli'], weights: [0.9, 0.1]}
         nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
     stato_finale:
@@ -142,13 +160,16 @@
         tipo_ritmi:       {choices: ['medi', 'misti'], weights: [0.2, 0.8]}
         nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
 
+...
+---
+
 
 -   nome_sezione: "IV. Spippoling"
     durata: 140
     ratio_temporale: .75   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
     layers:
       - nome_layer: "Scintillii Acuti e Stocastici"
-        num_attivazioni: 0 #120
+        num_attivazioni: 10
         timing_model: { type: "stochastic" }
         stato_iniziale:
             moltiplicatore_durata: 
