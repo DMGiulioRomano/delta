@@ -1,22 +1,7 @@
 #!/usr/bin/env python3
 """
-Generative Composer with Tendency Masks (v1.0)
+Generative Composer (v1.0)
 ===============================================
-Generatore di composizioni algoritmiche basato su maschere di tendenza.
-Questo script è autonomo e non richiede file CSV o database di suoni pre-calcolati.
-
-La composizione è definita da una serie di sezioni, ognuna con uno stato
-iniziale e finale. Questi stati non sono valori fissi, ma "maschere" che
-definiscono range, distribuzioni e pesi per la generazione stocastica
-dei parametri di ogni evento sonoro.
-
-Concetti chiave:
-- Maschere di Tendenza: Controllano il comportamento del generatore.
-- Generazione Dinamica: I parametri vengono creati al volo, non cercati.
-- Validazione Istantanea: Ogni set di parametri generato viene validato
-  per garantire che sia tecnicamente eseguibile da Csound.
-- Controllo Continuo: I parametri evolvono fluidamente tra lo stato
-  iniziale e finale di una sezione.
 """
 
 import numpy as np
@@ -30,19 +15,6 @@ import yaml
 import subprocess 
 import re
 import json
-# =============================================================================
-# DEFINIZIONE DELLA COMPOSIZIONE (IL CUORE DEL SISTEMA)
-# =============================================================================
-# NOTA: In futuro, questo dizionario potrebbe essere caricato da un file esterno
-#       (es. YAML) per separare la "partitura" dal "motore".
-
-COMPOSITION_NAME = "composizione_generativa_03"
-
-# Ogni maschera definisce come generare un parametro:
-# - 'range': [min, max] per una distribuzione uniforme.
-# - 'distribution': 'uniform' (default) o 'normal'.
-# - 'mean', 'std': Per la distribuzione normale.
-# - 'choices', 'weights': Per una scelta pesata da una lista.
 
 OTTAVE_RANGE = (0, 10)
 REGISTRI_RANGE = (1, 50)
@@ -570,7 +542,6 @@ class GenerativeComposer:
 
         return interp_mask
 
-
     def _process_layer(self, layer, layer_idx, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name):
         """
         Processa un singolo layer (reale o virtuale) e restituisce i suoi eventi e onsets.
@@ -732,7 +703,6 @@ class GenerativeComposer:
         print(f"     > Eventi 'voce' generati per questo layer: {len(layer_events)}")
         return layer_events, layer_onsets
 
-
     def process_composition(self, composition_structure):
         """
         Elabora l'intera struttura della composizione, gestendo sezioni
@@ -829,8 +799,6 @@ class GenerativeComposer:
 
         # RESTITUISCI LA DURATA CALCOLATA
         return full_sequence, all_onsets_flat, onsets_by_section, total_calculated_duration
-
-    # Dentro la classe GenerativeComposer
 
     def generate_csd(self, composition_name, events, csd_file_path, wav_file_path): # <<< PARAMETRI AGGIUNTI
         """Genera il file CSD finale dalla sequenza di eventi."""
@@ -1074,7 +1042,6 @@ class CompositionDebugger:
         ax.fill_between(times, data['lower'], data['upper'], color=color, alpha=0.2, zorder=1, label=label)
         self._labels_added.add(label_key)
 
-    # MODIFICA: La funzione ora accetta due assi per la dinamica
     def _plot_dynamics(self, ax_linear, ax_prob, times, dynamics_data, layer_color, layer_name):
         """
         Gestisce il plotting per la 'dinamica', scegliendo l'asse corretto.
@@ -1113,7 +1080,6 @@ class CompositionDebugger:
                     ax_linear.plot(valid_times, valid_dynamics, color=layer_color, linewidth=2.5, 
                                 label=f"Dinamica: {layer_name}", zorder=3, alpha=0.8)
 
-    # MODIFICA: La funzione ora accetta due assi per la dinamica
     def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section, page_duration_s):
         """
         RIFATTORIZZATA: Ora agisce come un orchestratore.
@@ -1166,12 +1132,12 @@ class CompositionDebugger:
                         partitura_mode=False, page_duration_s=60):
         """
         Crea un grafico. Se partitura_mode è True, lo spezza in un PDF multi-pagina.
+        MODIFICATA: Aggiunge marcatori verdi per l'inizio di ogni sezione.
         """
         print(f"\n--- Generazione Grafico {'(Modalità Partitura)' if partitura_mode else '(Pagina Singola)'}: '{composition_name}' ---")
         if not events:
             print("Nessun evento da visualizzare."); return
 
-        # 1. Calcoli preliminari validi per tutti i plot
         plot_data_list = []
         total_duration = 0
         max_durata_armonica = 0
@@ -1183,38 +1149,27 @@ class CompositionDebugger:
                 if (start + duration) > total_duration: total_duration = start + duration
                 if p['durata_armonica'] > max_durata_armonica: max_durata_armonica = p['durata_armonica']
         
-        # 2. Imposta il nome del file e apri il gestore di pagine PDF
         file_suffix = "_partitura.pdf" if partitura_mode else "_visual_A3.pdf"
         plot_filename = self.output_path / f"{composition_name}{file_suffix}"
         
         with PdfPages(plot_filename) as pdf:
-            # 3. Determina il numero di pagine
             num_pages = int(np.ceil(total_duration / page_duration_s)) if partitura_mode else 1
             if num_pages == 0: num_pages = 1
 
-            # 4. Ciclo principale per ogni pagina
             for i in range(num_pages):
-                current_page_duration = page_duration_s
-                if partitura_mode and i == num_pages - 1:
-                    current_page_duration = total_duration - (i * page_duration_s)
-
-                self._labels_added = set() # Resetta le etichette per ogni pagina
-
-                # 5. Crea la figura e gli assi per la pagina corrente
+                self._labels_added = set() 
                 A3_LANDSCAPE_WIDTH_INCHES = 420 / 25.4; A3_LANDSCAPE_HEIGHT_INCHES = 297 / 25.4
                 fig, (ax_pitch, ax_dyn_linear, ax_dyn_prob) = plt.subplots(
                     nrows=3, ncols=1, figsize=(A3_LANDSCAPE_WIDTH_INCHES, A3_LANDSCAPE_HEIGHT_INCHES), 
                     sharex=True, gridspec_kw={'height_ratios': [3, 1, 1]}
                 )
                 
-                # 6. Imposta titoli e limiti degli assi
                 page_title = title if not partitura_mode else f"{title} (Pagina {i+1}/{num_pages})"
                 fig.suptitle(page_title, fontsize=14)
                 
                 page_start_time = i * page_duration_s if partitura_mode else 0
                 page_end_time = (i + 1) * page_duration_s if partitura_mode else total_duration
                 
-                # Setup degli assi (identico per ogni pagina per coerenza)
                 ax_dur = ax_pitch.twinx()
                 ax_pitch.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1); ax_pitch.set_ylabel("Ottava.Registro"); ax_pitch.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2)); ax_pitch.tick_params(axis='x', labelbottom=False)
                 ax_dur.set_ylabel("Durata Armonica (s)", color='darkcyan'); ax_dur.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10); ax_dur.tick_params(axis='y', labelcolor='darkcyan')
@@ -1223,41 +1178,60 @@ class CompositionDebugger:
                 
                 ax_pitch.set_xlim(page_start_time, page_end_time)
 
-                # 7. Filtra e disegna i dati per la pagina corrente
-                # Eventi (note)
                 for item in plot_data_list:
                     if item['start'] < page_end_time and (item['start'] + item['duration']) > page_start_time:
                         ax_pitch.add_patch(plt.Rectangle((item['start'], item['pitch'] - 0.04), item['duration'], 0.08, color=plt.cm.viridis(item['amp_norm']), alpha=0.6, zorder=3))
-                # Onsets
                 page_onsets = [o for o in all_onsets if page_start_time <= o < page_end_time]
                 if page_onsets:
                     ax_pitch.vlines(page_onsets, ymin=OTTAVE_RANGE[0] - 1, ymax=OTTAVE_RANGE[1] + 1, color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.6, label='Attivazione')
                 
-
-                # Maschere di tendenza
+                current_page_duration = page_duration_s if not partitura_mode else (page_end_time - page_start_time)
                 self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section, current_page_duration)
 
-                # Linee di fine sezione
-                current_time = 0.0
+                # --- MODIFICA: Logica di calcolo e disegno dei marcatori di sezione ---
+                end_time_of_last_section = 0.0
                 for section in composition_structure:
-                    current_time += section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-                    if page_start_time <= current_time < page_end_time:
-                        ax_pitch.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=f"Fine: {section['nome_sezione']}")
-                        ax_dyn_linear.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2)
-                        ax_dyn_prob.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2)
+                    # Calcola i tempi di inizio e fine corretti per la sezione
+                    offset = section.get('offset_inizio', 0.0)
+                    section_start = max(0.0, end_time_of_last_section + offset)
+                    scaled_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+                    section_end = section_start + scaled_duration
+                    
+                    # Disegna la linea di INIZIO (verde) se è visibile in questa pagina
+                    if page_start_time <= section_start < page_end_time:
+                        label_text = f"Inizio: {section['nome_sezione']}" if 'inizio_'+section['nome_sezione'] not in self._labels_added else ""
+                        ax_pitch.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2, label=label_text)
+                        ax_dyn_linear.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2)
+                        ax_dyn_prob.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2)
+                        self._labels_added.add('inizio_'+section['nome_sezione'])
+                    
+                    # Disegna la linea di FINE (rossa) se è visibile in questa pagina
+                    if page_start_time <= section_end < page_end_time:
+                        label_text = f"Fine: {section['nome_sezione']}" if 'fine_'+section['nome_sezione'] not in self._labels_added else ""
+                        ax_pitch.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2, label=label_text)
+                        ax_dyn_linear.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2)
+                        ax_dyn_prob.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2)
+                        self._labels_added.add('fine_'+section['nome_sezione'])
+                        
+                    # Aggiorna il punto di riferimento per la prossima sezione
+                    end_time_of_last_section = section_end
+                # --- FINE MODIFICA ---
 
-                # 8. Gestisci la legenda e il layout
                 handles, labels = ax_pitch.get_legend_handles_labels()
                 handles_dur, labels_dur = ax_dur.get_legend_handles_labels()
                 handles_dyn_lin, labels_dyn_lin = ax_dyn_linear.get_legend_handles_labels()
                 handles_dyn_prob, labels_dyn_prob = ax_dyn_prob.get_legend_handles_labels()
-                fig.legend(handles + handles_dur + handles_dyn_lin + handles_dyn_prob, labels + labels_dur + labels_dyn_lin + labels_dyn_prob,
+                
+                all_handles = handles + handles_dur + handles_dyn_lin + handles_dyn_prob
+                all_labels = labels + labels_dur + labels_dyn_lin + labels_dyn_prob
+                
+                fig.legend(all_handles, all_labels,
                            loc='lower center', bbox_to_anchor=(0.5, -0.08), ncol=8, fontsize='x-small')
+
                 fig.tight_layout(rect=[0, 0.07, 1, 0.95])
                 
-                # 9. Salva la pagina nel file PDF
                 pdf.savefig(fig)
-                plt.close(fig) # Chiudi la figura per liberare memoria
+                plt.close(fig)
 
         print(f"✓ Grafico salvato in: {plot_filename}")
 
@@ -1307,7 +1281,6 @@ e
         if temp_csd_path.exists():
             temp_csd_path.unlink()
 
-
 def sanitize_filename(name):
     """Converte una stringa in un nome di file sicuro."""
     name = name.lower()
@@ -1327,8 +1300,6 @@ def run_csound_process(csd_path, process_name, log_dir):
         print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
         return None
 
-
-# --- FUNZIONI HELPER PER IL MAIN BLOCK ---
 def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, title="Assembler"):
     score_lines = ""
     for file_path, onset in input_files_with_onsets:
@@ -1337,7 +1308,7 @@ def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, t
         except ValueError:
             relative_path = file_path
 
-        score_lines += f'i "orchestrator" {onset:.4f} [60*8] "{relative_path}"\n'
+        score_lines += f'i "orchestrator" {onset:.4f} [60*8-{onset:.4f}] "{relative_path}"\n'
     template = f"""<CsoundSynthesizer>
 <CsOptions>
 -o "{output_wav_path}" -W -d -m0
@@ -1370,7 +1341,6 @@ e
 </CsoundSynthesizer>"""
     with open(csd_path, 'w') as f: f.write(template)
     return csd_path
-
 
 def run_csound_process(csd_path, process_name, log_dir):
     """
@@ -1572,8 +1542,6 @@ def execute_layer_rendering_and_collect_data(render_jobs, dirs, veteran_mode_act
 
     return plot_data
 
-# Sostituisci la vecchia funzione con questa versione completa
-
 def generate_composition_plot(plot_data, composition_structure, base_composition_name, output_dir,
                               veteran_mode_active,
                               partitura_mode=False, page_duration_s=60):
@@ -1745,7 +1713,6 @@ def execute_final_assembly(final_parts, base_composition_name, dirs, open_after_
                     print(f"ATTENZIONE: Impossibile aprire automaticamente il file audio: {e}")
         else:
              print(f"\n✗ ERRORE CRITICO durante l'assemblaggio finale. Controlla il log: {log_file.name}")
-
 
 if __name__ == "__main__":
     RENDER_AUTOMATICAMENTE = True
