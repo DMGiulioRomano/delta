@@ -6,7 +6,7 @@
       - nome_layer: "salita di gamma"
         #leeway_fine_layer: 10     
         lifespan: [0, 1]  # Attivo per tutta la durata della sezione
-        num_attivazioni: 20      
+        num_attivazioni: 2 #20      
         timing_model:
             type: "accelerando"
             shape: 2.0
@@ -33,7 +33,7 @@
         lifespan: [.8, 1]  # Attivo per tutta la durata della sezione
         leeway_fine_layer: 5 
         usa_safety_buffer: false 
-        num_attivazioni: 40       
+        num_attivazioni: 2 #40       
         timing_model:
             type: "stochastic"
         stato_iniziale:
@@ -81,7 +81,7 @@
       - nome_layer: "scampanello"
         #solo: True
         lifespan: [0, 1]  # Attivo per tutta la durata della sezione
-        num_attivazioni: 3      
+        num_attivazioni: 1 #3      
         timing_model:
             type: "ritardando"
             shape: 2.0
@@ -108,7 +108,7 @@
       - nome_layer: "solista"
         lifespan: [.3, 1]  # Attivo per tutta la durata della sezione
         #solo: True
-        num_attivazioni: 3   
+        num_attivazioni: 1 #3   
         leeway_fine_layer: 30     
         usa_safety_buffer: false            
         timing_model:
@@ -133,7 +133,7 @@
       - nome_layer: "Scintillii Acuti e Stocastici"
         leeway_fine_layer: 30     
         usa_safety_buffer: false            
-        num_attivazioni: 5
+        num_attivazioni: 1 #5
         lifespan: [.8,1]
         timing_model: { type: "stochastic" }
         stato_iniziale:
@@ -171,7 +171,7 @@
         #solo: True
         usa_safety_buffer: false 
         leeway_fine_layer: 10     
-        num_attivazioni: 8
+        num_attivazioni: 1 #8
         timing_model:
             type: "accelerando"
             shape: 2.0
@@ -195,7 +195,7 @@
       - nome_layer: "Scintillii Acuti e Stocastici"
         leeway_fine_layer: 30     
         usa_safety_buffer: false            
-        num_attivazioni: 10
+        num_attivazioni: 1 #10
         lifespan: [0,.6]
         timing_model: { type: "stochastic" }
         stato_iniziale:
@@ -239,7 +239,7 @@
     ratio_temporale: .75   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
     layers:
       - nome_layer: "Scintillii Acuti e Stocastici"
-        num_attivazioni: 120
+        num_attivazioni: 2 #120
         timing_model: { type: "stochastic" }
         stato_iniziale:
             moltiplicatore_durata: 
@@ -263,7 +263,7 @@
             nonlinear_mode: { choices: [3] }
             onset_jitter: { range: [0.4, 0.1] }
             tipo_ritmi:       {choices: ['piccoli', 'medi'], weights: [0.8, 0.2]}
-            densita_cluster: { range: [10, 60] }
+            densita_cluster: { range: [1, 6] } #{ range: [10, 60] }
       - nome_layer: "scampanello"
         lifespan: [0, .4]  # Attivo per tutta la durata della sezione
         num_attivazioni: 3      
@@ -274,7 +274,7 @@
             ottava:           {range: [0, 8]}
             registro:         {range: [1, 20]}
             durata_armonica:  {range: [30, 40]}
-            densita_cluster:  {range: [70, 100]} 
+            densita_cluster:  {range: [7, 10]}  #{range: [70, 100]} 
             onset_jitter: {range: [0.6, 2.6]}
             dinamica: 'mf'
             tipo_ritmi:
@@ -291,7 +291,7 @@
             nonlinear_mode:   {choices: [1, 0], weights: [0.4, 0.6]}
 
       - nome_layer: "Scintillii Acuti e Stocastici"
-        num_attivazioni: 70
+        num_attivazioni: 2 # 70
         timing_model: { type: "stochastic" }
         stato_iniziale:
             ottava: { range: [5, 7] }

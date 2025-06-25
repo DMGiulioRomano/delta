@@ -24,6 +24,7 @@ import random
 import sys
 from pathlib import Path
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 import yaml
 import subprocess 
@@ -976,37 +977,154 @@ e
 </CsoundSynthesizer>
 """
 
+
 class CompositionDebugger:
     """Utility per visualizzare la composizione generata."""
     def __init__(self, output_dir):
         self.output_path = Path(output_dir)
+        self._labels_added = set()
 
-    # VERSIONE FINALE CORRETTA - USA QUESTA
-    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn, composition_structure, composer, onsets_by_section):
+    def _calculate_plot_data_for_layer(self, layer, start_mask, end_mask, layer_onsets, time_ratio, composer):
         """
-        MODIFICATA: Disegna le maschere di tendenza per ottava e durata.
-        Disegna una linea di tendenza dinamica SEPARATA per ogni layer.
-        AGGIUNTO: Visualizza le maschere di probabilità (choices) per la dinamica come un grafico ad aree impilate.
+        Calcola i dati numerici per plottare le maschere di un layer.
         """
-        print("  > Visualizzo le maschere di tendenza (con dinamiche per-layer e probabilità)...")
-        section_start_time = 0.0
+        if not layer_onsets:
+            return None
 
+        first_onset_time = min(layer_onsets)
+        last_onset_time = max(layer_onsets)
+        plot_duration = last_onset_time - first_onset_time
+        if plot_duration < 0.1:
+            plot_duration = 0.1
+
+        num_samples = 100
+        times = np.linspace(first_onset_time, first_onset_time + plot_duration, num_samples)
+        
+        plot_data = {'times': times, 'ottava': None, 'durata': None, 'dinamica': None}
+        ottava_lower, ottava_upper = [], []
+        durata_lower, durata_upper = [], []
+        dynamics_line_trend, dynamics_prob_weights = [], []
+        
+        has_ottava = 'ottava' in start_mask
+        has_durata = 'durata_armonica' in start_mask
+        has_dinamica = 'dinamica' in start_mask
+        is_dynamic_choices = has_dinamica and 'choices' in start_mask.get('dinamica', {})
+
+        for p in np.linspace(0, 1, num_samples):
+            interp_mask = composer._interpolate_mask(start_mask, end_mask, p)
+            
+            if has_ottava:
+                mask = interp_mask.get('ottava', {})
+                lower, upper = OTTAVE_RANGE
+                if 'range' in mask: lower, upper = mask['range']
+                elif 'mean' in mask: lower, upper = mask['mean'] - mask['std'], mask['mean'] + mask['std']
+                ottava_lower.append(lower)
+                ottava_upper.append(upper)
+
+            if has_durata:
+                mask = interp_mask.get('durata_armonica', {})
+                lower, upper = (1, 1)
+                if 'range' in mask: lower, upper = [d * time_ratio for d in mask['range']]
+                elif 'mean' in mask: lower, upper = mask['mean'] - mask['std'], mask['mean'] + mask['std']
+                durata_lower.append(lower)
+                durata_upper.append(upper)
+            
+            if has_dinamica:
+                if is_dynamic_choices:
+                    weights = interp_mask.get('dinamica', {}).get('weights', [1 / len(start_mask['dinamica']['choices'])] * len(start_mask['dinamica']['choices']))
+                    dynamics_prob_weights.append(weights)
+                else:
+                    if 'dynamic_index' in interp_mask:
+                        dynamics_line_trend.append(interp_mask['dynamic_index'])
+                    elif 'value' in interp_mask.get('dinamica', {}):
+                        dyn_str = interp_mask['dinamica']['value']
+                        dynamics_line_trend.append(composer.dynamic_to_index.get(dyn_str, 3))
+                    else:
+                        dynamics_line_trend.append(np.nan)
+
+        if has_ottava:
+            plot_data['ottava'] = {'lower': ottava_lower, 'upper': ottava_upper}
+        if has_durata:
+            plot_data['durata'] = {'lower': durata_lower, 'upper': durata_upper}
+        if has_dinamica:
+            plot_data['dinamica'] = {
+                'is_probabilistic': is_dynamic_choices,
+                'line_trend': dynamics_line_trend,
+                'prob_weights': dynamics_prob_weights,
+                'choices': start_mask['dinamica'].get('choices', []) if is_dynamic_choices else []
+            }
+            
+        return plot_data
+
+    def _plot_parameter_envelope(self, ax, times, data, color, label_key, label_text):
+        """
+        Disegna una singola "busta" di tendenza (un fill_between).
+        """
+        if not data:
+            return
+            
+        label = label_text if label_key not in self._labels_added else ""
+        ax.fill_between(times, data['lower'], data['upper'], color=color, alpha=0.2, zorder=1, label=label)
+        self._labels_added.add(label_key)
+
+    # MODIFICA: La funzione ora accetta due assi per la dinamica
+    def _plot_dynamics(self, ax_linear, ax_prob, times, dynamics_data, layer_color, layer_name):
+        """
+        Gestisce il plotting per la 'dinamica', scegliendo l'asse corretto.
+        """
+        if not dynamics_data:
+            return
+
+        if dynamics_data['is_probabilistic']:
+            # Logica per lo stack plot (dinamica probabilistica) sull'asse `ax_prob`
+            if dynamics_data['prob_weights']:
+                weights_per_dynamic = np.array(dynamics_data['prob_weights']).T
+                dynamic_labels = dynamics_data['choices']
+                
+                stackplot_labels = [f"Prob. {label}" for label in dynamic_labels] if 'prob_stack' not in self._labels_added else ["" for _ in dynamic_labels]
+                cmap = plt.get_cmap('viridis')
+                stackplot_colors = cmap(np.linspace(0.1, 0.9, len(dynamic_labels)))
+                
+                # Applica le etichette all'asse `ax_prob`
+                if 'prob_axis' not in self._labels_added:
+                    ax_prob.set_ylabel("Prob. Dinamica")
+                    ax_prob.set_ylim(0, 1)
+                    ax_prob.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+                    ax_prob.set_yticklabels(['0%', '25%', '50%', '75%', '100%'])
+                    self._labels_added.add('prob_axis')
+                
+                ax_prob.stackplot(times, weights_per_dynamic, 
+                                 labels=stackplot_labels, colors=stackplot_colors,
+                                 alpha=0.6, zorder=2)
+                self._labels_added.add('prob_stack')
+        else:
+            # Logica per il grafico a linea (dinamica lineare) sull'asse `ax_linear`
+            if dynamics_data['line_trend']:
+                valid_times = [t for t, d in zip(times, dynamics_data['line_trend']) if not np.isnan(d)]
+                valid_dynamics = [d for d in dynamics_data['line_trend'] if not np.isnan(d)]
+                if valid_times:
+                    ax_linear.plot(valid_times, valid_dynamics, color=layer_color, linewidth=2.5, 
+                                label=f"Dinamica: {layer_name}", zorder=3, alpha=0.8)
+
+    # MODIFICA: La funzione ora accetta due assi per la dinamica
+    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section):
+        """
+        RIFATTORIZZATA: Ora agisce come un orchestratore.
+        """
+        print("  > Visualizzo le maschere di tendenza...")
+        
         layer_colors = {}
         color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
         
-        # Mappa per la legenda (per evitare etichette duplicate) - REINTRODOTTA
-        labels_added = set()
-
         for section_idx, section in enumerate(composition_structure):
             time_ratio = section.get('ratio_temporale', 1.0)
-            scaled_duration = section['durata'] * time_ratio
-            layers_to_process = section.get('layers', [section])
-            # Accediamo ai dati degli onsets per questa sezione
-            section_onsets = onsets_by_section[section_idx]['layers']
+            layers_to_process = section.get('layers', [])
+            section_onsets_data = onsets_by_section[section_idx]['layers']
 
             for layer_idx, layer in enumerate(layers_to_process):
+                layer_onsets_info = section_onsets_data[layer_idx]
+                layer_onsets = layer_onsets_info['onsets']
                 layer_name = layer.get('nome_layer', f"Layer {layer_idx+1}")
-                layer_onsets = section_onsets[layer_idx]['onsets']
                 
                 if layer_name not in layer_colors:
                     layer_colors[layer_name] = color_cycle[len(layer_colors) % len(color_cycle)]
@@ -1018,241 +1136,118 @@ class CompositionDebugger:
                 elif 'stato_iniziale' in layer:
                     start_mask = composer._normalize_mask(layer['stato_iniziale'])
                     end_mask = composer._normalize_mask(layer.get('stato_finale', layer['stato_iniziale']))
-                else:
-                    continue
+                else: continue
 
-                # Se non ci sono onsets, non c'è nulla da disegnare.
-                if not layer_onsets:
-                    continue
+                plot_data = self._calculate_plot_data_for_layer(layer, start_mask, end_mask, layer_onsets, time_ratio, composer)
 
-                # Estrarre il lifespan del layer (default: tutta la sezione)
-                lifespan = layer.get('lifespan', [0.0, 1.0])
-                start_ratio, end_ratio = lifespan
-                # Calcolare la durata e il tempo di inizio ASSOLUTI per la maschera di questo layer
-                layer_plot_start_time = section_start_time + (start_ratio * scaled_duration)
-                layer_plot_duration = (end_ratio - start_ratio) * scaled_duration
-
-                # 3. Trova il primo e l'ultimo tempo di attivazione
-                first_onset_time = min(layer_onsets)
-                last_onset_time = max(layer_onsets)
-
-                # Se primo e ultimo onset coincidono (un solo cluster), crea un piccolo intervallo visibile
-                plot_duration = last_onset_time - first_onset_time
-                if plot_duration < 0.1: # Durata minima per la visualizzazione
-                    plot_duration = layer_plot_duration
-
-                # Se la durata è nulla o negativa, non c'è nulla da disegnare per questo layer.
-                if layer_plot_duration <= 0:
-                    continue
-
-                num_samples = 100
-                # Creare l'array dei tempi corretto, che copre solo il lifespan del layer.
-                times = np.linspace(first_onset_time, first_onset_time + plot_duration, num_samples)
-                
-                ottava_lower, ottava_upper = [], []
-                durata_lower, durata_upper = [], []
-                
-                # Variabili di dinamica pulite (rimossa 'dynamics_trend')
-                dynamics_line_trend = []
-                dynamics_prob_weights = []
-
-                has_ottava = 'ottava' in start_mask
-                has_durata = 'durata_armonica' in start_mask
-                has_dinamica = 'dinamica' in start_mask
-                
-                is_dynamic_choices = has_dinamica and 'choices' in start_mask.get('dinamica', {})
-
-                # Ciclo di raccolta dati
-                for p in np.linspace(0, 1, num_samples):
-                    interp_mask = composer._interpolate_mask(start_mask, end_mask, p)
+                if plot_data:
+                    # --- QUI PUOI MODIFICARE I COLORI DELLE MASCHERE ---
+                    colore_maschera_ottava = 'gray'
+                    colore_maschera_durata = 'orange'
                     
-                    if has_ottava:
-                        mask = interp_mask.get('ottava', {})
-                        lower, upper = OTTAVE_RANGE
-                        if 'range' in mask: lower, upper = mask['range']
-                        elif 'mean' in mask: lower, upper = mask['mean'] - mask['std'], mask['mean'] + mask['std']
-                        ottava_lower.append(lower)
-                        ottava_upper.append(upper)
+                    self._plot_parameter_envelope(ax_pitch, plot_data['times'], plot_data['ottava'], 
+                                                  colore_maschera_ottava, 'maschera_ottava', 'Maschera Ottava')
+                                                  
+                    self._plot_parameter_envelope(ax_dur, plot_data['times'], plot_data['durata'], 
+                                                  colore_maschera_durata, 'maschera_durata', 'Maschera Durata Armonica')
 
-                    if has_durata:
-                        mask = interp_mask.get('durata_armonica', {})
-                        lower, upper = (1, 1)
-                        if 'range' in mask: lower, upper = [d * time_ratio for d in mask['range']]
-                        elif 'mean' in mask: lower, upper = mask['mean'] - mask['std'], mask['mean'] + mask['std']
-                        durata_lower.append(lower)
-                        durata_upper.append(upper)
-                    
-                    if has_dinamica:
-                        if is_dynamic_choices:
-                            weights = interp_mask.get('dinamica', {}).get('weights', [])
-                            dynamics_prob_weights.append(weights)
-                        else:
-                            if 'dynamic_index' in interp_mask:
-                                dynamics_line_trend.append(interp_mask['dynamic_index'])
-                            elif 'value' in interp_mask.get('dinamica', {}):
-                                dyn_str = interp_mask['dinamica']['value']
-                                dynamics_line_trend.append(composer.dynamic_to_index.get(dyn_str, 3))
-                            else:
-                                dynamics_line_trend.append(np.nan)
+                    # Passa entrambi gli assi alla funzione di plotting della dinamica
+                    self._plot_dynamics(ax_dyn_linear, ax_dyn_prob, plot_data['times'], plot_data['dinamica'], 
+                                        layer_color, layer_name)
 
-                # --- Sezione di Plotting CORRETTA ---
-
-                # Disegna la maschera di OGNI layer, ma aggiungi l'etichetta solo la prima volta.
-                if has_ottava:
-                    label_ottava = 'Maschera Ottava' if 'maschera_ottava' not in labels_added else ""
-                    ax_pitch.fill_between(times, ottava_lower, ottava_upper, color='gray', alpha=0.2, zorder=1, label=label_ottava)
-                    # Aggiungiamo la chiave al set *dopo* aver deciso la label, ma *dentro* il blocco if
-                    # per assicurarci che venga aggiunta solo se la maschera esiste effettivamente.
-                    labels_added.add('maschera_ottava')
-                
-                if has_durata:
-                    label_durata = 'Maschera Durata Armonica' if 'maschera_durata' not in labels_added else ""
-                    ax_dur.fill_between(times, durata_lower, durata_upper, color='cyan', alpha=0.2, zorder=1, label=label_durata)
-                    labels_added.add('maschera_durata')
-                    
-                # Logica di plotting per la dinamica, con controllo delle etichette anche per lo stackplot
-                if is_dynamic_choices and dynamics_prob_weights:
-                    weights_per_dynamic = np.array(dynamics_prob_weights).T
-                    dynamic_labels = start_mask['dinamica']['choices']
-                    
-                    # Crea etichette per la legenda solo la prima volta che disegni uno stackplot
-                    stackplot_labels = [f"Prob. {label}" for label in dynamic_labels] if 'prob_stack' not in labels_added else ["" for _ in dynamic_labels]
-
-                    cmap = plt.get_cmap('viridis')
-                    stackplot_colors = cmap(np.linspace(0.1, 0.9, len(dynamic_labels)))
-                    
-                    # Controlla se l'asse Y è già stato modificato
-                    if 'prob_axis' not in labels_added:
-                        ax_dyn.set_ylabel("Probabilità Dinamica")
-                        ax_dyn.set_ylim(0, 1)
-                        ax_dyn.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
-                        ax_dyn.set_yticklabels(['0%', '25%', '50%', '75%', '100%'])
-                        labels_added.add('prob_axis')
-                    
-                    ax_dyn.stackplot(times, weights_per_dynamic, 
-                                     labels=stackplot_labels, 
-                                     colors=stackplot_colors,
-                                     alpha=0.6,
-                                     zorder=2)
-                    # Segna che abbiamo già aggiunto le etichette dello stackplot alla legenda
-                    labels_added.add('prob_stack')
-
-                elif dynamics_line_trend:
-                    valid_times = [t for t, d in zip(times, dynamics_line_trend) if not np.isnan(d)]
-                    valid_dynamics = [d for d in dynamics_line_trend if not np.isnan(d)]
-                    if valid_times:
-                        # Questa parte già gestiva correttamente i layer con colori diversi e etichette uniche
-                        ax_dyn.plot(valid_times, valid_dynamics, color=layer_color, linewidth=2.5, 
-                                    label=f"Dinamica: {layer_name}", zorder=3, alpha=0.8)
-            section_start_time += scaled_duration                        
-                        
-    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer, onsets_by_section, title=None):
+    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer, onsets_by_section, title=None, 
+                        partitura_mode=False, page_duration_s=60):
         """
-        MODIFICATA: Crea un grafico a due subplot...
+        Crea un grafico. Se partitura_mode è True, lo spezza in un PDF multi-pagina.
         """
-        # Cambiamo il messaggio di log per essere più generico
-        print(f"\n--- Generazione Grafico: '{composition_name}' ---")
+        print(f"\n--- Generazione Grafico {'(Modalità Partitura)' if partitura_mode else '(Pagina Singola)'}: '{composition_name}' ---")
         if not events:
-            print("Nessun evento da visualizzare.")
-            return
+            print("Nessun evento da visualizzare."); return
 
-        # ... (il codice da qui in poi rimane per lo più uguale) ...
-        plot_data = []
-        max_time = 0
+        # 1. Calcoli preliminari validi per tutti i plot
+        plot_data_list = []
+        total_duration = 0
         max_durata_armonica = 0
-
         for event in events:
             if event.get('type') == 'voce':
                 p = event['params']
                 start, duration = event['time'], p['durata_totale']
-                pitch = p['ottava'] + (p['registro'] / (REGISTRI_RANGE[1] + 1.0))
-                amp_norm = p.get('dynamic_index', 3) / len(composer.dynamic_to_index)
-                plot_data.append({'start': start, 'duration': duration, 'pitch': pitch, 'amp_norm': amp_norm})
-                if (start + duration) > max_time: max_time = start + duration
+                plot_data_list.append({'start': start, 'duration': duration, 'pitch': p['ottava'] + (p['registro'] / (REGISTRI_RANGE[1] + 1.0)), 'amp_norm': p.get('dynamic_index', 3) / len(composer.dynamic_to_index)})
+                if (start + duration) > total_duration: total_duration = start + duration
                 if p['durata_armonica'] > max_durata_armonica: max_durata_armonica = p['durata_armonica']
         
-        plt.style.use('seaborn-v0_8-darkgrid')
+        # 2. Imposta il nome del file e apri il gestore di pagine PDF
+        file_suffix = "_partitura.pdf" if partitura_mode else "_visual_A3.pdf"
+        plot_filename = self.output_path / f"{composition_name}{file_suffix}"
         
-        fig, (ax_pitch, ax_dyn) = plt.subplots(
-            nrows=2, ncols=1, figsize=(20, 15), sharex=True, 
-            gridspec_kw={'height_ratios': [3, 1]}
-        )
-        
-        # --- ECCO LA MODIFICA CHIAVE ---
-        # Se un titolo personalizzato è stato fornito, usalo.
-        # Altrimenti, crea il titolo di default.
-        if title:
-            fig.suptitle(title, fontsize=16)
-        else:
-            fig.suptitle(f"Visualizzazione Composizione e Maschere di Tendenza: '{composition_name}'", fontsize=16)
+        with PdfPages(plot_filename) as pdf:
+            # 3. Determina il numero di pagine
+            num_pages = int(np.ceil(total_duration / page_duration_s)) if partitura_mode else 1
+            if num_pages == 0: num_pages = 1
 
-        # ... (TUTTO IL RESTO DELLA FUNZIONE RIMANE IDENTICO A PRIMA) ...
-        
-        ax_dur = ax_pitch.twinx()
+            # 4. Ciclo principale per ogni pagina
+            for i in range(num_pages):
+                self._labels_added = set() # Resetta le etichette per ogni pagina
 
-        for item in plot_data:
-            ax_pitch.add_patch(plt.Rectangle(
-                (item['start'], item['pitch'] - 0.04), item['duration'], 0.08,
-                color=plt.cm.viridis(item['amp_norm']), alpha=0.6, zorder=3
-            ))
+                # 5. Crea la figura e gli assi per la pagina corrente
+                A3_LANDSCAPE_WIDTH_INCHES = 420 / 25.4; A3_LANDSCAPE_HEIGHT_INCHES = 297 / 25.4
+                fig, (ax_pitch, ax_dyn_linear, ax_dyn_prob) = plt.subplots(
+                    nrows=3, ncols=1, figsize=(A3_LANDSCAPE_WIDTH_INCHES, A3_LANDSCAPE_HEIGHT_INCHES), 
+                    sharex=True, gridspec_kw={'height_ratios': [3, 1, 1]}
+                )
+                
+                # 6. Imposta titoli e limiti degli assi
+                page_title = title if not partitura_mode else f"{title} (Pagina {i+1}/{num_pages})"
+                fig.suptitle(page_title, fontsize=14)
+                
+                page_start_time = i * page_duration_s if partitura_mode else 0
+                page_end_time = (i + 1) * page_duration_s if partitura_mode else total_duration
+                
+                # Setup degli assi (identico per ogni pagina per coerenza)
+                ax_dur = ax_pitch.twinx()
+                ax_pitch.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1); ax_pitch.set_ylabel("Ottava.Registro"); ax_pitch.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2)); ax_pitch.tick_params(axis='x', labelbottom=False)
+                ax_dur.set_ylabel("Durata Armonica (s)", color='darkcyan'); ax_dur.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10); ax_dur.tick_params(axis='y', labelcolor='darkcyan')
+                ax_dyn_linear.set_ylabel("Dinamica (Lineare)"); dyn_labels = list(composer.dynamic_to_index.keys()); dyn_ticks = list(composer.dynamic_to_index.values()); ax_dyn_linear.set_yticks(dyn_ticks); ax_dyn_linear.set_yticklabels(dyn_labels); ax_dyn_linear.set_ylim(min(dyn_ticks) - 0.5, max(dyn_ticks) + 0.5); ax_dyn_linear.grid(True, axis='y', linestyle='--', alpha=0.6); ax_dyn_linear.tick_params(axis='x', labelbottom=False)
+                ax_dyn_prob.set_ylabel("Prob. Dinamica"); ax_dyn_prob.set_xlabel(f"Tempo (secondi, da {int(page_start_time)}s a {int(page_end_time)}s)"); ax_dyn_prob.grid(True, axis='y', linestyle='--', alpha=0.6)
+                
+                ax_pitch.set_xlim(page_start_time, page_end_time)
 
-        if all_onsets:
-             ax_pitch.vlines(all_onsets, ymin=OTTAVE_RANGE[0] - 1, ymax=OTTAVE_RANGE[1] + 1,
-                       color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.6, label='Attivazione', zorder=2)
+                # 7. Filtra e disegna i dati per la pagina corrente
+                # Eventi (note)
+                for item in plot_data_list:
+                    if item['start'] < page_end_time and (item['start'] + item['duration']) > page_start_time:
+                        ax_pitch.add_patch(plt.Rectangle((item['start'], item['pitch'] - 0.04), item['duration'], 0.08, color=plt.cm.viridis(item['amp_norm']), alpha=0.6, zorder=3))
+                # Onsets
+                page_onsets = [o for o in all_onsets if page_start_time <= o < page_end_time]
+                if page_onsets:
+                    ax_pitch.vlines(page_onsets, ymin=OTTAVE_RANGE[0] - 1, ymax=OTTAVE_RANGE[1] + 1, color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.6, label='Attivazione')
+                
+                # Maschere di tendenza
+                self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section)
 
-        ax_pitch.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
-        ax_pitch.set_ylabel("Ottava.Registro")
-        ax_pitch.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
-        
-        ax_dur.set_ylabel("Durata Armonica (s)", color='darkcyan')
-        ax_dur.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10)
-        ax_dur.tick_params(axis='y', labelcolor='darkcyan')
-        
-        ax_dyn.set_ylabel("Dinamica")
-        ax_dyn.set_xlabel("Tempo (secondi)")
-        
-        dyn_labels = list(composer.dynamic_to_index.keys())
-        dyn_ticks = list(composer.dynamic_to_index.values())
-        ax_dyn.set_yticks(dyn_ticks)
-        ax_dyn.set_yticklabels(dyn_labels)
-        ax_dyn.set_ylim(min(dyn_ticks) - 0.5, max(dyn_ticks) + 0.5)
-        ax_dyn.grid(True, axis='y', linestyle='--', alpha=0.6)
+                # Linee di fine sezione
+                current_time = 0.0
+                for section in composition_structure:
+                    current_time += section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+                    if page_start_time <= current_time < page_end_time:
+                        ax_pitch.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=f"Fine: {section['nome_sezione']}")
+                        ax_dyn_linear.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2)
+                        ax_dyn_prob.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2)
 
-        self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn, composition_structure, composer,onsets_by_section)
+                # 8. Gestisci la legenda e il layout
+                handles, labels = ax_pitch.get_legend_handles_labels()
+                handles_dur, labels_dur = ax_dur.get_legend_handles_labels()
+                handles_dyn_lin, labels_dyn_lin = ax_dyn_linear.get_legend_handles_labels()
+                handles_dyn_prob, labels_dyn_prob = ax_dyn_prob.get_legend_handles_labels()
+                fig.legend(handles + handles_dur + handles_dyn_lin + handles_dyn_prob, labels + labels_dur + labels_dyn_lin + labels_dyn_prob,
+                           loc='lower center', bbox_to_anchor=(0.5, -0.08), ncol=8, fontsize='x-small')
+                fig.tight_layout(rect=[0, 0.07, 1, 0.95])
+                
+                # 9. Salva la pagina nel file PDF
+                pdf.savefig(fig)
+                plt.close(fig) # Chiudi la figura per liberare memoria
 
-        current_time = 0.0
-        section_labels_added = set()
-        for section in composition_structure:
-            time_ratio = section.get('ratio_temporale', 1.0)
-            scaled_duration = section['durata'] * time_ratio
-            
-            # **NOTA IMPORTANTE:**
-            # Poiché ora il plot completo passa una structure aggregata,
-            # current_time deve essere calcolato in modo diverso per il plot completo.
-            # Questa logica di calcolo di current_time funzionerà bene per i plot
-            # delle singole parti, ma per quello completo potrebbe mostrare le linee
-            # di sezione "riavvolte". Per ora, questa è una semplificazione accettabile.
-            current_time += scaled_duration
-            
-            label_text = f"Fine: {section['nome_sezione']}" if section['nome_sezione'] not in section_labels_added else ""
-            ax_pitch.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2, label=label_text)
-            ax_dyn.axvline(x=current_time, color='r', linestyle='--', linewidth=1.2)
-            section_labels_added.add(section['nome_sezione'])
-
-        handles, labels = ax_pitch.get_legend_handles_labels()
-        handles_dur, labels_dur = ax_dur.get_legend_handles_labels()
-        handles_dyn, labels_dyn = ax_dyn.get_legend_handles_labels()
-        
-        fig.legend(handles + handles_dur + handles_dyn, labels + labels_dur + labels_dyn,
-                   loc='lower center', bbox_to_anchor=(0.5, -0.01), ncol=6, fontsize='small')
-
-        fig.tight_layout(rect=[0, 0.05, 1, 0.95])
-        
-        plot_filename = self.output_path / f"{composition_name}_visual.png"
-        plt.savefig(plot_filename, dpi=150, bbox_inches='tight')
-        plt.close()
-        print(f"✓ Grafico di visualizzazione salvato in: {plot_filename}")
-
+        print(f"✓ Grafico salvato in: {plot_filename}")
 
 def generate_silent_wav(output_wav_path, duration):
     """
@@ -1308,61 +1303,6 @@ def sanitize_filename(name):
     name = re.sub(r'[^a-z0-9_-]', '', name)
     return name
 
-def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, title="Assembler"):
-    """
-    Genera un file CSD per assemblare più file WAV.
-    input_files_with_onsets è una lista di tuple: (percorso_file, onset_time)
-    """
-    score_lines = ""
-
-    for file_path, onset in input_files_with_onsets:
-        # --- MODIFICA CHIAVE: USA SEMPRE PERCORSI ASSOLUTI RISOLTI ---
-        # Path(file_path).resolve() ottiene il percorso completo e inequivocabile del file.
-        # Es: /Users/giuliodemattia/Github/.../composizioni_generate/wav/sections/sezione.wav
-        absolute_path = Path(file_path).resolve()
-        
-        # Pulisci il percorso per Csound (specialmente per Windows, sostituendo \ con /)
-        escaped_path = str(absolute_path).replace('\\', '/')
-        
-        # La durata 0 dice a Csound di calcolarla al volo
-        score_lines += f'i "orchestrator" {onset:.4f} 0 "{escaped_path}"\n'
-
-    template = f"""
-<CsoundSynthesizer>
-<CsOptions>
--o "{output_wav_path}" -W -d -m0
-</CsOptions>
-<CsInstruments>
-; --- {title} ---
-sr=96000
-ksmps=32
-nchnls=2
-0dbfs=1
-instr orchestrator
-    S_file strget p4
-    i_dur filelen S_file
-    if i_dur > 0 then
-        prints "Scheduling '%s' (dur: %.2fs) at time %.2fs\\n", S_file, i_dur, p2
-        schedule "playFile", 0, i_dur, S_file
-    else
-        prints "WARNING: Could not play file '%s'.\\n", S_file
-    endif
-endin
-instr playFile
-    a_L, a_R diskin2 p4, 1
-    outs a_L, a_R
-endin
-</CsInstruments>
-<CsScore>
-{score_lines}
-e
-</CsScore>
-</CsoundSynthesizer>
-"""
-    with open(csd_path, 'w') as f:
-        f.write(template)
-    return csd_path
-
 def run_csound_process(csd_path, process_name, log_dir):
     """Lancia un singolo processo Csound e restituisce l'oggetto Popen."""
     log_file_path = log_dir / f"csound_render_{process_name}.log"
@@ -1375,59 +1315,18 @@ def run_csound_process(csd_path, process_name, log_dir):
         print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
         return None
 
-if __name__ == "__main__":
-    # ===================================================================
-    RENDER_AUTOMATICAMENTE = True
-    APRI_FILE_DOPO_RENDER = True
-    # ===================================================================
 
-    if len(sys.argv) < 2:
-        print("ERRORE: Devi specificare il percorso del file YAML della composizione.")
-        sys.exit(1)
+# --- FUNZIONI HELPER PER IL MAIN BLOCK ---
+def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, title="Assembler"):
+    score_lines = ""
+    for file_path, onset in input_files_with_onsets:
+        try:
+            relative_path = Path(file_path)
+        except ValueError:
+            relative_path = file_path
 
-    yaml_file_path = sys.argv[1]
-    all_composition_structures = load_all_compositions_from_yaml(yaml_file_path)
-    base_composition_name = Path(yaml_file_path).stem
-
-    # --- SETUP DELLE DIRECTORY DI OUTPUT ---
-    base_output_dir = Path("composizioni_generate")
-    dir_wav_layers = base_output_dir / "wav" / "layers"
-    dir_wav_sections = base_output_dir / "wav" / "sections"
-    dir_csd_layers = base_output_dir / "csd" / "layers"
-    dir_csd_sections = base_output_dir / "csd" / "sections"
-    log_dir = base_output_dir / "logs"
-    for d in [dir_wav_layers, dir_wav_sections, dir_csd_layers, dir_csd_sections, log_dir]:
-        d.mkdir(parents=True, exist_ok=True)
-
-    # --- RILEVAMENTO VETERAN MODE ---
-    veteran_mode_active = any(
-        layer.get('veteranMode', False)
-        for part in all_composition_structures
-        for section in part
-        for layer in section.get('layers', [])
-    )
-    if veteran_mode_active:
-        print("\n" + "="*30 + " M O D A L I T À   V E T E R A N   (LAYER)   A T T I V A " + "="*30)
-    else:
-        print("\nModalità di rendering normale: tutti i layer e le sezioni verranno (ri)generati.")
-
-    # --- FUNZIONI HELPER PER IL MAIN BLOCK ---
-    def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, title="Assembler"):
-        score_lines = ""
-        print("\n\n\n\n\n")
-        print(input_files_with_onsets)
-        print("\n\n\n\n\n")
-        for file_path, onset in input_files_with_onsets:
-            try:
-                relative_path = Path(file_path)
-            except ValueError:
-                relative_path = file_path
-            print("\n\n\n\n\n")
-            print(relative_path)
-            print("\n\n\n\n\n")
-
-            score_lines += f'i "orchestrator" {onset:.4f} [60*8] "{relative_path}"\n'
-        template = f"""<CsoundSynthesizer>
+        score_lines += f'i "orchestrator" {onset:.4f} [60*8] "{relative_path}"\n'
+    template = f"""<CsoundSynthesizer>
 <CsOptions>
 -o "{output_wav_path}" -W -d -m0
 </CsOptions>
@@ -1457,187 +1356,338 @@ endin
 e
 </CsScore>
 </CsoundSynthesizer>"""
-        with open(csd_path, 'w') as f: f.write(template)
-        return csd_path
+    with open(csd_path, 'w') as f: f.write(template)
+    return csd_path
 
-    def run_csound_process(csd_path, process_name, log_dir):
-        log_file_path = log_dir / f"csound_render_{process_name}.log"
-        print(f"    - Avvio rendering per '{process_name}' (Log: {log_file_path.name})")
-        try:
-            log_file = open(log_file_path, 'w')
-            process = subprocess.Popen(['csound', '--format=float', str(csd_path)], stdout=log_file, stderr=log_file)
-            return (process, process_name, log_file)
-        except Exception as e:
-            print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
-            return None
 
-    # --- FASE 1: ANALISI E PIANIFICAZIONE DEI JOB ---
+def run_csound_process(csd_path, process_name, log_dir):
+    """
+    Lancia un singolo processo Csound e restituisce l'oggetto Popen e il file di log.
+    """
+    log_file_path = log_dir / f"csound_render_{process_name}.log"
+    print(f"    - Avvio rendering per '{process_name}' (Log: {log_file_path.name})")
+    try:
+        log_file = open(log_file_path, 'w')
+        process = subprocess.Popen(['csound', '--format=float', str(csd_path)], stdout=log_file, stderr=log_file)
+        return (process, process_name, log_file)
+    except Exception as e:
+        print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
+        return None
+
+
+def plan_render_jobs(all_composition_structures, base_composition_name, dirs, veteran_mode_active):
+    """
+    FASE 1: Analizza la partitura e pianifica tutti i lavori di rendering e assemblaggio.
+    Restituisce i piani di lavoro e la struttura necessaria per il plotting.
+    """
     print("\n--- FASE 1: Analisi della Partitura e Pianificazione dei Job ---")
+    
     layer_render_jobs = []
     section_assembly_jobs = []
     final_assembly_parts = []
-
-    current_time = 0.0
-
+    
+    full_composition_structure_for_plot = [sec for part in all_composition_structures for sec in part]
+    
+    current_part_onset = 0.0
     for i, part_structure in enumerate(all_composition_structures):
         part_name_base = f"{base_composition_name}_part_{i+1}"
-        part_onset = current_time
         part_duration = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in part_structure)
         
-        print(f"\n--- Analisi Part {i+1}: '{part_name_base}' (Onset: {part_onset:.2f}s, Dur: {part_duration:.2f}s) ---")
-
-        current_section_offset_in_part = 0.0
-        # === CICLO SULLE SEZIONI REINTRODOTTO PER ROBUSTEZZA ===
+        print(f"\n--- Analisi Part {i+1}: '{part_name_base}' (Onset: {current_part_onset:.2f}s, Dur: {part_duration:.2f}s) ---")
+        
         section_offset_within_part = 0.0
         for sec_idx, section in enumerate(part_structure):
             section_name = section['nome_sezione']
             section_name_base = f"{part_name_base}_sec_{sec_idx+1}_{sanitize_filename(section_name)}"
-            section_wav_path = dir_wav_sections / f"{section_name_base}.wav"
-            # L'onset assoluto di questa sezione
-            absolute_section_onset = part_onset + section_offset_within_part
+            section_wav_path = dirs['sections_wav'] / f"{section_name_base}.wav"
+            absolute_section_onset = current_part_onset + section_offset_within_part
+            
             final_assembly_parts.append({'wav_path': section_wav_path, 'onset': absolute_section_onset})
 
             layers_in_section = section.get('layers', [])
             if not layers_in_section:
-                print(f"  . Sezione '{section_name}' non ha layer, trattata come pausa.")
-                section_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-                
-                if section_duration > 0:
-                    print(f"    - Genero file WAV silenzioso di {section_duration:.2f}s per la pausa.")
-                    # Usiamo il percorso del file di sezione già definito
-                    generate_silent_wav(section_wav_path, section_duration)
-                
-                section_offset_within_part += section_duration
-                continue # Saltiamo il resto della logica di pianificazione dei layer
+                sec_dur = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+                if sec_dur > 0:
+                    generate_silent_wav(section_wav_path, sec_dur)
+                section_offset_within_part += sec_dur
+                continue
 
             section_needs_reassembly = False
             layer_files_for_this_section = []
 
+            # --- CORREZIONE CHIAVE: Iteriamo con l'indice `j` per il layer ---
             for j, layer in enumerate(layers_in_section):
                 layer_name = layer.get('nome_layer', f'layer_{j+1}')
                 layer_render_name = f"{section_name_base}_layer_{j+1}_{sanitize_filename(layer_name)}"
-                layer_wav_path = dir_wav_layers / f"{layer_render_name}.wav"
-                layer_csd_path = dir_csd_layers / f"{layer_render_name}.csd"
-                
-                section_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-                lifespan_start = layer.get('lifespan', [0.0, 1.0])[0]
-                relative_onset = lifespan_start * section_duration
-
-                layer_files_for_this_section.append((layer_wav_path, relative_onset))
                 
                 should_render_layer = not veteran_mode_active or layer.get('veteranMode', False)
                 if should_render_layer:
-                    print(f"  > Pianificato RENDER per Layer: '{layer_name}' (Onset nel suo file: {relative_onset:.2f}s)")
+                    print(f"  > Pianificato RENDER per Layer: '{layer_name}'")
                     section_needs_reassembly = True
+                    # --- CORREZIONE CHIAVE: Aggiungiamo 'layer_idx' al job ---
                     layer_render_jobs.append({
-                        'layer': layer, 'section': section, 'csd_path': layer_csd_path,
-                        'wav_path': layer_wav_path, 'name': layer_render_name
+                        'layer': layer, 'section': section, 'layer_idx': j,
+                        'csd_path': dirs['layers_csd'] / f"{layer_render_name}.csd",
+                        'wav_path': dirs['layers_wav'] / f"{layer_render_name}.wav",
+                        'name': layer_render_name,
+                        'absolute_section_onset': absolute_section_onset
                     })
-                else:
-                    print(f"  . Salto Render Layer: '{layer_name}' (Onset nel suo file: {relative_onset:.2f}s)")
-
+                
+                layer_files_for_this_section.append((dirs['layers_wav'] / f"{layer_render_name}.wav", 0.0))
+            
             should_assemble_section = not veteran_mode_active or section_needs_reassembly
             if should_assemble_section:
                  print(f"  > Pianificato ASSEMBLAGGIO per Sezione: '{section_name}'")
                  section_assembly_jobs.append({
                      'name': section_name_base,
-                     'csd_path': dir_csd_sections / f"{section_name_base}_assembler.csd",
-                     'output_wav': section_wav_path,
-                     'input_layers': layer_files_for_this_section
+                     'csd_path': dirs['sections_csd'] / f"{section_name_base}_assembler.csd",
+                     'output_wav': section_wav_path, 'input_layers': layer_files_for_this_section
                  })
             else:
                  print(f"  . Salto Assemblaggio Sezione: '{section_name}' (userà file esistente)")
-            
-            # Incrementa l'offset per la prossima sezione DENTRO la stessa parte
-            section_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-            section_offset_within_part += section_duration
 
-        # Incrementa il tempo globale con la durata totale della parte appena processata
-        current_time += part_duration
+            section_offset_within_part += section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+        current_part_onset += part_duration
+        
+    return layer_render_jobs, section_assembly_jobs, final_assembly_parts, full_composition_structure_for_plot
 
-    # --- FASE 2: ESECUZIONE - RENDERING DEI LAYER ---
-    if layer_render_jobs:
-        print("\n--- FASE 2: Esecuzione Rendering dei Layer in Parallelo ---")
-        csound_procs = []
-        composer = GenerativeComposer()
-        for job in layer_render_jobs:
-            scaled_sec_dur = job['section'].get('durata', 0) * job['section'].get('ratio_temporale', 1.0)
-            sec_env_num = composer.section_envelope_map.get(job['section'].get('inviluppo_sezione', composer.default_section_envelope), 0)
-            
-            layer_events, _ = composer._process_layer(
-                job['layer'], 0.0, # <-- L'OFFSET È 0.0
-                scaled_sec_dur, job['section'].get('ratio_temporale', 1.0),
-                sec_env_num, job['section']['nome_sezione']
-            )
-            if not layer_events:
-                print(f"    - ATTENZIONE: Nessun evento per layer '{job['name']}'. Genero silenzio.")
-                generate_silent_wav(job['wav_path'], scaled_sec_dur)
-                continue
-            
-            # Usa la funzione generate_csd modificata
+# Sostituisci SOLO questa funzione nel tuo file
+def execute_layer_rendering_and_collect_data(render_jobs, composition_structure, dirs):
+    """
+    FASE 2: Esegue il rendering dei layer pianificati e raccoglie i dati per il plot.
+    """
+    print("\n--- FASE 2: Esecuzione Rendering dei Layer e Raccolta Dati ---")
+
+    if not render_jobs:
+        print("Nessun layer da renderizzare. Fase saltata.")
+        return None
+
+    plot_data = {
+        'events': [],
+        'onsets_flat': [],
+        'render_jobs_info': [] # Usiamo questa per passare le info al plotter
+    }
+    
+    csound_procs = []
+    composer = GenerativeComposer()
+
+    for job in render_jobs:
+        print(f"  > Processando Layer: '{job['name']}'")
+        
+        scaled_sec_dur = job['section'].get('durata', 0) * job['section'].get('ratio_temporale', 1.0)
+        sec_env_num = composer.section_envelope_map.get(job['section'].get('inviluppo_sezione', composer.default_section_envelope), 0)
+        
+        # Generiamo eventi per il layer corrente
+        layer_events, layer_onsets = composer._process_layer(
+            job['layer'], 0.0, 
+            scaled_sec_dur, job['section'].get('ratio_temporale', 1.0), 
+            sec_env_num, job['section']['nome_sezione']
+        )
+
+        # Usiamo gli eventi per il rendering
+        if not layer_events:
+            generate_silent_wav(job['wav_path'], scaled_sec_dur)
+        else:
             composer.generate_csd(job['name'], layer_events, job['csd_path'], job['wav_path'])
-            
-            proc_data = run_csound_process(job['csd_path'], job['name'], log_dir)
+            proc_data = run_csound_process(job['csd_path'], job['name'], dirs['logs'])
             if proc_data: csound_procs.append(proc_data)
         
+        # Raccogliamo i dati per il plot
+        absolute_onset = job['absolute_section_onset']
+        # Dobbiamo creare una copia profonda degli eventi se li modifichiamo, ma qui li aggiungiamo e basta
+        for event in layer_events:
+            event['time'] += absolute_onset
+            plot_data['events'].append(event)
+        
+        adjusted_onsets = [onset + absolute_onset for onset in layer_onsets]
+        plot_data['onsets_flat'].extend(adjusted_onsets)
+
+        # Aggiungiamo le info del job alla lista per il plotter
+        job_info = job.copy()
+        job_info['adjusted_onsets'] = adjusted_onsets
+        plot_data['render_jobs_info'].append(job_info)
+
+    if csound_procs:
+        print("\n   Attendendo il completamento del rendering dei layer...")
         for process, name, log_file in csound_procs:
             process.wait()
             log_file.close()
-            if process.returncode != 0:
-                print(f"   ✗ ERRORE: Rendering del layer '{name}' fallito! Controlla i log.")
-    else:
-        print("\n--- FASE 2: Nessun layer da renderizzare. ---")
+            if process.returncode != 0: print(f"   ✗ ERRORE: Rendering del layer '{name}' fallito!")
+            else: print(f"   ✓ Rendering del layer '{name}' completato.")
+            
+    plot_data['composer'] = composer 
+    return plot_data
 
-    # --- FASE 3: ESECUZIONE - ASSEMBLAGGIO DELLE SEZIONI ---
-    if section_assembly_jobs:
-        print("\n--- FASE 3: Esecuzione Assemblaggio delle Sezioni in Parallelo ---")
-        csound_procs = []
-        for job in section_assembly_jobs:
-            
-            # --- CORREZIONE LOGICA TEMPORALE (DEFINITIVA) ---
-            # Hai ragione tu: quando assembliamo una sezione, tutti i suoi layer
-            # devono partire da 0.0, perché il loro posizionamento temporale
-            # (il silenzio iniziale) è già contenuto nel loro file WAV.
-            # `job['input_layers']` contiene tuple (path, relative_onset). 
-            # Noi le trasformiamo in (path, 0.0).
-            inputs_with_onsets = [(path, 0.0) for path, rel_onset in job['input_layers']]
-            
-            generate_assembler_csd(job['csd_path'], job['output_wav'], inputs_with_onsets, title=f"Section Assembler: {job['name']}")
-            proc_data = run_csound_process(job['csd_path'], job['name'], log_dir)
-            if proc_data: csound_procs.append(proc_data)
+## Sostituisci la tua versione con questa versione finale e completa
+
+def generate_composition_plot(plot_data, composition_structure, base_composition_name, output_dir,
+                              partitura_mode=False, page_duration_s=60): # <-- Accetta i nuovi parametri
+    """
+    FASE 3: Usa i dati raccolti per generare e salvare il grafico della composizione.
+    Gestisce sia la modalità a pagina singola che quella multi-pagina (partitura).
+    """
+    print("\n--- FASE 3: Generazione della Visualizzazione ---")
+    
+    if plot_data is None:
+        plot_data = {'events': [], 'onsets_flat': [], 'composer': GenerativeComposer(), 'render_jobs_info': []}
         
-        # Ciclo di attesa per i processi di assemblaggio delle sezioni
+    if not plot_data.get('events'): # Controllo più sicuro
+        print("Nessun dato di evento disponibile per il plot. Fase saltata.")
+        return
+
+    debugger = CompositionDebugger(output_dir=output_dir)
+    plot_name = f"{base_composition_name}" # Rimuoviamo _complete dal nome base
+    plot_title = f"Visualizzazione Composizione: {base_composition_name}"
+    
+    plot_data['events'].sort(key=lambda x: x['time'])
+
+    # --- Logica di Allineamento Dati (dalla tua versione) ---
+    onsets_by_section_aligned = []
+    onsets_map = {}
+    for job in plot_data.get('render_jobs_info', []):
+        key = (job['section']['nome_sezione'], job['layer_idx'])
+        onsets_map[key] = job['adjusted_onsets']
+
+    for sec_idx_yaml, section_yaml in enumerate(composition_structure):
+        section_data = {'section_name': section_yaml['nome_sezione'], 'layers': []}
+        layers_in_yaml = section_yaml.get('layers', [])
+        
+        for layer_idx_yaml, layer_yaml in enumerate(layers_in_yaml):
+            key = (section_yaml['nome_sezione'], layer_idx_yaml)
+            onsets_for_this_layer = onsets_map.get(key, [])
+            section_data['layers'].append({
+                'layer_name': layer_yaml.get('nome_layer', f'Layer {layer_idx_yaml+1}'),
+                'onsets': onsets_for_this_layer
+            })
+        onsets_by_section_aligned.append(section_data)
+    # --- Fine Logica di Allineamento ---
+
+    # --- Chiamata alla funzione di plotting, passando TUTTI i parametri ---
+    debugger.plot_piano_roll(
+        events=plot_data['events'],
+        all_onsets=plot_data['onsets_flat'],
+        composition_name=plot_name,
+        composition_structure=composition_structure,
+        composer=plot_data['composer'],
+        onsets_by_section=onsets_by_section_aligned,
+        title=plot_title,
+        # Passiamo i parametri di controllo al plotter vero e proprio
+        partitura_mode=partitura_mode,
+        page_duration_s=page_duration_s
+    )
+
+def execute_section_assembly(assembly_jobs, dirs):
+    """
+    FASE 4: Esegue l'assemblaggio parallelo delle sezioni.
+    """
+    if not assembly_jobs:
+        print("\n--- FASE 4: Nessun assemblaggio di sezione richiesto. ---")
+        return
+        
+    print("\n--- FASE 4: Esecuzione Assemblaggio delle Sezioni in Parallelo ---")
+    csound_procs = []
+    for job in assembly_jobs:
+        generate_assembler_csd(job['csd_path'], job['output_wav'], job['input_layers'], title=f"Section Assembler: {job['name']}")
+        proc_data = run_csound_process(job['csd_path'], job['name'], dirs['logs'])
+        if proc_data: csound_procs.append(proc_data)
+    
+    if csound_procs:
         print("\n   Attendendo il completamento dell'assemblaggio delle sezioni...")
         for process, name, log_file in csound_procs:
             process.wait()
             log_file.close()
-            if process.returncode != 0: 
-                print(f"   ✗ ERRORE: Assemblaggio della sezione '{name}' fallito!")
-            else:
-                print(f"   ✓ Assemblaggio della sezione '{name}' completato.")
+            if process.returncode != 0: print(f"   ✗ ERRORE: Assemblaggio della sezione '{name}' fallito!")
+            else: print(f"   ✓ Assemblaggio della sezione '{name}' completato.")
 
-    # --- FASE 4: ESECUZIONE - ASSEMBLAGGIO FINALE ---
-    if final_assembly_parts:
-        print("\n--- FASE 4: Esecuzione Assemblaggio Finale ---")
-        final_csd_path = base_output_dir / f"{base_composition_name}_final_assembler.csd"
-        final_wav_path = base_output_dir / "wav" / f"{base_composition_name}_complete.wav"
+def execute_final_assembly(final_parts, base_composition_name, dirs, open_after_render):
+    """
+    FASE 5: Esegue l'assemblaggio finale e apre il file risultante.
+    """
+    if not final_parts:
+        print("\n--- FASE 5: Nessuna parte da assemblare. Processo terminato. ---")
+        return
 
-        unique_final_parts = {str(part['wav_path']): part for part in reversed(final_assembly_parts)}.values()
-        
-        generate_assembler_csd(final_csd_path, final_wav_path, [(p['wav_path'], p['onset']) for p in unique_final_parts], title="Final Composition Assembler")
-        
-        final_proc_data = run_csound_process(final_csd_path, f"{base_composition_name}_final", log_dir)
-        if final_proc_data:
-            process, name, log_file = final_proc_data
-            process.wait()
-            log_file.close()
-            if process.returncode == 0:
-                print(f"\n✓✓✓ COMPOSIZIONE FINALE COMPLETATA: {final_wav_path} ✓✓✓")
-                if APRI_FILE_DOPO_RENDER:
-                    print("Apertura del file audio completo...")
+    print("\n--- FASE 5: Esecuzione Assemblaggio Finale ---")
+    final_csd_path = dirs['base'] / "csd" / f"{base_composition_name}_final_assembler.csd"
+    final_wav_path = dirs['base'] / "wav" / f"{base_composition_name}_complete.wav"
+
+    unique_final_parts = {str(part['wav_path']): part for part in reversed(final_parts)}.values()
+    
+    generate_assembler_csd(final_csd_path, final_wav_path, [(p['wav_path'], p['onset']) for p in unique_final_parts], title="Final Composition Assembler")
+    
+    final_proc_data = run_csound_process(final_csd_path, f"{base_composition_name}_final", dirs['logs'])
+    if final_proc_data:
+        process, name, log_file = final_proc_data
+        process.wait()
+        log_file.close()
+        if process.returncode == 0:
+            print(f"\n✓✓✓ COMPOSIZIONE FINALE COMPLETATA: {final_wav_path} ✓✓✓")
+            if open_after_render:
+                print("Apertura del file audio completo...")
+                try:
                     open_command = 'open' if sys.platform == 'darwin' else 'xdg-open' if sys.platform.startswith('linux') else 'start'
                     subprocess.run([open_command, str(final_wav_path)], check=True)
-            else:
-                 print(f"\n✗ ERRORE CRITICO durante l'assemblaggio finale. Controlla il log: {log_file.name}")
-    else:
-        print("\n--- FASE 4: Nessuna parte da assemblare. Processo terminato. ---")
+                except Exception as e:
+                    print(f"ATTENZIONE: Impossibile aprire automaticamente il file audio: {e}")
+        else:
+             print(f"\n✗ ERRORE CRITICO durante l'assemblaggio finale. Controlla il log: {log_file.name}")
+
+
+if __name__ == "__main__":
+    RENDER_AUTOMATICAMENTE = True
+    APRI_FILE_DOPO_RENDER = True
+    MODALITA_PARTITURA_ASCOLTO = True 
+    DURATA_PAGINA_S = 60
+
+    if len(sys.argv) < 2:
+        print("ERRORE: Devi specificare il percorso del file YAML della composizione.")
+        sys.exit(1)
+
+    # --- SETUP INIZIALE ---
+    yaml_file_path = sys.argv[1]
+    all_composition_structures = load_all_compositions_from_yaml(yaml_file_path)
+    base_composition_name = Path(yaml_file_path).stem
+
+    base_output_dir = Path("composizioni_generate")
+    dirs = {
+        'base': base_output_dir,
+        'layers_wav': base_output_dir / "wav" / "layers",
+        'sections_wav': base_output_dir / "wav" / "sections",
+        'layers_csd': base_output_dir / "csd" / "layers",
+        'sections_csd': base_output_dir / "csd" / "sections",
+        'logs': base_output_dir / "logs"
+    }
+    for d in dirs.values():
+        d.mkdir(parents=True, exist_ok=True)
+
+    veteran_mode_active = any(
+        layer.get('veteranMode', False)
+        for part in all_composition_structures
+        for section in part
+        for layer in section.get('layers', [])
+    )
+    if veteran_mode_active:
+        print("\n" + "="*30 + " M O D A L I T À   V E T E R A N   A T T I V A " + "="*30)
+
+    # --- ORCHESTRAZIONE DELLE FASI ---
+    
+    # FASE 1: Pianifica tutti i lavori
+    layer_jobs, section_jobs, final_parts, plot_structure = plan_render_jobs(
+        all_composition_structures, base_composition_name, dirs, veteran_mode_active
+    )
+
+    # FASE 2: Esegui il rendering e raccogli i dati per il plot
+    # --- CORREZIONE DEFINITIVA: Aggiunto l'argomento mancante 'plot_structure' ---
+    plot_data = execute_layer_rendering_and_collect_data(layer_jobs, plot_structure, dirs)
+
+    # FASE 3: Genera il grafico coerente con i dati del rendering
+    generate_composition_plot(plot_data, plot_structure, base_composition_name, dirs['base'])
+    generate_composition_plot(plot_data, plot_structure, base_composition_name, dirs['base'],
+                              partitura_mode=MODALITA_PARTITURA_ASCOLTO,
+                              page_duration_s=DURATA_PAGINA_S)
+
+    # FASE 4: Assembla le sezioni dai layer renderizzati
+    execute_section_assembly(section_jobs, dirs)
+
+    # FASE 5: Assembla la composizione finale dalle sezioni
+    execute_final_assembly(final_parts, base_composition_name, dirs, APRI_FILE_DOPO_RENDER)
