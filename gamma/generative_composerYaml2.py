@@ -29,6 +29,7 @@ import seaborn as sns
 import yaml
 import subprocess 
 import re
+import json
 # =============================================================================
 # DEFINIZIONE DELLA COMPOSIZIONE (IL CUORE DEL SISTEMA)
 # =============================================================================
@@ -261,7 +262,7 @@ class GenerativeComposer:
             'senso_movimento',    # Gestito da logica speciale
             'inviluppo_attacco',  # Gestito da logica speciale
             'tipo_ritmi',         # Gestito da logica speciale
-            'densita_cluster'     # Gestito al di fuori, in _process_layer
+            'densita_cluster'     
         }
 
         # Itera su ogni parametro definito nella maschera.
@@ -570,7 +571,7 @@ class GenerativeComposer:
         return interp_mask
 
 
-    def _process_layer(self, layer, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name):
+    def _process_layer(self, layer, layer_idx, current_time_offset, scaled_section_duration, time_ratio, section_env_table_num, section_name):
         """
         Processa un singolo layer (reale o virtuale) e restituisce i suoi eventi e onsets.
         Questa è una funzione helper per process_composition.
@@ -683,7 +684,7 @@ class GenerativeComposer:
                         event_mask['durata_armonica']['range'] = scaled_range
 
                     params = self._generate_params_from_mask(event_mask)
-                    
+                    params['layer_idx_ref'] = layer_idx
                     if self._valida_parametri(params):
                         rhythm_tuple = tuple(params['ritmi'])
                         if rhythm_tuple not in self.rhythm_table_map:
@@ -783,7 +784,7 @@ class GenerativeComposer:
             else: # Retrocompatibilità
                 layers_to_process = [section]
 
-            for layer in layers_to_process:
+            for layer_idx,layer in layers_to_process:
                 layer_name = layer.get('nome_layer', "Layer Singolo")
 
                 # Se la modalità solo è attiva, controlliamo se questo layer deve essere saltato.
@@ -797,8 +798,13 @@ class GenerativeComposer:
                     continue # Salta al prossimo layer
                 # La chiamata a _process_layer e il resto della logica rimangono identici
                 layer_events, layer_onsets = self._process_layer(
-                    layer, current_time_offset, scaled_section_duration, time_ratio, 
-                    section_env_table_num, section_name # Assumendo che queste variabili siano definite
+                    layer, 
+                    layer_idx, 
+                    current_time_offset, 
+                    scaled_section_duration, 
+                    time_ratio, 
+                    section_env_table_num, 
+                    section_name
                 )
                 full_sequence.extend(layer_events)
                 section_onsets_data['layers'].append({
@@ -984,7 +990,7 @@ class CompositionDebugger:
         self.output_path = Path(output_dir)
         self._labels_added = set()
 
-    def _calculate_plot_data_for_layer(self, layer, start_mask, end_mask, layer_onsets, time_ratio, composer):
+    def _calculate_plot_data_for_layer(self, layer, start_mask, end_mask, layer_onsets, time_ratio, composer, page_duration_s):
         """
         Calcola i dati numerici per plottare le maschere di un layer.
         """
@@ -994,8 +1000,9 @@ class CompositionDebugger:
         first_onset_time = min(layer_onsets)
         last_onset_time = max(layer_onsets)
         plot_duration = last_onset_time - first_onset_time
-        if plot_duration < 0.1:
-            plot_duration = 0.1
+        min_plot_duration = page_duration_s / 12.0 
+        if plot_duration < min_plot_duration:
+            plot_duration = min_plot_duration
 
         num_samples = 100
         times = np.linspace(first_onset_time, first_onset_time + plot_duration, num_samples)
@@ -1107,7 +1114,7 @@ class CompositionDebugger:
                                 label=f"Dinamica: {layer_name}", zorder=3, alpha=0.8)
 
     # MODIFICA: La funzione ora accetta due assi per la dinamica
-    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section):
+    def _plot_tendency_masks(self, ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section, page_duration_s):
         """
         RIFATTORIZZATA: Ora agisce come un orchestratore.
         """
@@ -1138,7 +1145,7 @@ class CompositionDebugger:
                     end_mask = composer._normalize_mask(layer.get('stato_finale', layer['stato_iniziale']))
                 else: continue
 
-                plot_data = self._calculate_plot_data_for_layer(layer, start_mask, end_mask, layer_onsets, time_ratio, composer)
+                plot_data = self._calculate_plot_data_for_layer(layer, start_mask, end_mask, layer_onsets, time_ratio, composer, page_duration_s)
 
                 if plot_data:
                     # --- QUI PUOI MODIFICARE I COLORI DELLE MASCHERE ---
@@ -1187,6 +1194,10 @@ class CompositionDebugger:
 
             # 4. Ciclo principale per ogni pagina
             for i in range(num_pages):
+                current_page_duration = page_duration_s
+                if partitura_mode and i == num_pages - 1:
+                    current_page_duration = total_duration - (i * page_duration_s)
+
                 self._labels_added = set() # Resetta le etichette per ogni pagina
 
                 # 5. Crea la figura e gli assi per la pagina corrente
@@ -1222,8 +1233,9 @@ class CompositionDebugger:
                 if page_onsets:
                     ax_pitch.vlines(page_onsets, ymin=OTTAVE_RANGE[0] - 1, ymax=OTTAVE_RANGE[1] + 1, color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.6, label='Attivazione')
                 
+
                 # Maschere di tendenza
-                self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section)
+                self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section, current_page_duration)
 
                 # Linee di fine sezione
                 current_time = 0.0
@@ -1452,9 +1464,40 @@ def plan_render_jobs(all_composition_structures, base_composition_name, dirs, ve
     return layer_render_jobs, section_assembly_jobs, final_assembly_parts, full_composition_structure_for_plot
 
 # Sostituisci SOLO questa funzione nel tuo file
-def execute_layer_rendering_and_collect_data(render_jobs, composition_structure, dirs):
+
+def _sanitize_data_for_json(data):
     """
-    FASE 2: Esegue il rendering dei layer pianificati e raccoglie i dati per il plot.
+    NUOVA HELPER: Converte ricorsivamente un oggetto di dati per renderlo
+    compatibile con JSON, trasformando array NumPy in liste, float NumPy in float Python,
+    e oggetti Path in stringhe.
+    """
+    if isinstance(data, dict):
+        # Per i dizionari, sanitizza ogni valore
+        return {k: _sanitize_data_for_json(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        # Per le liste, sanitizza ogni elemento
+        return [_sanitize_data_for_json(v) for v in data]
+    
+    # --- NUOVA REGOLA DI CONVERSIONE ---
+    elif isinstance(data, Path):
+        # Converte un oggetto Path in una semplice stringa
+        return str(data)
+    # --- FINE NUOVA REGOLA ---
+
+    elif isinstance(data, np.ndarray):
+        # Converte un array NumPy in una lista
+        return data.tolist()
+    elif isinstance(data, (np.float64, np.int64)):
+        # Converte tipi numerici di NumPy in tipi standard Python
+        return float(data)
+    
+    # Per tutti gli altri tipi (stringhe, int, float, bool, None), restituisci il valore così com'è
+    return data
+
+def execute_layer_rendering_and_collect_data(render_jobs, dirs, veteran_mode_active): # <-- Aggiunto veteran_mode_active
+    """
+    FASE 2: Esegue il rendering dei layer e raccoglie i dati per il plot.
+    MODIFICATA: Se non in veteranMode, salva i dati raccolti in una cache JSON.
     """
     print("\n--- FASE 2: Esecuzione Rendering dei Layer e Raccolta Dati ---")
 
@@ -1465,7 +1508,7 @@ def execute_layer_rendering_and_collect_data(render_jobs, composition_structure,
     plot_data = {
         'events': [],
         'onsets_flat': [],
-        'render_jobs_info': [] # Usiamo questa per passare le info al plotter
+        'render_jobs_info': []
     }
     
     csound_procs = []
@@ -1477,14 +1520,8 @@ def execute_layer_rendering_and_collect_data(render_jobs, composition_structure,
         scaled_sec_dur = job['section'].get('durata', 0) * job['section'].get('ratio_temporale', 1.0)
         sec_env_num = composer.section_envelope_map.get(job['section'].get('inviluppo_sezione', composer.default_section_envelope), 0)
         
-        # Generiamo eventi per il layer corrente
-        layer_events, layer_onsets = composer._process_layer(
-            job['layer'], 0.0, 
-            scaled_sec_dur, job['section'].get('ratio_temporale', 1.0), 
-            sec_env_num, job['section']['nome_sezione']
-        )
+        layer_events, layer_onsets = composer._process_layer(job['layer'], job['layer_idx'], 0.0, scaled_sec_dur, job['section'].get('ratio_temporale', 1.0), sec_env_num, job['section']['nome_sezione'])
 
-        # Usiamo gli eventi per il rendering
         if not layer_events:
             generate_silent_wav(job['wav_path'], scaled_sec_dur)
         else:
@@ -1492,17 +1529,16 @@ def execute_layer_rendering_and_collect_data(render_jobs, composition_structure,
             proc_data = run_csound_process(job['csd_path'], job['name'], dirs['logs'])
             if proc_data: csound_procs.append(proc_data)
         
-        # Raccogliamo i dati per il plot
         absolute_onset = job['absolute_section_onset']
-        # Dobbiamo creare una copia profonda degli eventi se li modifichiamo, ma qui li aggiungiamo e basta
-        for event in layer_events:
+        # Creiamo una copia per non modificare la lista originale che potrebbe essere riutilizzata
+        processed_events = [event.copy() for event in layer_events]
+        for event in processed_events:
             event['time'] += absolute_onset
             plot_data['events'].append(event)
         
         adjusted_onsets = [onset + absolute_onset for onset in layer_onsets]
         plot_data['onsets_flat'].extend(adjusted_onsets)
 
-        # Aggiungiamo le info del job alla lista per il plotter
         job_info = job.copy()
         job_info['adjusted_onsets'] = adjusted_onsets
         plot_data['render_jobs_info'].append(job_info)
@@ -1516,65 +1552,147 @@ def execute_layer_rendering_and_collect_data(render_jobs, composition_structure,
             else: print(f"   ✓ Rendering del layer '{name}' completato.")
             
     plot_data['composer'] = composer 
+    
+    # --- NUOVA LOGICA: SALVATAGGIO DELLA CACHE ---
+    if not veteran_mode_active:
+        cache_path = dirs['base'] / "visual_cache.json"
+        print(f"\nModalità non-veteran: salvo i dati di visualizzazione in '{cache_path}'...")
+        try:
+            # Rimuoviamo l'oggetto composer che non è serializzabile
+            data_to_save = plot_data.copy()
+            data_to_save.pop('composer', None) 
+            
+            # Pulisci i dati da tipi non serializzabili
+            sanitized_data = _sanitize_data_for_json(data_to_save)
+            
+            with open(cache_path, 'w') as f:
+                json.dump(sanitized_data, f, indent=2)
+            print("✓ Cache di visualizzazione salvata con successo.")
+        except TypeError as e:
+            print(f"✗ ERRORE: Impossibile salvare la cache di visualizzazione. Dati non serializzabili: {e}")
+        except Exception as e:
+            print(f"✗ ERRORE inaspettato durante il salvataggio della cache: {e}")
+    # --- FINE NUOVA LOGICA ---
+
     return plot_data
 
-## Sostituisci la tua versione con questa versione finale e completa
+# Sostituisci la vecchia funzione con questa versione completa
 
 def generate_composition_plot(plot_data, composition_structure, base_composition_name, output_dir,
-                              partitura_mode=False, page_duration_s=60): # <-- Accetta i nuovi parametri
+                              veteran_mode_active,
+                              partitura_mode=False, page_duration_s=60):
     """
-    FASE 3: Usa i dati raccolti per generare e salvare il grafico della composizione.
-    Gestisce sia la modalità a pagina singola che quella multi-pagina (partitura).
+    FASE 3: Gestisce la cache di visualizzazione (legge, unisce, scrive)
+    e poi chiama il plotter vero e proprio.
     """
-    print("\n--- FASE 3: Generazione della Visualizzazione ---")
+    print("\n--- FASE 3: Gestione Cache e Generazione Visualizzazione ---")
     
-    if plot_data is None:
-        plot_data = {'events': [], 'onsets_flat': [], 'composer': GenerativeComposer(), 'render_jobs_info': []}
-        
-    if not plot_data.get('events'): # Controllo più sicuro
-        print("Nessun dato di evento disponibile per il plot. Fase saltata.")
-        return
+    cache_path = output_dir / "visual_cache.json"
+    fresh_data = plot_data if plot_data else {} # Dati appena generati (potrebbero essere vuoti)
 
-    debugger = CompositionDebugger(output_dir=output_dir)
-    plot_name = f"{base_composition_name}" # Rimuoviamo _complete dal nome base
-    plot_title = f"Visualizzazione Composizione: {base_composition_name}"
+    # 1. Carica la cache esistente, se c'è. Altrimenti, parti da una struttura vuota.
+    cached_data = {}
+    if cache_path.exists():
+        try:
+            with open(cache_path, 'r') as f:
+                cached_data = json.load(f)
+            print(f"  ✓ Cache di visualizzazione caricata da '{cache_path}'.")
+        except Exception as e:
+            print(f"  ✗ ATTENZIONE: Impossibile caricare o leggere la cache ({e}). Verrà creata una nuova cache.")
     
-    plot_data['events'].sort(key=lambda x: x['time'])
+    # 2. Esegui il Merge: Sostituisci i dati nella cache con i dati freschi.
+    # Inizializza la struttura dati finale partendo da una copia della cache.
+    import copy
+    final_data = copy.deepcopy(cached_data)
 
-    # --- Logica di Allineamento Dati (dalla tua versione) ---
-    onsets_by_section_aligned = []
-    onsets_map = {}
-    for job in plot_data.get('render_jobs_info', []):
-        key = (job['section']['nome_sezione'], job['layer_idx'])
-        onsets_map[key] = job['adjusted_onsets']
+    if fresh_data.get('render_jobs_info'):
+        fresh_jobs_info = fresh_data.get('render_jobs_info', [])
+        fresh_job_keys = set(
+            (job['section']['nome_sezione'], job['layer_idx']) for job in fresh_jobs_info
+        )
+        print(f"  > Trovati {len(fresh_job_keys)} layer freschi da unire/aggiornare.")
 
-    for sec_idx_yaml, section_yaml in enumerate(composition_structure):
-        section_data = {'section_name': section_yaml['nome_sezione'], 'layers': []}
-        layers_in_yaml = section_yaml.get('layers', [])
+        # Inizializza le chiavi se non esistono nella struttura dati finale (primo avvio)
+        if 'events' not in final_data: final_data['events'] = []
+        if 'render_jobs_info' not in final_data: final_data['render_jobs_info'] = []
+
+        # Rimuovi i dati vecchi per i layer che stiamo aggiornando
+        final_data['events'] = [
+            e for e in final_data['events']
+            if (e['params']['section_name'], e['params'].get('layer_idx_ref')) not in fresh_job_keys
+        ]
+        final_data['render_jobs_info'] = [
+            j for j in final_data['render_jobs_info']
+            if (j['section']['nome_sezione'], j['layer_idx']) not in fresh_job_keys
+        ]
         
-        for layer_idx_yaml, layer_yaml in enumerate(layers_in_yaml):
-            key = (section_yaml['nome_sezione'], layer_idx_yaml)
-            onsets_for_this_layer = onsets_map.get(key, [])
-            section_data['layers'].append({
-                'layer_name': layer_yaml.get('nome_layer', f'Layer {layer_idx_yaml+1}'),
-                'onsets': onsets_for_this_layer
-            })
-        onsets_by_section_aligned.append(section_data)
-    # --- Fine Logica di Allineamento ---
+        # Aggiungi i dati freschi
+        final_data['events'].extend(fresh_data.get('events', []))
+        final_data['render_jobs_info'].extend(fresh_jobs_info)
+        print("  ✓ Merge completato.")
+    
+    # 3. Se sono stati processati dati, procedi col plotting
+    if not final_data or not final_data.get('events'):
+        print("Nessun dato di visualizzazione disponibile. Plot saltato.")
+        # Anche se non c'è nulla da plottare, potremmo voler salvare una cache vuota
+        # per la coerenza, ma per ora lo saltiamo.
+    else:
+        # Assicuriamoci che l'oggetto 'composer' sia disponibile per il plotter
+        final_data['composer'] = fresh_data.get('composer', GenerativeComposer())
+        final_data['onsets_flat'] = [e['time'] for e in final_data['events']]
 
-    # --- Chiamata alla funzione di plotting, passando TUTTI i parametri ---
-    debugger.plot_piano_roll(
-        events=plot_data['events'],
-        all_onsets=plot_data['onsets_flat'],
-        composition_name=plot_name,
-        composition_structure=composition_structure,
-        composer=plot_data['composer'],
-        onsets_by_section=onsets_by_section_aligned,
-        title=plot_title,
-        # Passiamo i parametri di controllo al plotter vero e proprio
-        partitura_mode=partitura_mode,
-        page_duration_s=page_duration_s
-    )
+        # Allinea la struttura 'onsets_by_section' per il plotter
+        onsets_by_section_aligned = []
+        onsets_map = {}
+        for job in final_data.get('render_jobs_info', []):
+            key = (job['section']['nome_sezione'], job['layer_idx'])
+            onsets_map[key] = job.get('adjusted_onsets', [])
+
+        for section_yaml in composition_structure:
+            section_data = {'section_name': section_yaml['nome_sezione'], 'layers': []}
+            layers_in_yaml = section_yaml.get('layers', [])
+            for layer_idx_yaml, layer_yaml in enumerate(layers_in_yaml):
+                key = (section_yaml['nome_sezione'], layer_idx_yaml)
+                onsets_for_this_layer = onsets_map.get(key, [])
+                section_data['layers'].append({
+                    'layer_name': layer_yaml.get('nome_layer', f'Layer {layer_idx_yaml+1}'),
+                    'onsets': onsets_for_this_layer
+                })
+            onsets_by_section_aligned.append(section_data)
+
+        # Chiamata al plotter con i dati finali
+        debugger = CompositionDebugger(output_dir)
+        plot_name = f"{base_composition_name}"
+        plot_title = f"Visualizzazione Composizione: {base_composition_name}"
+        
+        final_data['events'].sort(key=lambda x: x['time'])
+
+        debugger.plot_piano_roll(
+            events=final_data['events'],
+            all_onsets=final_data['onsets_flat'],
+            composition_name=plot_name,
+            composition_structure=composition_structure,
+            composer=final_data['composer'],
+            onsets_by_section=onsets_by_section_aligned,
+            title=plot_title,
+            partitura_mode=partitura_mode,
+            page_duration_s=page_duration_s
+        )
+
+    # 4. Salva SEMPRE lo stato aggiornato nella cache, se abbiamo dei dati
+    if final_data:
+        print(f"  > Aggiornando la cache di visualizzazione in '{cache_path}'...")
+        try:
+            data_to_save = final_data.copy()
+            data_to_save.pop('composer', None)
+            
+            sanitized_data = _sanitize_data_for_json(data_to_save)
+            
+            with open(cache_path, 'w') as f:
+                json.dump(sanitized_data, f, indent=2)
+            print("  ✓ Cache di visualizzazione aggiornata con successo.")
+        except Exception as e:
+            print(f"  ✗ ERRORE: Impossibile salvare la cache di visualizzazione aggiornata: {e}")
 
 def execute_section_assembly(assembly_jobs, dirs):
     """
@@ -1677,12 +1795,14 @@ if __name__ == "__main__":
     )
 
     # FASE 2: Esegui il rendering e raccogli i dati per il plot
-    # --- CORREZIONE DEFINITIVA: Aggiunto l'argomento mancante 'plot_structure' ---
-    plot_data = execute_layer_rendering_and_collect_data(layer_jobs, plot_structure, dirs)
+    plot_data = execute_layer_rendering_and_collect_data(
+        render_jobs=layer_jobs, 
+        dirs=dirs, 
+        veteran_mode_active=veteran_mode_active
+    )
 
     # FASE 3: Genera il grafico coerente con i dati del rendering
-    generate_composition_plot(plot_data, plot_structure, base_composition_name, dirs['base'])
-    generate_composition_plot(plot_data, plot_structure, base_composition_name, dirs['base'],
+    generate_composition_plot(plot_data, plot_structure, base_composition_name, dirs['base'],veteran_mode_active,
                               partitura_mode=MODALITA_PARTITURA_ASCOLTO,
                               page_duration_s=DURATA_PAGINA_S)
 

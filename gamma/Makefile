@@ -21,7 +21,7 @@ CSD_DIR = $(OUT_DIR)/csd
 WAV_DIR = $(OUT_DIR)/wav
 LOG_DIR = $(OUT_DIR)/logs
 YAML_DIR = yaml
-YAML ?= prova.yaml
+YAML ?= Gamma.yaml
 # --- Definizione dei Target ---
 all: py
 
