@@ -1386,57 +1386,62 @@ def run_csound_process(csd_path, process_name, log_dir):
         print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
         return None
 
-
 def plan_render_jobs(all_composition_structures, base_composition_name, dirs, veteran_mode_active):
     """
-    FASE 1: Analizza la partitura e pianifica tutti i lavori di rendering e assemblaggio.
-    Restituisce i piani di lavoro e la struttura necessaria per il plotting.
+    FASE 1: Analizza la partitura e pianifica tutti i lavori.
+    Supporta 'offset_inizio' per ogni sezione e mantiene la struttura a Parti.
     """
     print("\n--- FASE 1: Analisi della Partitura e Pianificazione dei Job ---")
     
     layer_render_jobs = []
     section_assembly_jobs = []
     final_assembly_parts = []
-    
     full_composition_structure_for_plot = [sec for part in all_composition_structures for sec in part]
     
-    current_part_onset = 0.0
+    end_time_of_last_section = 0.0
+
     for i, part_structure in enumerate(all_composition_structures):
         part_name_base = f"{base_composition_name}_part_{i+1}"
-        part_duration = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in part_structure)
+        print(f"\n--- Analisi Part {i+1}: '{part_name_base}' ---")
         
-        print(f"\n--- Analisi Part {i+1}: '{part_name_base}' (Onset: {current_part_onset:.2f}s, Dur: {part_duration:.2f}s) ---")
-        
-        section_offset_within_part = 0.0
         for sec_idx, section in enumerate(part_structure):
             section_name = section['nome_sezione']
+            
+            # 1. Calcola il nuovo tempo di inizio usando il contatore globale
+            offset = section.get('offset_inizio', 0.0)
+            absolute_section_onset = max(0.0, end_time_of_last_section + offset)
+            
+            # 2. Calcola la durata e il punto finale di questa sezione
+            scaled_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+            section_end_time = absolute_section_onset + scaled_duration
+            
+            print(f"  > Sezione: '{section_name}' (Offset: {offset}s, Inizio: {absolute_section_onset:.2f}s, Dur: {scaled_duration:.2f}s)")
+
+            # 3. Aggiorna il contatore globale per la prossima iterazione
+            end_time_of_last_section = section_end_time
+
+            # 4. Logica di pianificazione (usa la struttura di naming a Parti)
             section_name_base = f"{part_name_base}_sec_{sec_idx+1}_{sanitize_filename(section_name)}"
             section_wav_path = dirs['sections_wav'] / f"{section_name_base}.wav"
-            absolute_section_onset = current_part_onset + section_offset_within_part
             
             final_assembly_parts.append({'wav_path': section_wav_path, 'onset': absolute_section_onset})
 
             layers_in_section = section.get('layers', [])
             if not layers_in_section:
-                sec_dur = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-                if sec_dur > 0:
-                    generate_silent_wav(section_wav_path, sec_dur)
-                section_offset_within_part += sec_dur
+                if scaled_duration > 0:
+                    generate_silent_wav(section_wav_path, scaled_duration)
                 continue
 
             section_needs_reassembly = False
             layer_files_for_this_section = []
 
-            # --- CORREZIONE CHIAVE: Iteriamo con l'indice `j` per il layer ---
             for j, layer in enumerate(layers_in_section):
                 layer_name = layer.get('nome_layer', f'layer_{j+1}')
                 layer_render_name = f"{section_name_base}_layer_{j+1}_{sanitize_filename(layer_name)}"
                 
                 should_render_layer = not veteran_mode_active or layer.get('veteranMode', False)
                 if should_render_layer:
-                    print(f"  > Pianificato RENDER per Layer: '{layer_name}'")
                     section_needs_reassembly = True
-                    # --- CORREZIONE CHIAVE: Aggiungiamo 'layer_idx' al job ---
                     layer_render_jobs.append({
                         'layer': layer, 'section': section, 'layer_idx': j,
                         'csd_path': dirs['layers_csd'] / f"{layer_render_name}.csd",
@@ -1447,23 +1452,14 @@ def plan_render_jobs(all_composition_structures, base_composition_name, dirs, ve
                 
                 layer_files_for_this_section.append((dirs['layers_wav'] / f"{layer_render_name}.wav", 0.0))
             
-            should_assemble_section = not veteran_mode_active or section_needs_reassembly
-            if should_assemble_section:
-                 print(f"  > Pianificato ASSEMBLAGGIO per Sezione: '{section_name}'")
+            if not veteran_mode_active or section_needs_reassembly:
                  section_assembly_jobs.append({
                      'name': section_name_base,
                      'csd_path': dirs['sections_csd'] / f"{section_name_base}_assembler.csd",
                      'output_wav': section_wav_path, 'input_layers': layer_files_for_this_section
                  })
-            else:
-                 print(f"  . Salto Assemblaggio Sezione: '{section_name}' (userà file esistente)")
-
-            section_offset_within_part += section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-        current_part_onset += part_duration
-        
+                 
     return layer_render_jobs, section_assembly_jobs, final_assembly_parts, full_composition_structure_for_plot
-
-# Sostituisci SOLO questa funzione nel tuo file
 
 def _sanitize_data_for_json(data):
     """
