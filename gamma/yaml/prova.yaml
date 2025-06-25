@@ -162,11 +162,6 @@
             
 ...
 ---
--   nome_sezione: "Pausa"
-    durata: 0
-    num_attivazioni: 0  
-...
----
 
 -   nome_sezione: "III. ripresaglissante"
     durata: 40
@@ -177,7 +172,6 @@
         usa_safety_buffer: false 
         leeway_fine_layer: 10     
         num_attivazioni: 8
-
         timing_model:
             type: "accelerando"
             shape: 2.0
@@ -231,8 +225,16 @@
 ...
 ---
 
+-   nome_sezione: ". pausa"
+    durata: 20
+    num_attivazioni: 0
+
+
+...
+---
+
+
 -   nome_sezione: "IV. Spippoling"
-    veteranMode: true 
     durata: 140
     ratio_temporale: .75   # <-- AGGIUNGI QUI. La sezione durerà 90 * 1.5 = 135 secondi.
     layers:
@@ -309,28 +311,6 @@
             onset_jitter: { range: [0.0, 0.1] }
             densita_cluster: { range: [1, 6] }
 
-      - nome_layer: "momento angolare"
-        lifespan: [0.3, 1]  # Attivo per tutta la durata della sezione
-        num_attivazioni: 20
-        timing_model:
-            type: "ritardando"
-            shape: 2.0
-        stato_iniziale:
-            ottava:           {mean: 5, std: 3}
-            registro:         {range: [1, 50], distribution: "uniform"}
-            dinamica: 'f'
-            durata_armonica:  {range: [20, 30]}
-            densita_cluster:  {range: [50, 100]}
-            tipo_ritmi:       {choices: ['medi', 'piccoli'], weights: [0.9, 0.1]}
-            nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
-        stato_finale:   
-            ottava:           {mean: 7, std: 0}
-            registro:         {range: [10, 13], distribution: "uniform"}
-            dinamica: 'p'
-            durata_armonica:  {range: [10, 15]} 
-            densita_cluster:  {range: [15, 20]}
-            tipo_ritmi:       {choices: ['medi', 'misti'], weights: [0.2, 0.8]}
-            nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
 
 ...
 ---
@@ -338,7 +318,6 @@
 -   nome_sezione: "Te rompo rculo"
     durata: 40
     ratio_temporale: 1
-    num_attivazioni: 0
     #inviluppo_sezione: 'impulso'
     layers:
       - nome_layer: "cluster"
@@ -364,4 +343,26 @@
             dinamica: 'p'
             durata_armonica:  {range: [6, 10]} 
             densita_cluster:  {range: [15, 20]}
+            nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}
+      - nome_layer: "momento angolare"
+        lifespan: [0.3, 1]  # Attivo per tutta la durata della sezione
+        num_attivazioni: 0
+        timing_model:
+            type: "ritardando"
+            shape: 2.0
+        stato_iniziale:
+            ottava:           {mean: 5, std: 3}
+            registro:         {range: [1, 50], distribution: "uniform"}
+            dinamica: 'f'
+            durata_armonica:  {range: [20, 30]}
+            densita_cluster:  {range: [50, 100]}
+            tipo_ritmi:       {choices: ['medi', 'piccoli'], weights: [0.9, 0.1]}
+            nonlinear_mode:   {choices: [0, 1], weights: [0.8, 0.2]}
+        stato_finale:   
+            ottava:           {mean: 7, std: 0}
+            registro:         {range: [10, 13], distribution: "uniform"}
+            dinamica: 'p'
+            durata_armonica:  {range: [10, 15]} 
+            densita_cluster:  {range: [15, 20]}
+            tipo_ritmi:       {choices: ['medi', 'misti'], weights: [0.2, 0.8]}
             nonlinear_mode:   {choices: [1, 2], weights: [0.4, 0.6]}

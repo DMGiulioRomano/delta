@@ -1,7 +1,7 @@
 
 <CsoundSynthesizer>
 <CsOptions>
--o "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/composizioni_generate/wav/prova_part_4.wav" -W -d -m0
+-o "composizioni_generate/wav/layers/prova_part_3_sec_1_ii_tutto_il_monco_in_festa_layer_2_solista.wav" -W -d -m0
 </CsOptions>
 <CsInstruments>
 sr = 96000
@@ -23,13 +23,13 @@ gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
 gi_debug init 1
 
-#include "../includes/gamma_utils.udo"
-#include "../includes/pfield_comp.udo"
-#include "../includes/NonlinearFunc.udo"
-#include "../includes/GenPythagFreqs.udo"
-#include "../includes/initIsoAmp.orc"
-#include "../includes/eventoSonoro.orc"
-#include "../includes/voce.orc"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/gamma_utils.udo"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/pfield_comp.udo"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/NonlinearFunc.udo"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/GenPythagFreqs.udo"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/initIsoAmp.orc"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/eventoSonoro.orc"
+#include "/Users/giuliodemattia/Github/DMGiulioRomano/delta/gamma/includes/voce.orc"
 
 instr time
     ktime times
@@ -48,7 +48,7 @@ instr Init
 endin
 </CsInstruments>
 <CsScore>
-f 0 50.0 ; Evento f fittizio per definire la durata totale
+f 0 82.0 ; Evento f fittizio per definire la durata totale
 f1 0 4096 10 1
 
 
@@ -80,47 +80,51 @@ f 23 0 4096 10 1
 ; crescendo_diminuendo
 f 24 0 4096 7 0 2048 1 2048 0
 ; impulso
-f 24 0 4096 6 0 256 1 2304 0.001
+f 25 0 4096 6 1 4096 0.001
 
 
-f 1000 0 3 -2 6 8 10
-f 1001 0 3 -2 0 1 2
+f 1000 0 11 -2 3 2 4 5 3 2 4 1 3 2 4
+f 1001 0 11 -2 0 1 2 3 1 1 2 0 2 1 2
 f 1002 0 3 -2 2 3 5
 f 1003 0 3 -2 0 1 2
-f 1004 0 3 -2 7 9 12
+f 1004 0 3 -2 1 2 3
 f 1005 0 3 -2 0 1 2
-f 1006 0 3 -2 3 4 2
-f 1007 0 3 -2 0 1 0
+f 1006 0 3 -2 7 9 12
+f 1007 0 3 -2 0 1 2
+f 1008 0 3 -2 6 8 10
+f 1009 0 3 -2 0 1 2
+f 1010 0 3 -2 8 12 8
+f 1011 0 3 -2 0 1 2
 
 
-i "time" 0 50.0
+i "time" 0 82.0
 i "Init" 0 0.1
 
 ; --- EVENTI GENERATI ---
 
 ; =============================================================================
-; SEZIONE: "Pausa"
-; Inizio: 0.000s, Durata: 40.000s
+; SEZIONE: "II. tutto il monco in festa"
+; Inizio: 0.000s, Durata: 42.000s
 ; =============================================================================
 
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	33.2898	6.710	1000	96.216		0.311294	5		14			5		1		1001	1		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	16.4934	55.507	1002	31.579		0.264428	3		8			3		7		1003	1346		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	33.3087	6.691	1002	96.107		0.311294	5		15			5		11		1003	2		0				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	36.7556	33.838	1004	25.333		1.635243	3		-3			3		1		1005	1347		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	34.0407	5.959	1002	109.750		0.518089	5		15			5		29		1003	3		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	36.6926	35.307	1004	24.664		1.635243	3		9			3		16		1005	1348		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	34.0409	5.959	1000	110.176		0.518089	5		16			5		3		1001	4		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	36.5864	35.414	1006	28.042		1.635243	3		60			3		50		1007	1349		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	34.0860	5.914	1002	110.539		0.518089	5		15			5		9		1003	5		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	36.7019	29.585	1008	23.295		1.635243	3		-14			3		1		1009	1350		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	37.7422	2.258	1004	93.235		1.428622	4		37			4		46		1005	6		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	36.6792	35.321	1002	24.804		1.635243	3		-5			3		1		1003	1351		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	37.7576	2.242	1006	87.930		1.428622	4		-11			4		25		1007	7		0				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	36.7749	35.225	1002	25.090		1.635243	3		13			3		6		1003	1352		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	37.6901	2.310	1006	96.942		1.428622	4		15			4		14		1007	8		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	38.5787	33.421	1010	22.352		1.771115	3		5			3		7		1011	1353		1				1			2			20			0.0000		42.000		30.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	37.7828	2.217	1000	88.205		1.428622	4		26			4		1		1001	9		1				1			2			20			0.0000		40.000		0.000		1
+i "Voce"	38.6164	33.384	1008	26.776		1.771115	3		5			3		3		1009	1354		1				1			2			20			0.0000		42.000		30.000		1
 
 ; ---------------------
 

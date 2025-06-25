@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
 import subprocess 
+import re
 # =============================================================================
 # DEFINIZIONE DELLA COMPOSIZIONE (IL CUORE DEL SISTEMA)
 # =============================================================================
@@ -159,7 +160,7 @@ class GenerativeComposer:
     """Classe principale che orchestra la generazione della composizione."""
 
     def __init__(self, output_dir="composizioni_generate", tables_config_path="yaml/tables.yaml"):
-        self.base_path = Path(__file__).parent
+        self.base_path = Path(__file__).parent.resolve() # <-- MODIFICA: usa resolve() per un percorso assoluto
         self.output_path = self.base_path / output_dir
         self.output_path.mkdir(exist_ok=True)
         self.wav_output_path = self.output_path / "wav"
@@ -822,14 +823,16 @@ class GenerativeComposer:
         # RESTITUISCI LA DURATA CALCOLATA
         return full_sequence, all_onsets_flat, onsets_by_section, total_calculated_duration
 
-    def generate_csd(self, composition_name, events):
+    # Dentro la classe GenerativeComposer
+
+    def generate_csd(self, composition_name, events, csd_file_path, wav_file_path): # <<< PARAMETRI AGGIUNTI
         """Genera il file CSD finale dalla sequenza di eventi."""
-        print(f"\nAssemblo il file CSD '{composition_name}.csd'...")
+        # Rimosso il print iniziale che ora è gestito dal chiamante
         
         # --- 1. COSTRUZIONE DEGLI F-STATEMENTS PER I RITMI ---
         rhythm_tables_str = ""
+        # ... (il resto di questa sezione è IDENTICO) ...
         for rhythm_tuple, table_ids in self.rhythm_table_map.items():
-            # ... (questa parte rimane identica) ...
             ritmi_str = ' '.join(map(str, rhythm_tuple))
             posizioni = [i % r for i, r in enumerate(rhythm_tuple) if r > 0]
             posizioni_str = ' '.join(map(str, posizioni))
@@ -838,104 +841,30 @@ class GenerativeComposer:
 
         # --- 2. COSTRUZIONE DINAMICA DEGLI F-STATEMENTS PER GLI INVILUPPI ---
         envelope_tables_str = "; --- TABELLE DEGLI INVILUPPI (generate da tables.yaml) ---\n"
-        
-        # Unisci i due dizionari di configurazione per iterare su tutte le tabelle in una volta
+        # ... (il resto di questa sezione è IDENTICO) ...
         all_envelope_configs = {**self.event_envelopes_config, **self.section_envelopes_config}
-
         for name, config in all_envelope_configs.items():
-            # Converte la lista di parametri in una stringa separata da spazi
             params_str = ' '.join(map(str, config['parameters']))
-            # Costruisce la riga dello score
             envelope_tables_str += f"; {name}\n"
             envelope_tables_str += f"f {config['number']} 0 {config['size']} {config['gen_routine']} {params_str}\n"
 
         # --- 3. COSTRUZIONE DELLE LINEE DI SCORE PER GLI EVENTI ---
         score_lines = ""
         last_event_time = 0
-        current_section_name = None # Inizializza a None per stampare il primo commento
+        current_section_name = None 
+        # ... (tutta la logica di generazione delle linee di score è IDENTICA) ...
         for event in events:
             p = event['params']
             event_time = max(event['time'], 0.001)
             if event['type'] == 'voce':
-                # Controlla se il nome della sezione dell'evento attuale è diverso dall'ultimo visto
                 if p.get('section_name') != current_section_name:
-                    # Se è diverso, è l'inizio di una nuova sezione
                     current_section_name = p.get('section_name')
                     section_start = p.get('section_start_time', 0)
                     section_dur = p.get('section_duration', 0)
-                    # Scrivi il commento descrittivo nello score
                     score_lines += f'\n; =============================================================================\n'
                     score_lines += f'; SEZIONE: "{current_section_name}"\n'
                     score_lines += f'; Inizio: {section_start:.3f}s, Durata: {section_dur:.3f}s\n'
                     score_lines += f'; =============================================================================\n\n'
-
-                    """
-                    columns = [
-                        ("instr", 'i "Voce"', 8),
-                        ("start", event_time, 8),
-                        ("dur", p["durata_totale"], 8),
-                        ("rit_tab", p["ritmi_tab_num"], 9),
-                        ("dur_arm", p["durata_armonica"], 9),
-                        ("dyn_idx", p["dynamic_index"], 9),
-                        ("ott_S", p["ottava"], 7),
-                        ("reg_S", p["registro"], 7),
-                        ("ott_E", p["ottava_arrivo"], 7),
-                        ("reg_E", p["registro_arrivo"], 7),
-                        ("pos_tab", p["pos_tab_num"], 9),
-                        ("id_comp", p["id_comp"], 9),
-                        ("nlin_mode", p["nonlinear_mode"], 11),
-                        ("mov_sense", p["senso_movimento"], 11),
-                        ("ifn_att", p["ifn_attacco"], 9),
-                        ("ifn_sec_env", p.get("section_env_table_num", 0), 13),
-                        ("sec_start", p.get("section_start_time", 0), 11),
-                        ("sec_dur", p.get("section_duration", 0), 9),
-                        ("leeway", p.get("layer_leeway", 0), 8),
-                    ]
-
-                    # 2. Generazione dinamica delle intestazioni (header)
-                    #    Questa logica è intelligente e può essere usata solo una volta
-                    #    per scrivere l'header all'inizio dello score.
-                    #    Per semplicità qui la genero per ogni nota, ma si può ottimizzare.
-                    header1_parts = []
-                    header2_parts = []
-                    for i, (name, value, width) in enumerate(columns):
-                        header1_parts.append(f"{name:<{width-1}}")
-                        if name != "instr":
-                            # Allinea il p-number all'interno dello spazio disponibile
-                            header2_parts.append(f"p{i:<{width-1}}") 
-                        else:
-                            header2_parts.append(f"{'':<{width-1}}") # Spazio vuoto per la colonna 'instr'
-
-                    # Unisci le parti con un separatore per leggibilità
-                    score_lines += "; p-fields:  " + " | ".join(header1_parts) + "\n"
-                    score_lines += "; p-num:     " + " | ".join(header2_parts) + "\n"
-
-
-                    # 3. Costruzione della riga di dati formattata
-                    row_pieces = []
-                    for name, value, width in columns:
-                        # Applica formattazioni specifiche in base al nome o al tipo
-                        if name in ["start", "sec_start"]:
-                            formatted_value = f"{value:<{width}.4f}"
-                        elif name in ["dur", "dur_arm", "sec_dur", "leeway"]:
-                            formatted_value = f"{value:<{width}.3f}"
-                        elif isinstance(value, float):
-                            formatted_value = f"{value:<{width}.2f}"
-                        elif name == "instr":
-                            # Gestisce le virgolette per il nome dello strumento
-                            formatted_value = f'{value:<{width}}'
-                        else: # Interi e stringhe
-                            formatted_value = f"{str(value):<{width}}"
-                        
-                        row_pieces.append(formatted_value)
-                    
-                    # Unisci tutti i pezzi per formare la riga di score finale
-                    score_lines += " ".join(row_pieces) + "\n"
-                """
-
-                # Commento dettagliato che documenta ogni p-field
-                #score_lines += ("; p-fields:  instr     | start | dur   | rit_tab | dur_arm | dyn_idx | ott_S | reg_S | ott_E | reg_E | pos_tab | id_comp | nlin_mode | mov_sense | ifn_att | ifn_sec_env | sec_start | sec_dur | leeway\n"
-                #                "; p-num:     p1        | p2    | p3    | p4      | p5      | p6      | p7    | p8    | p9    | p10   | p11     | p12     | p13       | p14       | p15     | p16         | p17       | p18     | p19\n")
 
                 score_lines += ";\t\t\tat\t\t\tdur\t\ttab\t\tarmonica\tdinamica\tottava\tregistro\tnew_ottava\tnew_registro\tpos\t\tid_comp\tnonlinearMode\tmovimento\tifn_attacco\tenv_sezione\tsez_attacco\tsez_durata\tsez_leeway\t safety_buffer\n"
                 score_lines += (f'i "Voce"\t{event_time:.4f}\t{p["durata_totale"]:.3f}\t'
@@ -949,27 +878,28 @@ class GenerativeComposer:
                 last_event_time = max(last_event_time, event_time + p["durata_totale"])
 
         # --- 4. ASSEMBLAGGIO DEL FILE FINALE ---
-        wav_file_path = self.wav_output_path / f"{composition_name}.wav"
-        csd_file_path = self.output_path / f"{composition_name}.csd"
-
-        # 3. Assembla il file finale usando il NUOVO template e i NUOVI placeholder
+        # <<< RIMOSSA LA COSTRUZIONE INTERNA DEI PERCORSI >>>
+            
         template = self.get_csd_template()
+        
+        # NUOVA RIGA: calcola il percorso assoluto della cartella includes
+        includes_path = self.base_path / "includes"
+        
         csd_content = template.format(
-            wav_file_path=wav_file_path, 
-            envelope_tables=envelope_tables_str, 
-            rhythm_tables=rhythm_tables_str, 
+            wav_file_path=wav_file_path,
+            includes_path=includes_path, # <-- NUOVO: Passa il percorso al template
+            envelope_tables=envelope_tables_str,
+            rhythm_tables=rhythm_tables_str,
             score_lines=score_lines,
             durata_totale=last_event_time + 10,
-            ottave_macro = OTTAVE_RANGE[1], 
+            ottave_macro = OTTAVE_RANGE[1],
             registri_macro = REGISTRI_RANGE[1],
             intervalli_macro = INTERVALLI_PER_OTTAVA
         )
 
         with open(csd_file_path, 'w') as f:
             f.write(csd_content)
-        
-        return csd_file_path, wav_file_path
-    
+            
     def get_csd_template(self):
         """Restituisce il template CSD master."""
         return """
@@ -997,13 +927,13 @@ gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
 gi_debug init 1
 
-#include "../includes/gamma_utils.udo"
-#include "../includes/pfield_comp.udo"
-#include "../includes/NonlinearFunc.udo"
-#include "../includes/GenPythagFreqs.udo"
-#include "../includes/initIsoAmp.orc"
-#include "../includes/eventoSonoro.orc"
-#include "../includes/voce.orc"
+#include "{includes_path}/gamma_utils.udo"
+#include "{includes_path}/pfield_comp.udo"
+#include "{includes_path}/NonlinearFunc.udo"
+#include "{includes_path}/GenPythagFreqs.udo"
+#include "{includes_path}/initIsoAmp.orc"
+#include "{includes_path}/eventoSonoro.orc"
+#include "{includes_path}/voce.orc"
 
 instr time
     ktime times
@@ -1370,184 +1300,40 @@ e
         if temp_csd_path.exists():
             temp_csd_path.unlink()
 
-if __name__ == "__main__":
-    # ===================================================================
-    RENDER_AUTOMATICAMENTE = True
-    APRI_FILE_DOPO_RENDER = True
-    # ===================================================================
 
-    if len(sys.argv) < 2:
-        print("ERRORE: Devi specificare il percorso del file YAML della composizione.")
-        sys.exit(1)
-    
-    yaml_file_path = sys.argv[1]
-    all_composition_structures = load_all_compositions_from_yaml(yaml_file_path)
-    base_composition_name = Path(yaml_file_path).stem
-    
-    csound_processes = []
-    assembly_data = []
+def sanitize_filename(name):
+    """Converte una stringa in un nome di file sicuro."""
+    name = name.lower()
+    name = re.sub(r'\s+', '_', name)
+    name = re.sub(r'[^a-z0-9_-]', '', name)
+    return name
 
-    # Dati aggregati per il plot completo
-    full_composition_events = []
-    full_composition_structures = []
-    full_composition_onsets_by_section = []
-    full_composition_onsets_flat = []
+def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, title="Assembler"):
+    """
+    Genera un file CSD per assemblare più file WAV.
+    input_files_with_onsets è una lista di tuple: (percorso_file, onset_time)
+    """
+    score_lines = ""
 
-    # Rilevamento "Veteran Mode"
-    veteran_mode_active = False
-    parts_to_process_indices = []
-    for i, comp_struct in enumerate(all_composition_structures):
-        if comp_struct and isinstance(comp_struct[0], dict) and comp_struct[0].get('veteranMode', False):
-            veteran_mode_active = True
-            parts_to_process_indices.append(i)
-
-    if veteran_mode_active:
-        print("\n" + "="*30 + " M O D A L I T À   V E T E R A N   A T T I V A " + "="*30)
-        print("Verranno ricalcolate solo le parti con 'veteranMode: true'. Le altre verranno riutilizzate.")
-    else:
-        parts_to_process_indices = list(range(len(all_composition_structures)))
-
-    print("\n--- FASE 1: Analisi Parti, Generazione CSD e Grafici Individuali ---")
-    current_onset_time = 0.0
-
-    # 1. LOOP DI ANALISI E GENERAZIONE (SEQUENZIALE) - LOGICA RISTRUTTURATA
-    for i, composition_structure in enumerate(all_composition_structures):
-        part_name = f"{base_composition_name}_part_{i+1}"
-        wav_path_for_part = Path("composizioni_generate") / "wav" / f"{part_name}.wav"
+    for file_path, onset in input_files_with_onsets:
+        # --- MODIFICA CHIAVE: USA SEMPRE PERCORSI ASSOLUTI RISOLTI ---
+        # Path(file_path).resolve() ottiene il percorso completo e inequivocabile del file.
+        # Es: /Users/giuliodemattia/Github/.../composizioni_generate/wav/sections/sezione.wav
+        absolute_path = Path(file_path).resolve()
         
-        duration_for_next_onset = 0.0
-
-        # Calcola sempre la durata strutturale, ci servirà come fallback
-        structural_duration = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in composition_structure)
-        print(f'for {part_name} abbiamo durata {structural_duration}\n')
-
-        # Determina se la parte è silenziosa
-        is_silent_part = all(section.get('num_attivazioni', -1) == 0 for section in composition_structure) if composition_structure else False
-
-        # Determina se la parte deve essere processata o skippata
-        should_process = i in parts_to_process_indices
+        # Pulisci il percorso per Csound (specialmente per Windows, sostituendo \ con /)
+        escaped_path = str(absolute_path).replace('\\', '/')
         
-        # --- LOGICA DECISIONALE CHIARA ---
-        
-        if is_silent_part:
-            print(f"\n{'='*80}")
-            print(f"RILEVATA PARTE SILENZIOSA: '{part_name}' (Pausa di {structural_duration:.2f}s)")
-            print(f"{'='*80}")
-            if RENDER_AUTOMATICAMENTE:
-                generate_silent_wav(wav_path_for_part, structural_duration)
-            duration_for_next_onset = structural_duration
+        # La durata 0 dice a Csound di calcolarla al volo
+        score_lines += f'i "orchestrator" {onset:.4f} 0 "{escaped_path}"\n'
 
-        elif should_process:
-            print(f"\n{'='*80}")
-            print(f"ELABORAZIONE PARTE: '{part_name}' (Onset programmato: {current_onset_time:.2f}s)")
-            print(f"{'='*80}")
-
-            composer = GenerativeComposer()
-            debugger = CompositionDebugger(composer.output_path)
-        
-            event_sequence, all_onsets, onsets_by_section, precise_part_duration = composer.process_composition(composition_structure)
-            
-            if not event_sequence:
-                print(f"ATTENZIONE: Nessun evento generato per '{part_name}'. La parte avrà durata 0.")
-                duration_for_next_onset = 0.0
-            else:
-                duration_for_next_onset = precise_part_duration
-                debugger.plot_piano_roll(event_sequence, all_onsets, part_name, composition_structure, composer, onsets_by_section)
-                csd_file_path, _ = composer.generate_csd(part_name, event_sequence)
-            
-                # Aggregazione dati per il plot completo
-                for event in event_sequence:
-                    event['time'] += current_onset_time
-                full_composition_events.extend(event_sequence)
-                for onset in all_onsets:
-                    full_composition_onsets_flat.append(onset + current_onset_time)
-                full_composition_structures.extend(composition_structure)
-                for section_data in onsets_by_section:
-                    for layer_onset_data in section_data['layers']:
-                        layer_onset_data['onsets'] = [t + current_onset_time for t in layer_onset_data['onsets']]
-                    full_composition_onsets_by_section.append(section_data)
-                
-                # Aggiunta alla coda di rendering
-                if RENDER_AUTOMATICAMENTE:
-                    log_file_path = csd_file_path.parent / f"csound_render_{part_name}.log"
-                    print(f" > Aggiunto '{part_name}' alla coda di rendering parallelo.")
-                    try:
-                        log_file = open(log_file_path, 'w')
-                        process = subprocess.Popen(['csound', '--format=float', str(csd_file_path)], stdout=log_file, stderr=log_file)
-                        csound_processes.append((process, part_name, log_file))
-                    except Exception as e:
-                        print(f"ERRORE nel lanciare Csound per {part_name}: {e}")
-        else: # La parte non è silenziosa e non deve essere processata (skip in veteran mode)
-            print(f"\n- SKIP PARTE: '{part_name}' (Onset: {current_onset_time:.2f}s). Uso WAV esistente.")
-            # La durata della parte skippata è quella strutturale
-            composer = GenerativeComposer()
-            debugger = CompositionDebugger(composer.output_path)
-            _, _, _, precise_part_duration = composer.process_composition(composition_structure)
-            duration_for_next_onset = precise_part_duration
-        
-        # Aggiungi i dati per l'assemblaggio con l'onset attuale (PRIMA dell'incremento)
-        assembly_data.append({'wav_path': wav_path_for_part, 'onset': current_onset_time})
-        
-        # Aggiorna l'orologio globale per la *prossima* parte.
-        print(f"   > Durata di questa parte: {duration_for_next_onset:.2f}s. Prossimo onset sarà a: {current_onset_time + duration_for_next_onset:.2f}s")
-        current_onset_time += duration_for_next_onset
-
-
-    # Il resto del codice da qui in poi è corretto e non necessita modifiche.
-    
-    # 2. FASE DI ATTESA PARALLELA
-    if RENDER_AUTOMATICAMENTE and csound_processes:
-        print("\n--- FASE 2: Attesa Completamento Rendering Paralleli ---")
-        success = True
-        for process, name, log_file in csound_processes:
-            print(f" > In attesa di '{name}'...")
-            process.wait()
-            log_file.close()
-            if process.returncode == 0:
-                print(f"   ✓ '{name}' completato con successo.")
-            else:
-                print(f"   ✗ ERRORE: Rendering di '{name}' fallito (codice: {process.returncode}). Controlla il log.")
-                success = False
-        if not success:
-            print("\nCi sono stati errori nei rendering. Assemblaggio finale annullato.")
-            sys.exit(1)
-
-    # 3. PLOT FINALE COMPLETO
-    if not veteran_mode_active and full_composition_events:
-        print("\n--- FASE 3: Generazione Grafico Completo della Composizione ---")
-        if full_composition_events:
-            final_composer = GenerativeComposer()
-            final_debugger = CompositionDebugger(final_composer.output_path)
-            final_title = f"Visualizzazione Completa: '{base_composition_name}'"
-            final_debugger.plot_piano_roll(
-                full_composition_events,
-                full_composition_onsets_flat,
-                base_composition_name + "_complete",
-                full_composition_structures,
-                final_composer,
-                full_composition_onsets_by_section,
-                title=final_title
-            )
-    elif veteran_mode_active:
-        print("\n--- FASE 3: Generazione Grafico Completo saltata (Veteran Mode attivo) ---")
-
-    # 4. FASE DI ASSEMBLAGGIO FINALE
-    if assembly_data:
-        print("\n--- FASE 4: Assemblaggio Finale ---")
-        score_lines = ""
-        for part in assembly_data:
-            score_lines += f'i "orchestrator" {part["onset"]:.4f} [60*8-{part["onset"]:.4f}] "{part["wav_path"]}"\n'
-
-        output_dir = Path("composizioni_generate")
-        assembler_csd_path = output_dir / f"{base_composition_name}_assembler.csd"
-        final_wav_path = output_dir / "wav" / f"{base_composition_name}_complete.wav"
-
-        template = """
+    template = f"""
 <CsoundSynthesizer>
 <CsOptions>
--o "{final_wav_path}" -W -d -m0
+-o "{output_wav_path}" -W -d -m0
 </CsOptions>
 <CsInstruments>
+; --- {title} ---
 sr=96000
 ksmps=32
 nchnls=2
@@ -1555,8 +1341,12 @@ nchnls=2
 instr orchestrator
     S_file strget p4
     i_dur filelen S_file
-    prints "i_dur: %f\\tfor %s\\n",i_dur, S_file
-    schedule "playFile", 0, i_dur, S_file
+    if i_dur > 0 then
+        prints "Scheduling '%s' (dur: %.2fs) at time %.2fs\\n", S_file, i_dur, p2
+        schedule "playFile", 0, i_dur, S_file
+    else
+        prints "WARNING: Could not play file '%s'.\\n", S_file
+    endif
 endin
 instr playFile
     a_L, a_R diskin2 p4, 1
@@ -1569,19 +1359,278 @@ e
 </CsScore>
 </CsoundSynthesizer>
 """
-        csd_content = template.format(final_wav_path=final_wav_path, score_lines=score_lines)
-        with open(assembler_csd_path, 'w') as f: f.write(csd_content)
+    with open(csd_path, 'w') as f:
+        f.write(template)
+    return csd_path
 
-        print(f"✓ CSD di assemblaggio creato: {assembler_csd_path}")
-        print("--- Avvio rendering di assemblaggio... ---")
+def run_csound_process(csd_path, process_name, log_dir):
+    """Lancia un singolo processo Csound e restituisce l'oggetto Popen."""
+    log_file_path = log_dir / f"csound_render_{process_name}.log"
+    print(f"    - Avvio rendering per '{process_name}' (Log: {log_file_path.name})")
+    try:
+        log_file = open(log_file_path, 'w')
+        process = subprocess.Popen(['csound', '--format=float', str(csd_path)], stdout=log_file, stderr=log_file)
+        return (process, process_name, log_file)
+    except Exception as e:
+        print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
+        return None
 
-        log_file_path = output_dir / f"csound_render_{base_composition_name}_assembler.log"
-        log_file = None
+if __name__ == "__main__":
+    # ===================================================================
+    RENDER_AUTOMATICAMENTE = True
+    APRI_FILE_DOPO_RENDER = True
+    # ===================================================================
+
+    if len(sys.argv) < 2:
+        print("ERRORE: Devi specificare il percorso del file YAML della composizione.")
+        sys.exit(1)
+
+    yaml_file_path = sys.argv[1]
+    all_composition_structures = load_all_compositions_from_yaml(yaml_file_path)
+    base_composition_name = Path(yaml_file_path).stem
+
+    # --- SETUP DELLE DIRECTORY DI OUTPUT ---
+    base_output_dir = Path("composizioni_generate")
+    dir_wav_layers = base_output_dir / "wav" / "layers"
+    dir_wav_sections = base_output_dir / "wav" / "sections"
+    dir_csd_layers = base_output_dir / "csd" / "layers"
+    dir_csd_sections = base_output_dir / "csd" / "sections"
+    log_dir = base_output_dir / "logs"
+    for d in [dir_wav_layers, dir_wav_sections, dir_csd_layers, dir_csd_sections, log_dir]:
+        d.mkdir(parents=True, exist_ok=True)
+
+    # --- RILEVAMENTO VETERAN MODE ---
+    veteran_mode_active = any(
+        layer.get('veteranMode', False)
+        for part in all_composition_structures
+        for section in part
+        for layer in section.get('layers', [])
+    )
+    if veteran_mode_active:
+        print("\n" + "="*30 + " M O D A L I T À   V E T E R A N   (LAYER)   A T T I V A " + "="*30)
+    else:
+        print("\nModalità di rendering normale: tutti i layer e le sezioni verranno (ri)generati.")
+
+    # --- FUNZIONI HELPER PER IL MAIN BLOCK ---
+    def generate_assembler_csd(csd_path, output_wav_path, input_files_with_onsets, title="Assembler"):
+        score_lines = ""
+        print("\n\n\n\n\n")
+        print(input_files_with_onsets)
+        print("\n\n\n\n\n")
+        for file_path, onset in input_files_with_onsets:
+            try:
+                relative_path = Path(file_path)
+            except ValueError:
+                relative_path = file_path
+            print("\n\n\n\n\n")
+            print(relative_path)
+            print("\n\n\n\n\n")
+
+            score_lines += f'i "orchestrator" {onset:.4f} [60*8] "{relative_path}"\n'
+        template = f"""<CsoundSynthesizer>
+<CsOptions>
+-o "{output_wav_path}" -W -d -m0
+</CsOptions>
+<CsInstruments>
+; --- {title} ---
+sr=96000
+ksmps=32
+nchnls=2
+0dbfs=1
+instr orchestrator
+    S_file strget p4
+    i_dur filelen S_file
+    if i_dur > 0 then
+        prints "Scheduling '%s' (dur: %.2fs) at time %.2fs\\n", S_file, i_dur, p2
+        schedule "playFile", 0, i_dur, S_file
+    else
+        prints "WARNING: Could not play file '%s'.\\n", S_file
+    endif
+endin
+instr playFile
+    a_L, a_R diskin2 p4, 1
+    outs a_L, a_R
+endin
+</CsInstruments>
+<CsScore>
+{score_lines}
+e
+</CsScore>
+</CsoundSynthesizer>"""
+        with open(csd_path, 'w') as f: f.write(template)
+        return csd_path
+
+    def run_csound_process(csd_path, process_name, log_dir):
+        log_file_path = log_dir / f"csound_render_{process_name}.log"
+        print(f"    - Avvio rendering per '{process_name}' (Log: {log_file_path.name})")
         try:
             log_file = open(log_file_path, 'w')
-            print(f"   (Log di rendering verrà salvato in: {log_file_path})")
-            process = subprocess.Popen(['csound', '--format=float', str(assembler_csd_path)], stdout=log_file, stderr=log_file)
+            process = subprocess.Popen(['csound', '--format=float', str(csd_path)], stdout=log_file, stderr=log_file)
+            return (process, process_name, log_file)
+        except Exception as e:
+            print(f"    - ERRORE CRITICO nel lanciare Csound per {process_name}: {e}")
+            return None
+
+    # --- FASE 1: ANALISI E PIANIFICAZIONE DEI JOB ---
+    print("\n--- FASE 1: Analisi della Partitura e Pianificazione dei Job ---")
+    layer_render_jobs = []
+    section_assembly_jobs = []
+    final_assembly_parts = []
+
+    current_time = 0.0
+
+    for i, part_structure in enumerate(all_composition_structures):
+        part_name_base = f"{base_composition_name}_part_{i+1}"
+        part_onset = current_time
+        part_duration = sum(s.get('durata', 0) * s.get('ratio_temporale', 1.0) for s in part_structure)
+        
+        print(f"\n--- Analisi Part {i+1}: '{part_name_base}' (Onset: {part_onset:.2f}s, Dur: {part_duration:.2f}s) ---")
+
+        current_section_offset_in_part = 0.0
+        # === CICLO SULLE SEZIONI REINTRODOTTO PER ROBUSTEZZA ===
+        section_offset_within_part = 0.0
+        for sec_idx, section in enumerate(part_structure):
+            section_name = section['nome_sezione']
+            section_name_base = f"{part_name_base}_sec_{sec_idx+1}_{sanitize_filename(section_name)}"
+            section_wav_path = dir_wav_sections / f"{section_name_base}.wav"
+            # L'onset assoluto di questa sezione
+            absolute_section_onset = part_onset + section_offset_within_part
+            final_assembly_parts.append({'wav_path': section_wav_path, 'onset': absolute_section_onset})
+
+            layers_in_section = section.get('layers', [])
+            if not layers_in_section:
+                print(f"  . Sezione '{section_name}' non ha layer, trattata come pausa.")
+                section_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+                
+                if section_duration > 0:
+                    print(f"    - Genero file WAV silenzioso di {section_duration:.2f}s per la pausa.")
+                    # Usiamo il percorso del file di sezione già definito
+                    generate_silent_wav(section_wav_path, section_duration)
+                
+                section_offset_within_part += section_duration
+                continue # Saltiamo il resto della logica di pianificazione dei layer
+
+            section_needs_reassembly = False
+            layer_files_for_this_section = []
+
+            for j, layer in enumerate(layers_in_section):
+                layer_name = layer.get('nome_layer', f'layer_{j+1}')
+                layer_render_name = f"{section_name_base}_layer_{j+1}_{sanitize_filename(layer_name)}"
+                layer_wav_path = dir_wav_layers / f"{layer_render_name}.wav"
+                layer_csd_path = dir_csd_layers / f"{layer_render_name}.csd"
+                
+                section_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+                lifespan_start = layer.get('lifespan', [0.0, 1.0])[0]
+                relative_onset = lifespan_start * section_duration
+
+                layer_files_for_this_section.append((layer_wav_path, relative_onset))
+                
+                should_render_layer = not veteran_mode_active or layer.get('veteranMode', False)
+                if should_render_layer:
+                    print(f"  > Pianificato RENDER per Layer: '{layer_name}' (Onset nel suo file: {relative_onset:.2f}s)")
+                    section_needs_reassembly = True
+                    layer_render_jobs.append({
+                        'layer': layer, 'section': section, 'csd_path': layer_csd_path,
+                        'wav_path': layer_wav_path, 'name': layer_render_name
+                    })
+                else:
+                    print(f"  . Salto Render Layer: '{layer_name}' (Onset nel suo file: {relative_onset:.2f}s)")
+
+            should_assemble_section = not veteran_mode_active or section_needs_reassembly
+            if should_assemble_section:
+                 print(f"  > Pianificato ASSEMBLAGGIO per Sezione: '{section_name}'")
+                 section_assembly_jobs.append({
+                     'name': section_name_base,
+                     'csd_path': dir_csd_sections / f"{section_name_base}_assembler.csd",
+                     'output_wav': section_wav_path,
+                     'input_layers': layer_files_for_this_section
+                 })
+            else:
+                 print(f"  . Salto Assemblaggio Sezione: '{section_name}' (userà file esistente)")
+            
+            # Incrementa l'offset per la prossima sezione DENTRO la stessa parte
+            section_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+            section_offset_within_part += section_duration
+
+        # Incrementa il tempo globale con la durata totale della parte appena processata
+        current_time += part_duration
+
+    # --- FASE 2: ESECUZIONE - RENDERING DEI LAYER ---
+    if layer_render_jobs:
+        print("\n--- FASE 2: Esecuzione Rendering dei Layer in Parallelo ---")
+        csound_procs = []
+        composer = GenerativeComposer()
+        for job in layer_render_jobs:
+            scaled_sec_dur = job['section'].get('durata', 0) * job['section'].get('ratio_temporale', 1.0)
+            sec_env_num = composer.section_envelope_map.get(job['section'].get('inviluppo_sezione', composer.default_section_envelope), 0)
+            
+            layer_events, _ = composer._process_layer(
+                job['layer'], 0.0, # <-- L'OFFSET È 0.0
+                scaled_sec_dur, job['section'].get('ratio_temporale', 1.0),
+                sec_env_num, job['section']['nome_sezione']
+            )
+            if not layer_events:
+                print(f"    - ATTENZIONE: Nessun evento per layer '{job['name']}'. Genero silenzio.")
+                generate_silent_wav(job['wav_path'], scaled_sec_dur)
+                continue
+            
+            # Usa la funzione generate_csd modificata
+            composer.generate_csd(job['name'], layer_events, job['csd_path'], job['wav_path'])
+            
+            proc_data = run_csound_process(job['csd_path'], job['name'], log_dir)
+            if proc_data: csound_procs.append(proc_data)
+        
+        for process, name, log_file in csound_procs:
             process.wait()
+            log_file.close()
+            if process.returncode != 0:
+                print(f"   ✗ ERRORE: Rendering del layer '{name}' fallito! Controlla i log.")
+    else:
+        print("\n--- FASE 2: Nessun layer da renderizzare. ---")
+
+    # --- FASE 3: ESECUZIONE - ASSEMBLAGGIO DELLE SEZIONI ---
+    if section_assembly_jobs:
+        print("\n--- FASE 3: Esecuzione Assemblaggio delle Sezioni in Parallelo ---")
+        csound_procs = []
+        for job in section_assembly_jobs:
+            
+            # --- CORREZIONE LOGICA TEMPORALE (DEFINITIVA) ---
+            # Hai ragione tu: quando assembliamo una sezione, tutti i suoi layer
+            # devono partire da 0.0, perché il loro posizionamento temporale
+            # (il silenzio iniziale) è già contenuto nel loro file WAV.
+            # `job['input_layers']` contiene tuple (path, relative_onset). 
+            # Noi le trasformiamo in (path, 0.0).
+            inputs_with_onsets = [(path, 0.0) for path, rel_onset in job['input_layers']]
+            
+            generate_assembler_csd(job['csd_path'], job['output_wav'], inputs_with_onsets, title=f"Section Assembler: {job['name']}")
+            proc_data = run_csound_process(job['csd_path'], job['name'], log_dir)
+            if proc_data: csound_procs.append(proc_data)
+        
+        # Ciclo di attesa per i processi di assemblaggio delle sezioni
+        print("\n   Attendendo il completamento dell'assemblaggio delle sezioni...")
+        for process, name, log_file in csound_procs:
+            process.wait()
+            log_file.close()
+            if process.returncode != 0: 
+                print(f"   ✗ ERRORE: Assemblaggio della sezione '{name}' fallito!")
+            else:
+                print(f"   ✓ Assemblaggio della sezione '{name}' completato.")
+
+    # --- FASE 4: ESECUZIONE - ASSEMBLAGGIO FINALE ---
+    if final_assembly_parts:
+        print("\n--- FASE 4: Esecuzione Assemblaggio Finale ---")
+        final_csd_path = base_output_dir / f"{base_composition_name}_final_assembler.csd"
+        final_wav_path = base_output_dir / "wav" / f"{base_composition_name}_complete.wav"
+
+        unique_final_parts = {str(part['wav_path']): part for part in reversed(final_assembly_parts)}.values()
+        
+        generate_assembler_csd(final_csd_path, final_wav_path, [(p['wav_path'], p['onset']) for p in unique_final_parts], title="Final Composition Assembler")
+        
+        final_proc_data = run_csound_process(final_csd_path, f"{base_composition_name}_final", log_dir)
+        if final_proc_data:
+            process, name, log_file = final_proc_data
+            process.wait()
+            log_file.close()
             if process.returncode == 0:
                 print(f"\n✓✓✓ COMPOSIZIONE FINALE COMPLETATA: {final_wav_path} ✓✓✓")
                 if APRI_FILE_DOPO_RENDER:
@@ -1589,11 +1638,6 @@ e
                     open_command = 'open' if sys.platform == 'darwin' else 'xdg-open' if sys.platform.startswith('linux') else 'start'
                     subprocess.run([open_command, str(final_wav_path)], check=True)
             else:
-                print(f"\n✗ ERRORE CRITICO durante l'assemblaggio (codice: {process.returncode}).")
-                print(f"   Per i dettagli, consultare il file di log: {log_file_path}")
-        except Exception as e:
-            print(f"ERRORE INATTESO durante l'esecuzione dell'assemblaggio: {e}")
-        finally:
-            if log_file:
-                log_file.close()
-
+                 print(f"\n✗ ERRORE CRITICO durante l'assemblaggio finale. Controlla il log: {log_file.name}")
+    else:
+        print("\n--- FASE 4: Nessuna parte da assemblare. Processo terminato. ---")
