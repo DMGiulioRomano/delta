@@ -14,7 +14,7 @@
 
 # Una composizione è una lista di "sezioni". Ogni sezione, introdotta da un
 # trattino (-), è un blocco temporale della musica. Le sezioni vengono eseguite
-# in sequenza.
+# in sequenza, ma possono avere offset per creare pause o sovrapposizioni.
 #
 # Ogni sezione contiene uno o più "layer" sonori. Un layer è un flusso di
 # eventi sonori parallelo e indipendente, con una propria identità e una
@@ -36,13 +36,14 @@
         nome_layer: "Nome del Layer"
         num_attivazioni: 50
         timing_model: { type: lineare }
-        # Novità: Controlla quando il layer è attivo all'interno della sezione (0.0 -> 1.0)
+        # Controlla quando il layer è attivo all'interno della sezione (0.0 -> 1.0)
         lifespan: [0.0, 0.8] # Questo layer si ferma all'80% della durata della sezione.
 
         # --- D. Maschera di Tendenza (il "DNA" sonoro del layer) ---
         stato_unico:
             # ... qui vengono definiti i parametri sonori ...
             ottava: { range: [4, 5] }
+            durata_armonica: { range: [1.0, 2.0] }
 
 
 ################################################################################
@@ -64,7 +65,11 @@
     # (Numero, Opzionale) Fattore di scala per la durata della sezione. Utile per
     # "stirare" (> 1) o "comprimere" (< 1) la sezione. Default: 1.0
 
-    inviluppo_sezione: 'crescendo_diminuendo'
+    offset_inizio: 0.0
+    # (Numero, Opzionale) Introduce una pausa (se > 0) o una sovrapposizione (se < 0)
+    # in secondi rispetto alla fine della sezione precedente. Default: 0.0
+
+    inviluppo_sezione: 'continua'
     # (Stringa, Opzionale) Applica una curva di ampiezza globale a tutti i suoni
     # della sezione. I nomi disponibili sono definiti nel file `yaml/tables.yaml`.
     # Default: 'continua' (un valore costante a 1, che non altera il volume).
@@ -77,13 +82,16 @@
       -
         nome_layer: "Riferimento Parametri di Layer"
 
-        num_attivazioni: 100
+        num_attivazioni: 10
         # (Intero, Opzionale) Il numero di "impulsi" che generano suoni. Controlla
         # la densità generale del layer. Default: 10
 
         timing_model: { type: lineare }
         # (Dizionario, Opzionale) Definisce COME vengono distribuiti nel tempo gli
-        # impulsi. Default: { type: lineare }. Vedi Sezione 3.2 per il tipo 'breakpoint'.
+        # impulsi. Default: { type: lineare }.
+        # Tipi disponibili: 'lineare', 'stochastic', 'ritardando', 'accelerando', 'breakpoint'.
+        # Per 'ritardando'/'accelerando', si può aggiungere 'shape: <numero>'.
+        # Vedi Sezione 3.2 per il tipo 'breakpoint'.
 
         lifespan: [0.0, 1.0]
         # (Lista di 2 numeri, Opzionale) Definisce il ciclo di vita del layer come
@@ -101,8 +109,15 @@
         # sezione successiva. Impostare a `false` per legature tra sezioni. Default: true
 
         solo: false
-        # (Booleano, Opzionale) Se impostato a `true`, il motore genererà e renderizzerà
-        # *esclusivamente* i layer con questo flag. Fondamentale per il debug. Default: false
+        # (Booleano, Opzionale) Se impostato a `true` in almeno un layer, il motore
+        # genererà e renderizzerà *esclusivamente* i layer con questo flag.
+        # Fondamentale per il debug di parti isolate. Default: false.
+
+        veteranMode: false
+        # (Booleano, Opzionale) Un flag di rendering persistente. Se attivo,
+        # il motore può essere eseguito in modalità "veteran" per aggiornare
+        # solo i layer contrassegnati, lasciando gli altri intatti dalla cache.
+        # Utile per lavori complessi. Default: false.
 
 
 # ==============================================================================
@@ -129,11 +144,11 @@
             registro: { range: [10, 40] }
               # (Range: 1-50, Opzionale) Posizione fine di PARTENZA. Default: 5
 
-            # NUOVO: Parametri per definire un glissando. Il motore usa una gerarchia:
+            # Parametri per definire un glissando. Gerarchia di priorità:
             # 1. Offset (se presente)
             # 2. Assoluto (se presente e non c'è offset)
-            # 3. Statico (se non c'è nessuno dei due)
-            offset_ottava: { range: [0, 1] }
+            # 3. Statico (se non c'è nessuno dei due, il suono non ha glissando)
+            offset_ottava: { range: [-1, 1] }
               # (Numero, Opzionale) Variazione di ottava da sommare alla nota di partenza.
             offset_registro: { range: [-10, 10] }
               # (Numero, Opzionale) Variazione di registro da sommare alla nota di partenza.
@@ -215,7 +230,7 @@
 # 3.3 CONCETTI ARCHITETTURALI
 # ------------------------------------------------------------------------------
 # - **Disaccoppiamento tramite `tables.yaml`**: I parametri `inviluppo_attacco`
-#   e `inviluppo_sezione` non sono più nomi fissi, ma fanno riferimento a
+#   e `inviluppo_sezione` non sono nomi fissi, ma fanno riferimento a
 #   definizioni personalizzate nel file `yaml/tables.yaml`. Questo permette di
 #   creare e usare un numero illimitato di inviluppi senza modificare il codice.
 #
@@ -264,12 +279,13 @@
           onset_jitter: { range: [0.0, 0.1] }
 
 # --- Esempio 2: Sezione "vecchio stile" per retrocompatibilità ---
+# Se il blocco 'layers:' è omesso, l'intera sezione viene trattata come un singolo layer.
 -
     nome_sezione: "II. Stasi Ritmica (Senza Layer)"
     durata: 30
+    offset_inizio: 5.0 # Inizia 5 secondi dopo la fine della sezione precedente
     num_attivazioni: 80
     timing_model: { type: "lineare" }
-    # Se il blocco 'layers:' è omesso, l'intera sezione viene trattata come un singolo layer.
     stato_unico:
         ottava: { value: 5 }
         registro: { range: [10, 40] }
