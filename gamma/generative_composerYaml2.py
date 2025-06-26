@@ -1138,6 +1138,34 @@ class CompositionDebugger:
         if not events:
             print("Nessun evento da visualizzare."); return
 
+        plot_metadata = []
+        end_time_of_last_section_calc = 0.0 # Usiamo una variabile temporanea per il calcolo
+        for section in composition_structure:
+            time_ratio = section.get('ratio_temporale', 1.0)
+            scaled_duration = section.get('durata', 0) * time_ratio
+            
+            # Calcola l'inizio corretto della sezione tenendo conto dell'offset
+            section_start_abs = max(0.0, end_time_of_last_section_calc + section.get('offset_inizio', 0.0))
+            
+            section_meta = {'layers': []}
+            
+            layers_in_section = section.get('layers', [])
+            for layer_idx, layer in enumerate(layers_in_section):
+                lifespan = layer.get('lifespan', [0.0, 1.0])
+                start_ratio, end_ratio = lifespan
+                
+                layer_meta = {
+                    'layer_name': layer.get('nome_layer', f'Layer {layer_idx+1}'),
+                    'layer_start_abs': section_start_abs + (start_ratio * scaled_duration),
+                    'layer_duration_abs': (end_ratio - start_ratio) * scaled_duration
+                }
+                section_meta['layers'].append(layer_meta)
+            
+            plot_metadata.append(section_meta)
+            
+            # Aggiorna il punto di riferimento per la prossima sezione
+            end_time_of_last_section_calc = section_start_abs + scaled_duration
+
         plot_data_list = []
         total_duration = 0
         max_durata_armonica = 0
@@ -1177,6 +1205,53 @@ class CompositionDebugger:
                 ax_dyn_prob.set_ylabel("Prob. Dinamica"); ax_dyn_prob.set_xlabel(f"Tempo (secondi, da {int(page_start_time)}s a {int(page_end_time)}s)"); ax_dyn_prob.grid(True, axis='y', linestyle='--', alpha=0.6)
                 
                 ax_pitch.set_xlim(page_start_time, page_end_time)
+
+                y_min, y_max = ax_pitch.get_ylim()
+                plot_height = y_max - y_min
+                
+                # Definiamo i colori per i layer in modo consistente
+                layer_colors = {}
+                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+                all_layers_names = [layer['layer_name'] for section in plot_metadata for layer in section['layers']]
+                # Usiamo un set per avere nomi unici e poi ordiniamo per consistenza
+                for name in sorted(list(set(all_layers_names))):
+                    if name not in layer_colors:
+                        layer_colors[name] = color_cycle[len(layer_colors) % len(color_cycle)]
+                
+                for section_meta in plot_metadata:
+                    for layer_info in section_meta['layers']:
+                        start = layer_info['layer_start_abs']
+                        duration = layer_info['layer_duration_abs']
+                        
+                        # Disegna solo se il layer è visibile in questa pagina
+                        if start < page_end_time and (start + duration) > page_start_time and duration > 0:
+                            layer_color = layer_colors.get(layer_info['layer_name'], 'grey')
+                            
+                            # Disegna l'area rettangolare
+                            ax_pitch.add_patch(
+                                plt.Rectangle(
+                                    (start, y_min),
+                                    duration,
+                                    plot_height,
+                                    facecolor=layer_color,
+                                    alpha=0.08, # Trasparenza molto alta
+                                    zorder=0,   # Sotto a tutti gli altri elementi
+                                    edgecolor='none'
+                                )
+                            )
+                            
+                            # Aggiungi l'etichetta del nome del layer
+                            label_key = f"layer_label_{layer_info['layer_name']}"
+                            # Mostra l'etichetta solo se l'inizio del layer è in questa pagina e non è già stata aggiunta
+                            if start >= page_start_time and label_key not in self._labels_added:
+                                ax_pitch.text(
+                                    start + 0.5, # Un po' a destra dell'inizio per leggibilità
+                                    y_max - 0.2, # In cima al grafico
+                                    layer_info['layer_name'],
+                                    ha='left', va='top', fontsize='x-small',
+                                    color=layer_color, alpha=0.8, weight='bold'
+                                )
+                                self._labels_added.add(label_key)
 
                 for item in plot_data_list:
                     if item['start'] < page_end_time and (item['start'] + item['duration']) > page_start_time:

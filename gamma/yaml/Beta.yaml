@@ -59,7 +59,7 @@
             tipo_ritmi:
               explicit_values: [3, 2, 4, 5, 3, 2, 4, 1, 3, 2, 4]
       - nome_layer: "scampanello"
-        lifespan: [0.74, 1]  
+        lifespan: [0.755, 1]  
         num_attivazioni: 3      
         timing_model:
             type: "ritardando"
@@ -69,7 +69,7 @@
             registro:         {range: [1, 20]}
             durata_armonica:  {range: [9, 12]}
             densita_cluster:  {range: [70, 100]} 
-            onset_jitter: {range: [0.6, 2.6]}
+            onset_jitter: {range: [0.6, 1.6]}
             dinamica: 'mf'
             tipo_ritmi:
               explicit_values: [3, 2, 4, 5, 3, 2, 4, 1, 3, 2, 4]
