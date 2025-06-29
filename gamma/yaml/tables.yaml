@@ -54,6 +54,13 @@ event_envelopes:
     # Attacco, lungo sustain, decadimento
     parameters: [0, 512, 1, 3072, 1, 512, 0]
 
+  mega-impulsivo:
+    number: 8
+    size: 4096
+    gen_routine: 5
+    # Attacco rapidissimo (in 1/8 della durata), decadimento lento
+    parameters: [0.001, 128, 1, 3968, 0.0001]
+
 section_envelopes:
   continua:
     number: 20

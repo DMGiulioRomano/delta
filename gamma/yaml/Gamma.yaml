@@ -185,6 +185,7 @@
             durata_armonica:  {range: [10, 20]}
             densita_cluster:  {range: [1, 7]}
       - nome_layer: "Scintillii Acuti e Stocastici"
+        veteranMode: true
         leeway_fine_layer: 30     
         usa_safety_buffer: false            
         num_attivazioni: 10

@@ -896,7 +896,7 @@ nchnls = 2
 #define REGISTRI #{registri_macro}#
 #define M_PI #3.141592653589793#
 gSdirSco = "./sco/"
-gi_Index init 1
+gi_Index init 2
 gi_eve_attacco ftgen 0, 0, 2^20, -2, 0
 gi_Intonazione ftgen 0, 0, $OTTAVE*$INTERVALLI+1, -2, 0
 
@@ -1128,44 +1128,168 @@ class CompositionDebugger:
                     self._plot_dynamics(ax_dyn_linear, ax_dyn_prob, plot_data['times'], plot_data['dinamica'], 
                                         layer_color, layer_name)
 
-    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer, onsets_by_section, title=None, 
-                        partitura_mode=False, page_duration_s=60):
-        """
-        Crea un grafico. Se partitura_mode è True, lo spezza in un PDF multi-pagina.
-        MODIFICATA: Aggiunge marcatori verdi per l'inizio di ogni sezione.
-        """
-        print(f"\n--- Generazione Grafico {'(Modalità Partitura)' if partitura_mode else '(Pagina Singola)'}: '{composition_name}' ---")
-        if not events:
-            print("Nessun evento da visualizzare."); return
-
+    def _prepare_plot_data(self, events, composition_structure):
+        """Prepara tutti i dati necessari per il plotting."""
+        # Blocco 1: Calcolo metadati dei layer
         plot_metadata = []
-        end_time_of_last_section_calc = 0.0 # Usiamo una variabile temporanea per il calcolo
+        end_time_of_last_section_calc = 0.0
         for section in composition_structure:
             time_ratio = section.get('ratio_temporale', 1.0)
             scaled_duration = section.get('durata', 0) * time_ratio
-            
-            # Calcola l'inizio corretto della sezione tenendo conto dell'offset
             section_start_abs = max(0.0, end_time_of_last_section_calc + section.get('offset_inizio', 0.0))
             
             section_meta = {'layers': []}
-            
             layers_in_section = section.get('layers', [])
             for layer_idx, layer in enumerate(layers_in_section):
                 lifespan = layer.get('lifespan', [0.0, 1.0])
                 start_ratio, end_ratio = lifespan
-                
                 layer_meta = {
                     'layer_name': layer.get('nome_layer', f'Layer {layer_idx+1}'),
                     'layer_start_abs': section_start_abs + (start_ratio * scaled_duration),
                     'layer_duration_abs': (end_ratio - start_ratio) * scaled_duration
                 }
                 section_meta['layers'].append(layer_meta)
-            
             plot_metadata.append(section_meta)
-            
-            # Aggiorna il punto di riferimento per la prossima sezione
             end_time_of_last_section_calc = section_start_abs + scaled_duration
 
+        # Blocco 2: Calcolo dati degli eventi
+        plot_data_list = []
+        total_duration = 0
+        max_durata_armonica = 0
+        # NOTA: Dobbiamo passare composer a questa funzione per questo calcolo.
+        # Per ora, lo omettiamo e lo gestiamo nella funzione principale.
+        # Questa parte è più difficile da isolare, la lasciamo dov'è per ora.
+
+        # Determiniamo i colori dei layer una sola volta
+        layer_colors = {}
+        color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        all_layers_names = [layer['layer_name'] for section in plot_metadata for layer in section['layers']]
+        for name in sorted(list(set(all_layers_names))):
+            if name not in layer_colors:
+                layer_colors[name] = color_cycle[len(layer_colors) % len(color_cycle)]
+
+        return plot_metadata, layer_colors
+
+    def _setup_plot_page(self, fig, composer, max_durata_armonica, page_start_time, page_end_time):
+        """Configura gli assi e le etichette per una singola pagina del grafico."""
+        ax_pitch, ax_dyn_linear, ax_dyn_prob = fig.get_axes()
+        ax_dur = ax_pitch.twinx()
+
+        ax_pitch.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1)
+        ax_pitch.set_ylabel("Ottava.Registro")
+        ax_pitch.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2))
+        ax_pitch.tick_params(axis='x', labelbottom=False)
+
+        ax_dur.set_ylabel("Durata Armonica (s)", color='darkcyan')
+        ax_dur.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10)
+        ax_dur.tick_params(axis='y', labelcolor='darkcyan')
+
+        ax_dyn_linear.set_ylabel("Dinamica (Lineare)")
+        dyn_labels = list(composer.dynamic_to_index.keys())
+        dyn_ticks = list(composer.dynamic_to_index.values())
+        ax_dyn_linear.set_yticks(dyn_ticks)
+        ax_dyn_linear.set_yticklabels(dyn_labels)
+        ax_dyn_linear.set_ylim(min(dyn_ticks) - 0.5, max(dyn_ticks) + 0.5)
+        ax_dyn_linear.grid(True, axis='y', linestyle='--', alpha=0.6)
+        ax_dyn_linear.tick_params(axis='x', labelbottom=False)
+
+        ax_dyn_prob.set_ylabel("Prob. Dinamica")
+        ax_dyn_prob.set_xlabel(f"Tempo (secondi, da {int(page_start_time)}s a {int(page_end_time)}s)")
+        ax_dyn_prob.grid(True, axis='y', linestyle='--', alpha=0.6)
+
+        ax_pitch.set_xlim(page_start_time, page_end_time)
+        
+        return ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob
+
+    def _draw_layer_areas(self, ax_pitch, plot_metadata, layer_colors, page_start_time, page_end_time):
+        """Disegna le linee verticali di inizio e fine per ogni layer."""
+                
+        for section_meta in plot_metadata:
+            for layer_info in section_meta['layers']:
+                start = layer_info['layer_start_abs']
+                duration = layer_info['layer_duration_abs']
+                end = start + duration
+                
+                # Disegna solo se il layer è in qualche modo visibile in questa pagina
+                if start < page_end_time and end > page_start_time and duration > 0:
+                    layer_color = layer_colors.get(layer_info['layer_name'], 'grey')
+                                        
+                    if page_start_time <= start < page_end_time:
+                        ax_pitch.axvline(x=start, color=layer_color, linestyle=':', linewidth=1.5, zorder=1, alpha=0.7)
+
+                    if page_start_time <= end < page_end_time:
+                        ax_pitch.axvline(x=end, color=layer_color, linestyle=':', linewidth=1.5, zorder=1, alpha=0.7)
+
+                    label_key = f"layer_label_{layer_info['layer_name']}"
+
+                    if start >= page_start_time and label_key not in self._labels_added:
+                        _, y_max = ax_pitch.get_ylim() 
+                        ax_pitch.text(
+                            start + 0.5, # Un po' a destra della linea di inizio
+                            y_max - 0.2, # In cima al grafico
+                            layer_info['layer_name'],
+                            ha='left', va='top', fontsize='x-small',
+                            color=layer_color, alpha=0.9, weight='bold'
+                        )
+                        self._labels_added.add(label_key)
+                        
+    def _draw_events(self, ax_pitch, plot_data_list, page_start_time, page_end_time):
+        """Disegna gli eventi sonori (rettangoli delle note)."""
+        for item in plot_data_list:
+            if item['start'] < page_end_time and (item['start'] + item['duration']) > page_start_time:
+                ax_pitch.add_patch(plt.Rectangle((item['start'], item['pitch'] - 0.04), item['duration'], 0.08, color=plt.cm.viridis(item['amp_norm']), alpha=0.6, zorder=3))
+
+    def _draw_section_markers(self, axes, composition_structure, page_start_time, page_end_time):
+        """Disegna i marcatori di inizio e fine sezione."""
+        ax_pitch, ax_dyn_linear, ax_dyn_prob = axes
+        end_time_of_last_section = 0.0
+        for section in composition_structure:
+            offset = section.get('offset_inizio', 0.0)
+            section_start = max(0.0, end_time_of_last_section + offset)
+            scaled_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
+            section_end = section_start + scaled_duration
+            
+            if page_start_time <= section_start < page_end_time:
+                label_text = f"Inizio: {section['nome_sezione']}" if f"inizio_{section['nome_sezione']}" not in self._labels_added else ""
+                for ax in axes:
+                    ax.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2, label=label_text if ax is ax_pitch else "")
+                self._labels_added.add(f"inizio_{section['nome_sezione']}")
+                
+            if page_start_time <= section_end < page_end_time:
+                label_text = f"Fine: {section['nome_sezione']}" if f"fine_{section['nome_sezione']}" not in self._labels_added else ""
+                for ax in axes:
+                    ax.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2, label=label_text if ax is ax_pitch else "")
+                self._labels_added.add(f"fine_{section['nome_sezione']}")
+                
+            end_time_of_last_section = section_end
+
+    def _collect_and_draw_legend(self, fig, axes):
+        """Raccoglie le etichette da tutti gli assi e disegna la legenda."""
+        handles, labels = [], []
+        for ax in axes:
+            h, l = ax.get_legend_handles_labels()
+            handles.extend(h)
+            labels.extend(l)
+        
+        # Aggiungiamo anche gli assi "twin"
+        for ax in fig.get_axes():
+            if isinstance(ax, plt.Axes) and ax not in axes:
+                h, l = ax.get_legend_handles_labels()
+                handles.extend(h)
+                labels.extend(l)
+                
+        fig.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.5, -0.08), ncol=8, fontsize='x-small')
+
+    def plot_piano_roll(self, events, all_onsets, composition_name, composition_structure, composer, onsets_by_section, title=None, 
+                        partitura_mode=False, page_duration_s=60):
+        """
+        Crea un grafico multi-pagina della composizione, orchestrando la preparazione e il disegno.
+        """
+        print(f"\n--- Generazione Grafico {'(Modalità Partitura)' if partitura_mode else '(Pagina Singola)'}: '{composition_name}' ---")
+        if not events:
+            print("Nessun evento da visualizzare."); return
+
+        # --- FASE 1: Preparazione Dati ---
         plot_data_list = []
         total_duration = 0
         max_durata_armonica = 0
@@ -1176,7 +1300,11 @@ class CompositionDebugger:
                 plot_data_list.append({'start': start, 'duration': duration, 'pitch': p['ottava'] + (p['registro'] / (REGISTRI_RANGE[1] + 1.0)), 'amp_norm': p.get('dynamic_index', 3) / len(composer.dynamic_to_index)})
                 if (start + duration) > total_duration: total_duration = start + duration
                 if p['durata_armonica'] > max_durata_armonica: max_durata_armonica = p['durata_armonica']
+
+        # Estraiamo la preparazione dei metadati che è stata isolata
+        plot_metadata, layer_colors = self._prepare_plot_data(events, composition_structure)
         
+        # --- FASE 2: Setup PDF e Loop Pagine ---
         file_suffix = "_partitura.pdf" if partitura_mode else "_visual_A3.pdf"
         plot_filename = self.output_path / f"{composition_name}{file_suffix}"
         
@@ -1186,125 +1314,40 @@ class CompositionDebugger:
 
             for i in range(num_pages):
                 self._labels_added = set() 
-                A3_LANDSCAPE_WIDTH_INCHES = 420 / 25.4; A3_LANDSCAPE_HEIGHT_INCHES = 297 / 25.4
-                fig, (ax_pitch, ax_dyn_linear, ax_dyn_prob) = plt.subplots(
+                page_start_time = i * page_duration_s if partitura_mode else 0
+                page_end_time = (i + 1) * page_duration_s if partitura_mode else total_duration
+
+                # --- FASE 3: Setup della Pagina ---
+                A3_LANDSCAPE_WIDTH_INCHES = 420 / 25.4
+                A3_LANDSCAPE_HEIGHT_INCHES = 297 / 25.4
+                fig, axes_tuple = plt.subplots(
                     nrows=3, ncols=1, figsize=(A3_LANDSCAPE_WIDTH_INCHES, A3_LANDSCAPE_HEIGHT_INCHES), 
                     sharex=True, gridspec_kw={'height_ratios': [3, 1, 1]}
                 )
+                ax_pitch, ax_dyn_linear, ax_dyn_prob = axes_tuple
                 
-                page_title = title if not partitura_mode else f"{title} (Pagina {i+1}/{num_pages})"
-                fig.suptitle(page_title, fontsize=14)
+                fig.suptitle(f"{title} (Pagina {i+1}/{num_pages})" if partitura_mode else title, fontsize=14)
                 
-                page_start_time = i * page_duration_s if partitura_mode else 0
-                page_end_time = (i + 1) * page_duration_s if partitura_mode else total_duration
-                
-                ax_dur = ax_pitch.twinx()
-                ax_pitch.set_ylim(OTTAVE_RANGE[0] - 1, OTTAVE_RANGE[1] + 1); ax_pitch.set_ylabel("Ottava.Registro"); ax_pitch.set_yticks(range(OTTAVE_RANGE[0], OTTAVE_RANGE[1] + 2)); ax_pitch.tick_params(axis='x', labelbottom=False)
-                ax_dur.set_ylabel("Durata Armonica (s)", color='darkcyan'); ax_dur.set_ylim(0, max_durata_armonica * 1.5 if max_durata_armonica > 0 else 10); ax_dur.tick_params(axis='y', labelcolor='darkcyan')
-                ax_dyn_linear.set_ylabel("Dinamica (Lineare)"); dyn_labels = list(composer.dynamic_to_index.keys()); dyn_ticks = list(composer.dynamic_to_index.values()); ax_dyn_linear.set_yticks(dyn_ticks); ax_dyn_linear.set_yticklabels(dyn_labels); ax_dyn_linear.set_ylim(min(dyn_ticks) - 0.5, max(dyn_ticks) + 0.5); ax_dyn_linear.grid(True, axis='y', linestyle='--', alpha=0.6); ax_dyn_linear.tick_params(axis='x', labelbottom=False)
-                ax_dyn_prob.set_ylabel("Prob. Dinamica"); ax_dyn_prob.set_xlabel(f"Tempo (secondi, da {int(page_start_time)}s a {int(page_end_time)}s)"); ax_dyn_prob.grid(True, axis='y', linestyle='--', alpha=0.6)
-                
-                ax_pitch.set_xlim(page_start_time, page_end_time)
+                ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob = self._setup_plot_page(
+                    fig, composer, max_durata_armonica, page_start_time, page_end_time
+                )
 
-                y_min, y_max = ax_pitch.get_ylim()
-                plot_height = y_max - y_min
+                # --- FASE 4: Disegno degli Elementi ---
+                self._draw_layer_areas(ax_pitch, plot_metadata, layer_colors, page_start_time, page_end_time)
+                self._draw_events(ax_pitch, plot_data_list, page_start_time, page_end_time)
                 
-                # Definiamo i colori per i layer in modo consistente
-                layer_colors = {}
-                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-                all_layers_names = [layer['layer_name'] for section in plot_metadata for layer in section['layers']]
-                # Usiamo un set per avere nomi unici e poi ordiniamo per consistenza
-                for name in sorted(list(set(all_layers_names))):
-                    if name not in layer_colors:
-                        layer_colors[name] = color_cycle[len(layer_colors) % len(color_cycle)]
-                
-                for section_meta in plot_metadata:
-                    for layer_info in section_meta['layers']:
-                        start = layer_info['layer_start_abs']
-                        duration = layer_info['layer_duration_abs']
-                        
-                        # Disegna solo se il layer è visibile in questa pagina
-                        if start < page_end_time and (start + duration) > page_start_time and duration > 0:
-                            layer_color = layer_colors.get(layer_info['layer_name'], 'grey')
-                            
-                            # Disegna l'area rettangolare
-                            ax_pitch.add_patch(
-                                plt.Rectangle(
-                                    (start, y_min),
-                                    duration,
-                                    plot_height,
-                                    facecolor=layer_color,
-                                    alpha=0.08, # Trasparenza molto alta
-                                    zorder=0,   # Sotto a tutti gli altri elementi
-                                    edgecolor='none'
-                                )
-                            )
-                            
-                            # Aggiungi l'etichetta del nome del layer
-                            label_key = f"layer_label_{layer_info['layer_name']}"
-                            # Mostra l'etichetta solo se l'inizio del layer è in questa pagina e non è già stata aggiunta
-                            if start >= page_start_time and label_key not in self._labels_added:
-                                ax_pitch.text(
-                                    start + 0.5, # Un po' a destra dell'inizio per leggibilità
-                                    y_max - 0.2, # In cima al grafico
-                                    layer_info['layer_name'],
-                                    ha='left', va='top', fontsize='x-small',
-                                    color=layer_color, alpha=0.8, weight='bold'
-                                )
-                                self._labels_added.add(label_key)
-
-                for item in plot_data_list:
-                    if item['start'] < page_end_time and (item['start'] + item['duration']) > page_start_time:
-                        ax_pitch.add_patch(plt.Rectangle((item['start'], item['pitch'] - 0.04), item['duration'], 0.08, color=plt.cm.viridis(item['amp_norm']), alpha=0.6, zorder=3))
                 page_onsets = [o for o in all_onsets if page_start_time <= o < page_end_time]
                 if page_onsets:
                     ax_pitch.vlines(page_onsets, ymin=OTTAVE_RANGE[0] - 1, ymax=OTTAVE_RANGE[1] + 1, color='dodgerblue', linestyle=':', linewidth=0.9, alpha=0.6, label='Attivazione')
                 
-                current_page_duration = page_duration_s if not partitura_mode else (page_end_time - page_start_time)
-                self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section, current_page_duration)
-
-                # --- MODIFICA: Logica di calcolo e disegno dei marcatori di sezione ---
-                end_time_of_last_section = 0.0
-                for section in composition_structure:
-                    # Calcola i tempi di inizio e fine corretti per la sezione
-                    offset = section.get('offset_inizio', 0.0)
-                    section_start = max(0.0, end_time_of_last_section + offset)
-                    scaled_duration = section.get('durata', 0) * section.get('ratio_temporale', 1.0)
-                    section_end = section_start + scaled_duration
-                    
-                    # Disegna la linea di INIZIO (verde) se è visibile in questa pagina
-                    if page_start_time <= section_start < page_end_time:
-                        label_text = f"Inizio: {section['nome_sezione']}" if 'inizio_'+section['nome_sezione'] not in self._labels_added else ""
-                        ax_pitch.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2, label=label_text)
-                        ax_dyn_linear.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2)
-                        ax_dyn_prob.axvline(x=section_start, color='green', linestyle='--', linewidth=1.2)
-                        self._labels_added.add('inizio_'+section['nome_sezione'])
-                    
-                    # Disegna la linea di FINE (rossa) se è visibile in questa pagina
-                    if page_start_time <= section_end < page_end_time:
-                        label_text = f"Fine: {section['nome_sezione']}" if 'fine_'+section['nome_sezione'] not in self._labels_added else ""
-                        ax_pitch.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2, label=label_text)
-                        ax_dyn_linear.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2)
-                        ax_dyn_prob.axvline(x=section_end, color='r', linestyle='--', linewidth=1.2)
-                        self._labels_added.add('fine_'+section['nome_sezione'])
-                        
-                    # Aggiorna il punto di riferimento per la prossima sezione
-                    end_time_of_last_section = section_end
-                # --- FINE MODIFICA ---
-
-                handles, labels = ax_pitch.get_legend_handles_labels()
-                handles_dur, labels_dur = ax_dur.get_legend_handles_labels()
-                handles_dyn_lin, labels_dyn_lin = ax_dyn_linear.get_legend_handles_labels()
-                handles_dyn_prob, labels_dyn_prob = ax_dyn_prob.get_legend_handles_labels()
+                self._plot_tendency_masks(ax_pitch, ax_dur, ax_dyn_linear, ax_dyn_prob, composition_structure, composer, onsets_by_section, page_end_time - page_start_time)
                 
-                all_handles = handles + handles_dur + handles_dyn_lin + handles_dyn_prob
-                all_labels = labels + labels_dur + labels_dyn_lin + labels_dyn_prob
+                self._draw_section_markers((ax_pitch, ax_dyn_linear, ax_dyn_prob), composition_structure, page_start_time, page_end_time)
                 
-                fig.legend(all_handles, all_labels,
-                           loc='lower center', bbox_to_anchor=(0.5, -0.08), ncol=8, fontsize='x-small')
+                # --- FASE 5: Finalizzazione e Salvataggio ---
+                self._collect_and_draw_legend(fig, [ax_pitch, ax_dyn_linear, ax_dyn_prob])
 
                 fig.tight_layout(rect=[0, 0.07, 1, 0.95])
-                
                 pdf.savefig(fig)
                 plt.close(fig)
 

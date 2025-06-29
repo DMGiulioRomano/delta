@@ -31,7 +31,7 @@ py:
 
 clean:
 	@echo "--- Pulizia delle cartelle csd/ e wav/ e dei file generati... ---"
-	rm -rf $(OUT_DIR)
+	rm -rf $(OUT_DIR) sco
 	@echo "Pulizia completata."
 
 
