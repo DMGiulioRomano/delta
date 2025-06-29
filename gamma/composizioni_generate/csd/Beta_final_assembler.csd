@@ -24,8 +24,8 @@ instr playFile
 endin
 </CsInstruments>
 <CsScore>
-i "orchestrator" 373.0000 [60*8-373.0000] "composizioni_generate/wav/sections/Beta_part_2_sec_4_vi_.wav"
-i "orchestrator" 353.0000 [60*8-353.0000] "composizioni_generate/wav/sections/Beta_part_2_sec_3_v_.wav"
+i "orchestrator" 374.7000 [60*8-374.7000] "composizioni_generate/wav/sections/Beta_part_2_sec_4_vi_.wav"
+i "orchestrator" 354.7000 [60*8-354.7000] "composizioni_generate/wav/sections/Beta_part_2_sec_3_v_.wav"
 i "orchestrator" 275.0000 [60*8-275.0000] "composizioni_generate/wav/sections/Beta_part_2_sec_2_iv_te_rompo_rculo.wav"
 i "orchestrator" 275.0000 [60*8-275.0000] "composizioni_generate/wav/sections/Beta_part_2_sec_1_iii_.wav"
 i "orchestrator" 140.0000 [60*8-140.0000] "composizioni_generate/wav/sections/Beta_part_1_sec_2_ii_solo_ripresaglissante.wav"

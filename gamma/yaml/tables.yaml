@@ -59,7 +59,7 @@ event_envelopes:
     size: 4096
     gen_routine: 5
     # Attacco rapidissimo (in 1/8 della durata), decadimento lento
-    parameters: [0.001, 128, 1, 3968, 0.0001]
+    parameters: [0.001, 128, 1, 2048, 1, 1920, 0.0001]
 
 section_envelopes:
   continua:

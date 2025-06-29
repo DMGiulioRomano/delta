@@ -48,7 +48,7 @@ instr Init
 endin
 </CsInstruments>
 <CsScore>
-f 0 120.12824575771603 ; Evento f fittizio per definire la durata totale
+f 0 117.41911701735448 ; Evento f fittizio per definire la durata totale
 f1 0 4096 10 1
 
 
@@ -70,7 +70,7 @@ f 6 0 4096 7 0 3072 1 1024 0
 ; sostenuto
 f 7 0 4096 7 0 512 1 3072 1 512 0
 ; mega-impulsivo
-f 8 0 4096 5 0.001 128 1 3968 0.0001
+f 8 0 4096 5 0.001 128 1 2048 1 1920 0.0001
 ; continua
 f 20 0 4096 7 1 4096 1
 ; crescendo_lento
@@ -87,21 +87,21 @@ f 25 0 4096 6 1 4096 0.001
 
 f 1000 0 11 -2 3 2 4 5 3 2 4 1 3 2 4
 f 1001 0 11 -2 0 1 2 3 1 1 2 0 2 1 2
-f 1002 0 3 -2 3 4 2
-f 1003 0 3 -2 0 1 0
-f 1004 0 3 -2 2 3 5
+f 1002 0 3 -2 2 3 5
+f 1003 0 3 -2 0 1 2
+f 1004 0 3 -2 8 12 8
 f 1005 0 3 -2 0 1 2
 f 1006 0 3 -2 1 2 3
 f 1007 0 3 -2 0 1 2
-f 1008 0 3 -2 8 12 8
+f 1008 0 3 -2 6 8 10
 f 1009 0 3 -2 0 1 2
-f 1010 0 3 -2 6 8 10
-f 1011 0 3 -2 0 1 2
+f 1010 0 3 -2 3 4 2
+f 1011 0 3 -2 0 1 0
 f 1012 0 3 -2 7 9 12
 f 1013 0 3 -2 0 1 2
 
 
-i "time" 0 120.12824575771603
+i "time" 0 117.41911701735448
 i "Init" 0 0.1
 
 ; --- EVENTI GENERATI ---
@@ -112,361 +112,389 @@ i "Init" 0 0.1
 ; =============================================================================
 
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.0433	0.466	1006	0.233		0.000000	8		17			8		17		1007	1665		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.9649	0.214	1002	0.214		0.000000	8		0			8		1		1003	1756		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.2095	0.335	1006	0.168		0.000000	8		12			8		12		1007	1666		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.4075	0.372	1006	0.162		0.000000	8		14			8		14		1007	1757		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.3796	0.669	1004	0.291		0.000000	8		9			8		9		1005	1667		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.9409	0.783	1010	0.391		0.000000	8		16			8		16		1011	1758		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.1788	0.406	1004	0.203		0.000000	8		14			8		14		1005	1668		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.6422	0.654	1002	0.327		0.000000	8		16			8		16		1003	1760		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	96.4940	0.880	1004	0.383		0.000000	8		11			8		11		1005	1669		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.0182	0.291	1006	0.126		0.000000	8		14			8		14		1007	1762		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	95.6652	0.248	1004	0.124		0.000000	8		5			8		5		1005	1670		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.2781	0.488	1002	0.244		0.000000	8		12			8		12		1003	1763		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.0177	0.508	1006	0.221		0.000000	8		9			8		9		1007	1671		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.5955	0.608	1006	0.264		0.000000	8		11			8		11		1007	1764		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.3003	0.774	1006	0.387		0.000000	8		15			8		15		1007	1672		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.5619	0.421	1002	0.211		0.000000	8		14			8		14		1003	1767		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	93.0595	0.717	1008	0.312		0.000000	8		11			8		11		1009	1674		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	95.4518	0.580	1002	0.252		0.000000	8		9			8		9		1003	1769		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.4096	0.784	1004	0.341		0.000000	8		9			8		9		1005	1675		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.7210	0.363	1012	0.363		0.000000	8		10			8		10		1013	1770		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.0218	0.717	1006	0.312		0.000000	8		11			8		11		1007	1676		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.8105	0.546	1002	0.273		0.000000	8		20			8		20		1003	1771		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	92.5876	0.700	1002	0.305		0.000000	8		13			8		13		1003	1677		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.0980	0.719	1004	0.312		0.000000	8		20			8		20		1005	1772		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	94.7671	0.293	1002	0.293		0.000000	8		9			8		9		1003	1678		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.7940	0.101	1002	0.101		0.000000	8		18			8		18		1003	1773		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.1198	0.357	1004	0.155		0.000000	8		8			8		8		1005	1679		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.3387	0.475	1010	0.237		0.000000	8		12			8		12		1011	1775		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.3179	0.522	1004	0.227		0.000000	8		16			8		16		1005	1680		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.1283	0.574	1006	0.249		0.000000	8		10			8		10		1007	1776		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.0536	0.384	1004	0.384		0.000000	8		15			8		15		1005	1681		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.8049	0.334	1010	0.167		0.000000	8		26			8		26		1011	1777		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	94.7109	0.340	1002	0.340		0.000000	8		13			8		13		1003	1683		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.8581	0.608	1010	0.264		0.000000	8		12			8		12		1011	1778		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	97.0424	0.919	1004	0.400		0.000000	8		12			8		12		1005	1684		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.7560	0.735	1002	0.320		0.000000	8		16			8		16		1003	1779		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9659	0.352	1002	0.176		0.000000	8		43			8		43		1003	1685		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.3395	0.863	1004	0.375		0.000000	8		13			8		13		1005	1780		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	95.7621	0.239	1002	0.239		0.000000	8		26			8		26		1003	1686		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.4447	0.433	1010	0.188		0.000000	8		23			8		23		1011	1781		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.4826	0.281	1006	0.122		0.000000	8		35			8		35		1007	1687		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.8559	0.261	1010	0.113		0.000000	8		17			8		17		1011	1783		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.6924	0.824	1006	0.358		0.000000	8		18			8		18		1007	1688		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	92.2284	0.649	1008	0.282		0.000000	8		22			8		22		1009	1784		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.6629	0.762	1002	0.331		0.000000	8		16			8		16		1003	1689		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.1735	0.776	1010	0.337		0.000000	8		2			8		2		1011	1785		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	99.6048	0.426	1004	0.213		0.000000	8		39			8		39		1005	1691		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.5314	0.486	1004	0.211		0.000000	8		11			8		11		1005	1786		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.9991	0.748	1010	0.374		0.000000	8		6			8		6		1011	1692		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.6387	0.811	1002	0.352		0.000000	8		27			8		27		1003	1787		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	96.8714	0.892	1002	0.388		0.000000	8		-1			8		1		1003	1693		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.8436	0.307	1002	0.154		0.000000	8		18			8		18		1003	1788		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	99.4210	0.441	1010	0.221		0.000000	8		19			8		19		1011	1694		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	94.5167	0.327	1002	0.327		0.000000	8		25			8		25		1003	1789		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.1688	0.303	1002	0.152		0.000000	8		2			8		2		1003	1695		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.2141	0.442	1004	0.221		0.000000	8		17			8		17		1005	1790		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.0018	0.375	1004	0.163		0.000000	8		13			8		13		1005	1696		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.8433	0.521	1004	0.260		0.000000	8		19			8		19		1005	1791		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	96.6578	0.463	1004	0.231		0.000000	8		12			8		12		1005	1697		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.7942	0.792	1012	0.344		0.000000	8		13			8		13		1013	1793		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.1787	0.684	1006	0.342		0.000000	8		29			8		29		1007	1698		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	97.6842	0.239	1012	0.119		0.000000	8		21			8		21		1013	1794		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.9614	0.415	1004	0.207		0.000000	8		36			8		36		1005	1699		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.0012	0.386	1010	0.193		0.000000	8		7			8		7		1011	1795		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.2950	0.216	1004	0.108		0.000000	8		18			8		18		1005	1700		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.0746	0.393	1012	0.393		0.000000	8		0			8		1		1013	1796		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.5937	0.237	1004	0.237		0.000000	8		-5			8		1		1005	1701		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.6547	0.612	1006	0.266		0.000000	8		38			8		38		1007	1797		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.9254	0.311	1004	0.135		0.000000	8		17			8		17		1005	1702		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.9439	0.475	1008	0.238		0.000000	8		-4			8		1		1009	1798		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.3435	0.299	1006	0.149		0.000000	8		22			8		22		1007	1703		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.1636	0.229	1010	0.229		0.000000	8		9			8		9		1011	1801		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.8971	0.117	1012	0.117		0.000000	8		-10			8		1		1013	1704		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.3701	0.566	1004	0.246		0.000000	8		-13			8		1		1005	1802		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.0549	0.329	1002	0.143		0.000000	8		15			8		15		1003	1705		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.1229	0.195	1002	0.195		0.000000	8		11			8		11		1003	1803		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.6291	0.389	1002	0.169		0.000000	8		11			8		11		1003	1706		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.3670	0.793	1002	0.345		0.000000	8		29			8		29		1003	1804		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.1044	0.541	1006	0.235		0.000000	8		10			8		10		1007	1707		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.4896	0.393	1002	0.197		0.000000	8		8			8		8		1003	1805		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.3431	0.681	1004	0.340		0.000000	8		29			8		29		1005	1709		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.6529	0.875	1010	0.380		0.000000	8		33			8		33		1011	1806		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.7957	0.327	1002	0.163		0.000000	8		41			8		41		1003	1711		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.1583	0.590	1008	0.295		0.000000	8		0			8		1		1009	1807		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.0802	0.359	1002	0.359		0.000000	8		20			8		20		1003	1712		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.2814	0.526	1010	0.263		0.000000	8		27			8		27		1011	1808		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.4983	0.186	1004	0.186		0.000000	8		16			8		16		1005	1713		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.5782	0.349	1010	0.152		0.000000	8		14			8		14		1011	1810		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.8821	0.293	1010	0.147		0.000000	8		22			8		22		1011	1714		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.7418	0.251	1002	0.251		0.000000	8		6			8		6		1003	1811		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.6535	0.306	1010	0.153		0.000000	8		4			8		4		1011	1715		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.8067	0.287	1010	0.144		0.000000	8		25			8		25		1011	1812		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.6211	0.301	1002	0.301		0.000000	8		15			8		15		1003	1717		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.0155	0.322	1002	0.322		0.000000	8		48			8		48		1003	1813		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9675	0.306	1006	0.153		0.000000	8		22			8		22		1007	1718		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.6525	0.379	1010	0.165		0.000000	8		-16			8		1		1011	1814		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.3458	0.594	1010	0.297		0.000000	8		45			8		45		1011	1719		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.3070	0.335	1010	0.335		0.000000	8		27			8		27		1011	1815		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.9342	0.386	1004	0.168		0.000000	8		18			8		18		1005	1720		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.9840	0.557	1002	0.279		0.000000	8		15			8		15		1003	1816		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1866	0.460	1004	0.230		0.000000	8		32			8		32		1005	1721		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.2296	0.255	1002	0.255		0.000000	8		51			8		50		1003	1817		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.9201	0.333	1012	0.145		0.000000	8		34			8		34		1013	1722		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.9480	0.693	1002	0.301		0.000000	8		21			8		21		1003	1818		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.6599	0.121	1012	0.121		0.000000	8		4			8		4		1013	1723		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.0109	0.273	1010	0.273		0.000000	8		-2			8		1		1011	1819		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.7839	0.584	1006	0.292		0.000000	8		28			8		28		1007	1725		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.4854	0.596	1002	0.259		0.000000	8		1			8		1		1003	1820		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.0216	0.327	1002	0.142		0.000000	8		24			8		24		1003	1726		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.6797	0.315	1006	0.157		0.000000	8		54			8		50		1007	1821		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.3854	0.777	1002	0.338		0.000000	8		14			8		14		1003	1727		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.8166	0.391	1002	0.196		0.000000	8		74			8		50		1003	1822		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.4181	0.796	1006	0.398		0.000000	8		30			8		30		1007	1728		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.2180	0.540	1012	0.270		0.000000	8		9			8		9		1013	1823		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.8030	0.308	1006	0.134		0.000000	8		12			8		12		1007	1729		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.1031	0.263	1006	0.114		0.000000	8		52			8		50		1007	1824		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.2808	0.475	1008	0.238		0.000000	8		16			8		16		1009	1730		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.8917	0.161	1012	0.161		0.000000	8		11			8		11		1013	1825		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	98.9584	0.662	1002	0.288		0.000000	8		21			8		21		1003	1731		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.3435	0.214	1002	0.214		0.000000	8		3			8		3		1003	1826		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.6440	0.201	1002	0.201		0.000000	8		48			8		48		1003	1732		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.4637	0.461	1006	0.200		0.000000	8		-9			8		1		1007	1827		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.9180	0.362	1002	0.157		0.000000	8		23			8		23		1003	1733		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.1935	0.239	1006	0.104		0.000000	8		9			8		9		1007	1828		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.1983	0.496	1002	0.248		0.000000	8		27			8		27		1003	1734		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.1756	0.205	1008	0.205		0.000000	8		19			8		19		1009	1829		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.5061	0.575	1008	0.250		0.000000	8		21			8		21		1009	1735		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.0244	0.208	1002	0.104		0.000000	8		20			8		20		1003	1830		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.4342	0.491	1012	0.214		0.000000	8		42			8		42		1013	1736		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9835	0.016	1004	0.186		0.000000	8		17			8		17		1005	1831		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.3260	0.105	1012	0.105		0.000000	8		-6			8		1		1013	1738		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.8180	0.251	1008	0.251		0.000000	8		1			8		1		1009	1832		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.0019	0.695	1004	0.302		0.000000	8		17			8		17		1005	1739		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.2793	0.787	1006	0.394		0.000000	8		33			8		33		1007	1833		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.6118	0.752	1010	0.376		0.000000	8		0			8		1		1011	1741		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.0929	0.382	1010	0.166		0.000000	8		7			8		7		1011	1834		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.1554	0.429	1006	0.186		0.000000	8		27			8		27		1007	1743		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	96.9274	0.266	1002	0.133		0.000000	8		38			8		38		1003	1835		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.7477	0.610	1004	0.305		0.000000	8		17			8		17		1005	1744		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	98.8870	0.267	1006	0.116		0.000000	8		26			8		26		1007	1836		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.2381	0.135	1002	0.135		0.000000	8		7			8		7		1003	1745		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.5841	0.796	1006	0.346		0.000000	8		-12			8		1		1007	1837		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.5346	0.382	1004	0.382		0.000000	8		23			8		23		1005	1746		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.2076	0.812	1002	0.353		0.000000	8		26			8		26		1003	1838		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.9482	0.329	1004	0.329		0.000000	8		13			8		13		1005	1747		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.8680	0.430	1006	0.187		0.000000	8		11			8		11		1007	1839		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.8172	0.688	1006	0.344		0.000000	8		6			8		6		1007	1748		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.7607	0.362	1006	0.157		0.000000	8		37			8		37		1007	1840		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.0892	0.160	1012	0.160		0.000000	8		17			8		17		1013	1749		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5401	0.460	1010	0.356		0.000000	8		8			8		8		1011	1841		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.9389	0.761	1002	0.331		0.000000	8		33			8		33		1003	1750		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5117	0.488	1010	0.304		0.000000	8		3			8		3		1011	1842		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.6211	0.701	1010	0.305		0.000000	8		16			8		16		1011	1751		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.9653	0.355	1002	0.155		0.000000	8		15			8		15		1003	1843		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.8939	0.797	1004	0.398		0.000000	8		32			8		32		1005	1752		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.9729	0.000	1010	0.229		0.000000	8		6			8		6		1011	1844		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.1588	0.579	1004	0.252		0.000000	8		34			8		34		1005	1753		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.9717	0.876	1002	0.381		0.000000	8		6			8		6		1003	1845		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9907	0.482	1004	0.209		0.000000	8		-21			8		1		1005	1754		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.4802	0.305	1010	0.305		0.000000	8		-27			8		1		1011	1846		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.3193	0.132	1010	0.132		0.000000	8		-11			8		1		1011	1755		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.6882	0.508	1006	0.254		0.000000	8		-7			8		1		1007	1847		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.4119	0.282	1002	0.141		0.000000	8		26			8		26		1003	1756		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5429	0.457	1010	0.394		0.000000	8		-38			8		1		1011	1848		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1937	0.702	1004	0.351		0.000000	8		29			8		29		1005	1757		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.2864	0.111	1010	0.111		0.000000	8		-1			8		1		1011	1849		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.1076	0.325	1002	0.141		0.000000	8		8			8		8		1003	1758		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.9951	0.662	1006	0.288		0.000000	8		14			8		14		1007	1850		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.0877	0.349	1008	0.349		0.000000	8		56			8		50		1009	1759		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5375	0.462	1002	0.330		0.000000	8		24			8		24		1003	1851		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.4860	0.385	1006	0.168		0.000000	8		13			8		13		1007	1760		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.3448	0.661	1002	0.331		0.000000	8		24			8		24		1003	1853		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.1964	0.597	1008	0.298		0.000000	8		24			8		24		1009	1762		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.4559	0.764	1006	0.382		0.000000	8		17			8		17		1007	1854		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.3655	0.701	1004	0.305		0.000000	8		-7			8		1		1005	1763		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.1621	0.642	1008	0.321		0.000000	8		36			8		36		1009	1855		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.9922	0.008	1002	0.330		0.000000	8		12			8		12		1003	1764		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.9743	0.486	1012	0.211		0.000000	8		-14			8		1		1013	1856		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.1969	0.634	1002	0.276		0.000000	8		34			8		34		1003	1765		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.6914	0.199	1002	0.199		0.000000	8		33			8		33		1003	1857		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.8169	0.467	1008	0.203		0.000000	8		33			8		33		1009	1766		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	99.9481	0.511	1010	0.255		0.000000	8		46			8		46		1011	1858		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.5506	0.421	1002	0.210		0.000000	8		22			8		22		1003	1767		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.4856	0.825	1002	0.359		0.000000	8		25			8		25		1003	1860		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.2974	0.720	1002	0.313		0.000000	8		34			8		34		1003	1768		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.2006	0.278	1008	0.278		0.000000	8		16			8		16		1009	1861		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.6129	0.000	1004	0.306		0.000000	8		54			8		50		1005	1769		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.1731	0.615	1002	0.267		0.000000	8		2			8		2		1003	1862		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.9057	0.094	1004	0.268		0.000000	8		29			8		29		1005	1770		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5241	0.254	1008	0.254		0.000000	8		-15			8		1		1009	1863		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.2087	0.232	1002	0.232		0.000000	8		-3			8		1		1003	1771		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.6951	0.446	1010	0.223		0.000000	8		16			8		16		1011	1864		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	106.3909	0.000	1006	0.277		0.000000	8		5			8		5		1007	1772		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.2923	0.158	1008	0.158		0.000000	8		30			8		30		1009	1865		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.2181	0.587	1002	0.255		0.000000	8		-3			8		1		1003	1774		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.7034	0.251	1004	0.251		0.000000	8		66			8		50		1005	1866		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.7058	0.308	1006	0.134		0.000000	8		-33			8		1		1007	1775		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.6904	0.577	1008	0.251		0.000000	8		23			8		23		1009	1867		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.0054	0.651	1010	0.326		0.000000	8		-5			8		1		1011	1776		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.7579	0.390	1002	0.390		0.000000	8		-29			8		1		1003	1869		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.3693	0.257	1002	0.129		0.000000	8		30			8		30		1003	1777		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.0977	0.193	1008	0.193		0.000000	8		55			8		50		1009	1870		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1809	0.154	1004	0.154		0.000000	8		23			8		23		1005	1778		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.9849	0.412	1002	0.179		0.000000	8		-9			8		1		1003	1871		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.4696	0.873	1006	0.380		0.000000	8		33			8		33		1007	1779		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.1542	0.166	1010	0.166		0.000000	8		11			8		11		1011	1872		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.6925	0.701	1008	0.350		0.000000	8		-13			8		1		1009	1780		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.4384	0.000	1002	0.391		0.000000	8		-3			8		1		1003	1873		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1099	0.402	1002	0.175		0.000000	8		22			8		22		1003	1781		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.5977	0.000	1010	0.262		0.000000	8		-3			8		1		1011	1874		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.7407	0.148	1004	0.148		0.000000	8		-21			8		1		1005	1782		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.9711	0.411	1002	0.206		0.000000	8		-6			8		1		1003	1876		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.7042	0.296	1004	0.149		0.000000	8		19			8		19		1005	1784		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9748	0.025	1002	0.106		0.000000	8		8			8		8		1003	1877		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.7304	0.771	1002	0.335		0.000000	8		-2			8		1		1003	1785		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.2773	0.744	1002	0.324		0.000000	8		71			8		50		1003	1878		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.4082	0.370	1008	0.161		0.000000	8		9			8		9		1009	1786		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.2061	0.487	1012	0.244		0.000000	8		14			8		14		1013	1879		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.3497	0.000	1004	0.247		0.000000	8		-22			8		1		1005	1787		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.0305	0.204	1002	0.204		0.000000	8		25			8		25		1003	1880		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9209	0.225	1006	0.113		0.000000	8		3			8		3		1007	1788		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.8201	0.577	1006	0.288		0.000000	8		29			8		29		1007	1881		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.2746	0.282	1010	0.282		0.000000	8		15			8		15		1011	1790		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.4639	0.267	1012	0.116		0.000000	8		41			8		41		1013	1882		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.4992	0.501	1004	0.312		0.000000	8		21			8		21		1005	1791		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.9047	0.782	1002	0.391		0.000000	8		0			8		1		1003	1883		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.5170	0.465	1002	0.232		0.000000	8		19			8		19		1003	1792		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.6923	0.425	1006	0.213		0.000000	8		25			8		25		1007	1885		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.6871	0.497	1006	0.249		0.000000	8		18			8		18		1007	1793		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.7188	0.781	1006	0.391		0.000000	8		-15			8		1		1007	1887		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1690	0.403	1008	0.202		0.000000	8		3			8		3		1009	1794		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.0840	0.351	1008	0.351		0.000000	8		10			8		10		1009	1888		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.9629	0.247	1002	0.123		0.000000	8		42			8		42		1003	1795		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.8730	0.833	1010	0.362		0.000000	8		47			8		47		1011	1889		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.0449	0.265	1008	0.115		0.000000	8		20			8		20		1009	1796		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.7001	0.173	1010	0.173		0.000000	8		24			8		24		1011	1890		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9232	0.369	1006	0.161		0.000000	8		-32			8		1		1007	1797		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.8578	0.000	1010	0.385		0.000000	8		7			8		7		1011	1891		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.3110	0.633	1004	0.275		0.000000	8		32			8		32		1005	1798		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.5506	0.000	1010	0.293		0.000000	8		59			8		50		1011	1892		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.1726	0.289	1002	0.144		0.000000	8		6			8		6		1003	1799		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.9346	0.659	1002	0.330		0.000000	8		31			8		31		1003	1893		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.8112	0.453	1006	0.226		0.000000	8		-41			8		1		1007	1800		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.7322	0.000	1010	0.286		0.000000	8		-6			8		1		1011	1894		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.1506	0.570	1002	0.285		0.000000	8		-7			8		1		1003	1801		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.3971	0.000	1002	0.116		0.000000	8		5			8		5		1003	1895		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	110.1282	0.000	1004	0.301		0.000000	8		6			8		6		1005	1802		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.1682	0.000	1010	0.337		0.000000	8		10			8		10		1011	1896		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.1709	0.310	1002	0.135		0.000000	8		32			8		32		1003	1803		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.3842	0.499	1010	0.217		0.000000	8		34			8		34		1011	1897		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.7705	0.377	1004	0.377		0.000000	8		-7			8		1		1005	1804		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9607	0.039	1012	0.214		0.000000	8		23			8		23		1013	1898		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.5273	0.473	1010	0.398		0.000000	8		5			8		5		1011	1805		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9346	0.065	1004	0.267		0.000000	8		-6			8		1		1005	1899		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.1439	0.824	1010	0.358		0.000000	8		-24			8		1		1011	1806		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9019	0.098	1002	0.133		0.000000	8		8			8		8		1003	1900		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	99.3388	0.531	1006	0.231		0.000000	8		-17			8		1		1007	1807		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9625	0.038	1010	0.391		0.000000	8		44			8		44		1011	1901		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.7135	0.287	1002	0.319		0.000000	8		27			8		27		1003	1808		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.0276	0.000	1006	0.161		0.000000	8		4			8		4		1007	1902		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.3011	0.341	1006	0.148		0.000000	8		-2			8		1		1007	1809		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.4097	0.390	1008	0.390		0.000000	8		51			8		50		1009	1903		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.9203	0.080	1010	0.315		0.000000	8		15			8		15		1011	1810		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	100.1702	0.502	1002	0.251		0.000000	8		53			8		50		1003	1904		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.6178	0.643	1002	0.322		0.000000	8		18			8		18		1003	1812		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.9241	0.661	1010	0.331		0.000000	8		6			8		6		1011	1905		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	100.6386	0.169	1010	0.169		0.000000	8		6			8		6		1011	1813		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.8156	0.184	1002	0.314		0.000000	8		-16			8		1		1003	1906		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.0332	0.552	1004	0.240		0.000000	8		1			8		1		1005	1814		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.5892	0.657	1002	0.329		0.000000	8		47			8		47		1003	1907		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.2447	0.337	1010	0.337		0.000000	8		-3			8		1		1011	1815		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.1909	0.808	1006	0.351		0.000000	8		50			8		50		1007	1908		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.5969	0.403	1006	0.305		0.000000	8		14			8		14		1007	1816		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.9751	0.439	1010	0.219		0.000000	8		52			8		50		1011	1909		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.4631	0.434	1004	0.189		0.000000	8		30			8		30		1005	1817		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.7383	0.000	1006	0.238		0.000000	8		-48			8		1		1007	1911		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.8088	0.191	1002	0.121		0.000000	8		-29			8		1		1003	1818		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	107.1800	0.000	1010	0.243		0.000000	8		82			8		50		1011	1912		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	99.6729	0.717	1010	0.358		0.000000	8		38			8		38		1011	1819		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.7505	0.296	1002	0.296		0.000000	8		-15			8		1		1003	1913		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	106.8577	0.000	1002	0.397		0.000000	8		-5			8		1		1003	1821		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.5196	0.537	1006	0.234		0.000000	8		-7			8		1		1007	1914		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9127	0.253	1002	0.253		0.000000	8		-1			8		1		1003	1822		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.8258	0.174	1006	0.344		0.000000	8		2			8		2		1007	1915		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.6468	0.784	1012	0.341		0.000000	8		-65			8		1		1013	1823		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.3310	0.669	1006	0.304		0.000000	8		26			8		26		1007	1916		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.5605	0.000	1002	0.280		0.000000	8		20			8		20		1003	1824		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.5183	0.472	1006	0.205		0.000000	8		42			8		42		1007	1917		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.0958	0.755	1006	0.328		0.000000	8		75			8		50		1007	1825		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	107.4191	0.000	1006	0.315		0.000000	8		43			8		43		1007	1918		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.0730	0.102	1004	0.102		0.000000	8		17			8		17		1005	1826		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.5875	0.000	1006	0.109		0.000000	8		-3			8		1		1007	1919		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.2453	0.147	1004	0.147		0.000000	8		-8			8		1		1005	1827		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5346	0.459	1002	0.230		0.000000	8		61			8		50		1003	1920		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1720	0.412	1002	0.206		0.000000	8		18			8		18		1003	1828		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.3242	0.000	1012	0.193		0.000000	8		0			8		1		1013	1921		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.9609	0.039	1002	0.345		0.000000	8		43			8		43		1003	1829		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.5355	0.000	1006	0.385		0.000000	8		36			8		36		1007	1922		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	106.4509	0.000	1002	0.161		0.000000	8		24			8		24		1003	1830		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5184	0.482	1012	0.284		0.000000	8		53			8		50		1013	1923		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.8178	0.425	1002	0.185		0.000000	8		-22			8		1		1003	1831		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.6778	0.201	1008	0.201		0.000000	8		44			8		44		1009	1924		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.0953	0.772	1010	0.336		0.000000	8		0			8		1		1011	1832		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.2162	0.000	1002	0.400		0.000000	8		41			8		41		1003	1925		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.9282	0.237	1004	0.103		0.000000	8		9			8		9		1005	1833		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.8575	0.143	1006	0.111		0.000000	8		22			8		22		1007	1926		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.0330	0.755	1002	0.378		0.000000	8		-15			8		1		1003	1834		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.5687	0.666	1006	0.333		0.000000	8		0			8		1		1007	1927		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.3362	0.284	1006	0.142		0.000000	8		-60			8		1		1007	1837		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.5439	0.228	1010	0.228		0.000000	8		3			8		3		1011	1928		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.9713	0.280	1008	0.140		0.000000	8		11			8		11		1009	1838		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.5879	0.301	1004	0.301		0.000000	8		-16			8		1		1005	1929		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.7231	0.000	1004	0.316		0.000000	8		-23			8		1		1005	1839		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.9670	0.521	1002	0.227		0.000000	8		9			8		9		1003	1931		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.3626	0.357	1002	0.357		0.000000	8		-1			8		1		1003	1841		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.7551	0.221	1002	0.221		0.000000	8		-2			8		1		1003	1932		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	101.6402	0.256	1006	0.111		0.000000	8		-59			8		1		1007	1842		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.6691	0.331	1008	0.283		0.000000	8		45			8		45		1009	1933		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	99.8862	0.389	1004	0.169		0.000000	8		59			8		50		1005	1843		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.5572	0.570	1002	0.285		0.000000	8		8			8		8		1003	1934		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.4842	0.000	1002	0.218		0.000000	8		48			8		48		1003	1844		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.8260	0.000	1006	0.376		0.000000	8		-8			8		1		1007	1935		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	107.3160	0.000	1004	0.182		0.000000	8		-13			8		1		1005	1845		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.8121	0.000	1002	0.172		0.000000	8		46			8		46		1003	1936		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.4090	0.891	1006	0.387		0.000000	8		-12			8		1		1007	1846		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.9885	0.762	1006	0.381		0.000000	8		55			8		50		1007	1939		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.4196	0.234	1006	0.117		0.000000	8		-42			8		1		1007	1847		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.9792	0.000	1002	0.240		0.000000	8		20			8		20		1003	1940		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.1192	0.666	1002	0.289		0.000000	8		15			8		15		1003	1848		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.2044	0.250	1002	0.250		0.000000	8		25			8		25		1003	1941		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.9093	0.537	1002	0.234		0.000000	8		64			8		50		1003	1849		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	101.4469	0.674	1006	0.293		0.000000	8		26			8		26		1007	1942		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	102.7631	0.475	1012	0.207		0.000000	8		7			8		7		1013	1851		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.6680	0.332	1010	0.368		0.000000	8		-25			8		1		1011	1943		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.3592	0.000	1012	0.191		0.000000	8		24			8		24		1013	1852		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.4812	0.640	1006	0.278		0.000000	8		-21			8		1		1007	1945		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.4168	0.583	1010	0.372		0.000000	8		17			8		17		1011	1853		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.2917	0.000	1010	0.237		0.000000	8		23			8		23		1011	1946		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	109.0798	0.000	1012	0.236		0.000000	8		28			8		28		1013	1854		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.8504	0.000	1010	0.216		0.000000	8		33			8		33		1011	1947		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.4910	0.405	1002	0.203		0.000000	8		73			8		50		1003	1855		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9320	0.068	1010	0.295		0.000000	8		43			8		43		1011	1948		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	104.2369	0.715	1006	0.358		0.000000	8		13			8		13		1007	1856		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	103.1058	0.264	1010	0.115		0.000000	8		16			8		16		1011	1949		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	107.0148	0.000	1002	0.198		0.000000	8		38			8		38		1003	1857		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.2948	0.516	1012	0.224		0.000000	8		34			8		34		1013	1950		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.0737	0.000	1004	0.250		0.000000	8		-26			8		1		1005	1858		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	105.5570	0.000	1002	0.213		0.000000	8		23			8		23		1003	1951		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	106.2679	0.000	1006	0.303		0.000000	8		33			8		33		1007	1859		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.4555	0.303	1002	0.132		0.000000	8		23			8		23		1003	1952		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	105.9059	0.000	1004	0.325		0.000000	8		13			8		13		1005	1860		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	106.1569	0.000	1004	0.195		0.000000	8		62			8		50		1005	1953		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	103.2461	0.243	1004	0.122		0.000000	8		14			8		14		1005	1861		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	104.9729	0.027	1008	0.222		0.000000	8		-3			8		1		1009	1955		0				1			3			20			0.0000		150.000		0.000		1
 ;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
-i "Voce"	107.1462	0.000	1006	0.132		0.000000	8		-28			8		1		1007	1862		0				1			3			20			0.0000		150.000		0.000		1
+i "Voce"	102.2311	0.660	1002	0.287		0.000000	8		0			8		1		1003	1956		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.8218	0.178	1010	0.385		0.000000	8		27			8		27		1011	1957		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	107.0067	0.000	1010	0.130		0.000000	8		68			8		50		1011	1958		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.1934	0.218	1010	0.218		0.000000	8		21			8		21		1011	1959		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.7965	0.204	1004	0.297		0.000000	8		1			8		1		1005	1961		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.7036	0.296	1006	0.136		0.000000	8		-7			8		1		1007	1962		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	105.0753	0.000	1002	0.194		0.000000	8		-43			8		1		1003	1963		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.0172	0.667	1012	0.333		0.000000	8		15			8		15		1013	1964		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	106.6259	0.000	1006	0.116		0.000000	8		56			8		50		1007	1965		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	103.7136	0.782	1010	0.340		0.000000	8		26			8		26		1011	1966		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.3258	0.638	1010	0.319		0.000000	8		0			8		1		1011	1967		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	103.8874	0.277	1010	0.277		0.000000	8		19			8		19		1011	1969		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	104.4758	0.478	1010	0.208		0.000000	8		10			8		10		1011	1970		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	106.6113	0.000	1010	0.320		0.000000	8		10			8		10		1011	1971		0				1			3			20			0.0000		150.000		0.000		1
+;			at			dur		tab		armonica	dinamica	ottava	registro	new_ottava	new_registro	pos		id_comp	nonlinearMode	movimento	ifn_attacco	env_sezione	sez_attacco	sez_durata	sez_leeway	 safety_buffer
+i "Voce"	101.4706	0.195	1008	0.195		0.000000	8		-33			8		1		1009	1973		0				1			3			20			0.0000		150.000		0.000		1
 
 ; ---------------------
 
