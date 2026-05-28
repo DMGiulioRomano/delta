@@ -39,9 +39,14 @@ class Brano:
                 else:
                     print(f"Warning: La sezione {whichSezione} non esiste nel dizionario. Saltando...")
 
-    def scriviCsd(self):
+    def scrivi_csd(self):
         for sezione in self.sezioni:
-            sezione.scriviCsd()
+            sezione.scrivi_csd()
+
+    def scriviCsd(self):
+        import warnings
+        warnings.warn("scriviCsd() is deprecated, use scrivi_csd()", DeprecationWarning, stacklevel=2)
+        return self.scrivi_csd()
 
     def __str__(self):
         # Stampa le informazioni di ciascuna sezione

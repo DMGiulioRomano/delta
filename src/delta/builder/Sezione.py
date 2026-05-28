@@ -4,16 +4,16 @@ class Sezione:
     def __init__(self, dizionario):
         self.dizionario = dizionario
         self.lista_tuples = list(dizionario.items())
-        self.generaAttributi()
+        self.genera_attributi()
         self.comportamenti = []
         self.genera_comportamenti()
         self.creaEventi()
 
     def creaEventi(self):
         for c in self.comportamenti:
-            c.creaEventoSonoro(self.spazio)
+            c.crea_evento_sonoro(self.spazio)
 
-    def generaAttributi(self):
+    def genera_attributi(self):
         # Itera su tutta la lista di tuple, partendo dall'indice 0
         for _, (chiave, valore) in enumerate(self.lista_tuples):
             # Assegna sempre dinamicamente l'attributo
@@ -26,9 +26,9 @@ class Sezione:
             self.comportamenti.append(Comportamento(c,index+1))
 
 
-    def scriviCsd(self):
+    def scrivi_csd(self):
         for comportamento in self.comportamenti:
-            comportamento.scriviCsd(self.idSezione)
+            comportamento.scrivi_csd(self.idSezione)
 
     def __str__(self):
         # Elenco degli attributi da escludere

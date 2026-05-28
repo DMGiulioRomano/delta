@@ -12,9 +12,9 @@ class Spazio:
         self.nDottava = dizionario['frequenze'][2]
         self.durate = dizionario.get("durate", [])
         self.ampiezze = dizionario.get("ampiezze", [])
-        self.frequenze = self.creaDimensioneFrequenze()
+        self.frequenze = self.crea_dimensione_frequenze()
 
-    def creaDimensioneFrequenze(self):
+    def crea_dimensione_frequenze(self):
         return self.sistema.frequencies
 
     def genera_e_plotta_funzioni(self):
@@ -122,7 +122,7 @@ class Spazio:
     def sinusoide_smorzata(self,t, A, omega, phi, gamma):
         return A * np.sin(omega * t + phi) * np.exp(-gamma * t)
 
-    def ampiezzaSpazio(self,t,amp,gamma=-.65):
+    def ampiezza_spazio(self,t,amp,gamma=-.65):
         return amp * np.sin(.5 * t + 0) * np.exp(gamma * t)
 
 

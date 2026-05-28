@@ -15,12 +15,12 @@ class Comportamento:
         self.idComportamento = idComportamento
         self.lista_tuples = list(dizionario.items())
         self.lista_tuples.append(("HR", 0))          # Aggiungi la tupla ("HR", 0)
-        self.generaAttributi()
+        self.genera_attributi()
         self.eventiSonori = []
         self._tabelle_cache = {}  # Cache to store created tables
         self._tabelle_generate = set()  # Set to track which tables have been generated
     
-    def generaAttributi(self):
+    def genera_attributi(self):
         # Itera su tutta la lista di tuple, partendo dall'indice 0
         for i, (chiave, valore) in enumerate(self.lista_tuples):
             # Assegna sempre dinamicamente l'attributo
@@ -34,10 +34,10 @@ class Comportamento:
                     setattr(self, f"pfield9", [])
                     
 
-    def creaEventoSonoro(self,spazio):
+    def crea_evento_sonoro(self,spazio):
         self.spazio = spazio
-        self.calcolaPfield2()
-        self.calcolaPfield()
+        self.calcola_pfield2()
+        self.calcola_pfield()
         for i in range(len(self.pfield2)):
             # Trova l'indice della chiave "ritmo" in lista_tuples
             indice_ritmo = next(
@@ -62,7 +62,7 @@ class Comportamento:
             # Crea e aggiungi l'oggetto EventoSonoro alla lista
             self.eventiSonori.append(EventoSonoro(dictEvento))
 
-    def calcolaPfield(self):
+    def calcola_pfield(self):
         self.ritmo = [int(x) for x in self.ritmo]
         self.cycled = cycle(self.ritmo)
         # Ciclo attraverso gli attributi dinamici che iniziano con "pfield"
@@ -102,7 +102,7 @@ class Comportamento:
         else:
             amp=raw_value
             dampening = -.65
-        return round(self.linear2db(self.spazio.ampiezzaSpazio(np.pi/next(self.cycled), self.db2linear(amp),dampening)), 3)
+        return round(self.linear2db(self.spazio.ampiezza_spazio(np.pi/next(self.cycled), self.db2linear(amp),dampening)), 3)
     
     def linear2db(self,g):
         return  20.0 * math.log10(max(sys.float_info.min, g))
@@ -114,10 +114,10 @@ class Comportamento:
         ritmo = next(self.cycled)
         offsetPos = int(raw_value if isinstance(raw_value, (int,float)) else (raw_value[0] if raw_value else 0))
         sign = int(raw_value if isinstance(raw_value, (int,float)) else (raw_value[0] if raw_value else 1))
-        self.creatiTabella(raw_value)
+        self.crea_tabella(raw_value)
         return random.randint(((offsetPos%ritmo)+1), ritmo) * np.sign(sign)
 
-    def creatiTabella(self, raw_value):
+    def crea_tabella(self, raw_value):
         try:
             tabella_nome = raw_value[1] if isinstance(raw_value, list) else "GEN07"
             
@@ -173,7 +173,7 @@ class Comportamento:
         return f
 
 
-    def calcolaPfield2(self):
+    def calcola_pfield2(self):
         self.pfield2 = []
         cycled_ritmo = cycle(self.ritmo)
         cdurata = self.durata if isinstance(self.durata,(float,int)) else self.durata[0]
@@ -188,7 +188,7 @@ class Comportamento:
             cdurata = round(cdurata - self.durataArmonica * ritmoN, 3)
 
 
-    def toCsoundStr(self):
+    def to_csound_str(self):
         # First generate all unique table definitions
         table_definitions = []
         for evento in self.eventiSonori:
@@ -199,13 +199,13 @@ class Comportamento:
                     self._tabelle_generate.add(table_key)
         
         # Then generate all event strings
-        event_strings = [evento.toCsoundStr(skip_table_gen=True) for evento in self.eventiSonori]
+        event_strings = [evento.to_csound_str(skip_table_gen=True) for evento in self.eventiSonori]
         
         # Combine table definitions and event strings
         return "\n".join(table_definitions) + "\n; ---- Eventi sonori ----\n" + "\n".join(event_strings)
 
-    def scriviCsd(self,idSezione):
-        comportamento = self.toCsoundStr()
+    def scrivi_csd(self,idSezione):
+        comportamento = self.to_csound_str()
         directory = "csound/generazione/"
         subdirExport = "wav/"
         namefile = f"-o \"{directory}{subdirExport}sezione{idSezione}-Comportamento{self.idComportamento}.wav\" -W"

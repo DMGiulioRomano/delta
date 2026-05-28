@@ -6,16 +6,16 @@ class EventoSonoro:
         self.dizionario = dizionario
         #pdb.set_trace()
         self.lista_tuples = list(dizionario.items())
-        self.generaAttributi()
+        self.genera_attributi()
 
-    def generaAttributi(self):
+    def genera_attributi(self):
         # Itera su tutta la lista di tuple, partendo dall'indice 0
         for _, (chiave, valore) in enumerate(self.lista_tuples):
             # Assegna sempre dinamicamente l'attributo
             setattr(self, chiave, valore)
             # Crea dinamicamente un attributo "pfield{i}" solo se i >= 3
 
-    def toCsoundStr(self, skip_table_gen=False):
+    def to_csound_str(self, skip_table_gen=False):
         csound_str = ""
         csound_str+=f";i1\t\t|at|\t\t|dur|\t\t|amp|\t\t\t|freqi|\t\t\t|wchZ|\t|HR|\t|freqf|\t\t\t|funPos|" + "\n"
         try:
