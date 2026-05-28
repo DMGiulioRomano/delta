@@ -2,10 +2,10 @@ from itertools import cycle
 import random
 import pdb
 import numpy as np
-from funzioni import *
+from delta.funzioni import *
 import math
 import sys
-from tabelle import *
+from delta.tabelle import *
 from .EventoSonoro import EventoSonoro
 
 class Comportamento:

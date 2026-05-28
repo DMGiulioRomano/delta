@@ -1,5 +1,5 @@
 import pdb 
-from tabelle import Tabella
+from delta.tabelle import Tabella
 
 class EventoSonoro:
     def __init__(self, dizionario):

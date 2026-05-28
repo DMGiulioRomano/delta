@@ -29,9 +29,13 @@ Questo progetto implementa un sistema di sintesi del suono basato su Python e Cs
 │   ├── comportamento2.csd
 │   ├── generazione/
 │   └── wav/
-├── python/
-│   ├── main.py
-│   └── funzioni/
+├── src/delta/
+│   ├── __main__.py
+│   ├── builder/
+│   ├── funzioni/
+│   ├── tabelle/
+│   └── generator/
+├── archive/delta-engine/
 ├── yaml_dir/
 │   ├── brano.yaml
 │   └── sezioni/

@@ -1,7 +1,7 @@
 import yaml
 import os
 import argparse
-from csd_builder import Brano
+from delta.builder import Brano
 import pdb
 
 # Funzione per caricare un file YAML ignorando il contenuto dopo un delimitatore

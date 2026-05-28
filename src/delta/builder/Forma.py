@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from funzioni import *
+from delta.funzioni import *
 
 class Forma:
     def __init__(self, dizionario):

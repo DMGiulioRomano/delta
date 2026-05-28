@@ -253,3 +253,13 @@ $RECYCLE.BIN/
 *.csv
 
 ./gammaCopy
+
+# Editor
+.vscode/
+
+# Python
+__pycache__/
+*.egg-info/
+
+# Output Csound generato
+csound/generazione/
