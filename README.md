@@ -36,7 +36,7 @@ Questo progetto implementa un sistema di sintesi del suono basato su Python e Cs
 │   ├── tabelle/
 │   └── generator/
 ├── archive/delta-engine/
-├── yaml_dir/
+├── compositions/
 │   ├── brano.yaml
 │   └── sezioni/
 └── Makefile
@@ -46,7 +46,7 @@ Questo progetto implementa un sistema di sintesi del suono basato su Python e Cs
 
 ### Configurazione Base
 1. Definisci la struttura del brano nel file `brano.yaml`
-2. Crea le sezioni individuali in `yaml_dir/sezioni/`
+2. Crea le sezioni individuali in `compositions/sezioni/`
 3. Usa il Makefile per generare l'audio
 
 ### Comandi Make

@@ -12,7 +12,7 @@ create_dir:
 
 py: clean create_dir
 	@echo "Running Python script..."
-	python3.11 -m delta yaml_dir/$(YAML).yaml $(if $(SEZIONE),--sezione $(SEZIONE))
+	python3.11 -m delta compositions/$(YAML).yaml $(if $(SEZIONE),--sezione $(SEZIONE))
 
 pyDebug: clean create_dir
 	python3.11 -m delta $(YAML).yaml >logPython.log

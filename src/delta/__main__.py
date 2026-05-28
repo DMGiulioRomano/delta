@@ -22,7 +22,7 @@ def carica_yaml_con_delimitatore(filepath, delimiter="# STOP"):
 # Funzione per caricare una specifica sezione YAML
 def carica_sezione(sezione_nome):
     try:
-        filepath = f"yaml_dir/sezioni/{sezione_nome}.yaml"
+        filepath = f"compositions/sezioni/{sezione_nome}.yaml"
         return carica_yaml_con_delimitatore(filepath)
     except FileNotFoundError:
         print(f"Sezione {sezione_nome} non trovata.")
@@ -31,10 +31,10 @@ def carica_sezione(sezione_nome):
 # Funzione per caricare tutte le sezioni YAML nella directory
 def carica_tutte_sezioni():
     sezioni = {}
-    for filename in os.listdir("yaml_dir/sezioni"):
+    for filename in os.listdir("compositions/sezioni"):
         if filename.endswith(".yaml"):
             sezione_nome = filename.replace(".yaml", "")
-            filepath = f"yaml_dir/sezioni/{filename}"
+            filepath = f"compositions/sezioni/{filename}"
             sezioni[sezione_nome] = carica_yaml_con_delimitatore(filepath)
     return sezioni
 

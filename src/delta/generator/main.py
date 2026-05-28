@@ -21,7 +21,7 @@ def main(debug_level: int = 0):
     )
     
     compositore.componi()
-    compositore.genera_yaml('../../yaml_dir/sezioni/sezioneX.yaml')
+    compositore.genera_yaml('compositions/sezioni/sezioneX.yaml')
 
 if __name__ == "__main__":
     main(debug_level=0)
